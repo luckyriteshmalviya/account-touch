@@ -38,6 +38,8 @@ import AddOrEditProcessTemplatPage from "./pages/Forms/ProcessTemplate/AddOrEdit
 import ViewProcessTemplatPage from "./pages/Forms/ProcessTemplate/ViewProcessTemplatePage";
 import DocumentType from "./pages/Tables/DocumentType";
 import AddOrEditDocumentType from "./pages/Forms/DocumentTypes/AddOrEditDocumentType";
+import Questions from "./pages/Tables/Questions";
+import AddOrEditQuestionPage from "./pages/Forms/Questions/AddOrEditQuestionPage";
 
 export default function App() {
   return (
@@ -319,7 +321,7 @@ export default function App() {
               }
             />
 
-           {/*  <Route
+             <Route
               path="/questions-list"
               element={
                 <ProtectedRoutesLayout>
@@ -344,7 +346,7 @@ export default function App() {
                   <AddOrEditQuestionPage />
                 </ProtectedRoutesLayout>
               }
-            /> */}
+            /> 
           </Route>
 
           {/* Auth Layout */}
