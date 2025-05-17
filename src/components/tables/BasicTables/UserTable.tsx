@@ -210,7 +210,7 @@ export default function UserTableOne() {
             <Table>
               <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                 <TableRow>
-                  {["#", "User name", "Phone Number", "Email", "Roles", "Status", "Assigned To", "Action"].map(
+                  {["S. No.", "User name", "Phone Number", "Email", "Roles", "Status", "Assigned To", "Action"].map(
                     (header) => (
                       <TableCell
                         key={header}
