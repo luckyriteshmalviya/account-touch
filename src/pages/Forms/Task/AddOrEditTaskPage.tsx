@@ -14,11 +14,16 @@ export default function AddOrEditTaskPage() {
     description: "",
     category_id: "",
     template_id: "",
+    status: "draft",
     priority: "medium",
     client_id: "",
     maker_id: "",
     checker_id: "",
     due_date: "",
+    started_at: "",
+    completed_at: "",
+    maker_notes: "",
+    checker_notes: "",
   });
 
 const [Priority, setPriorityTo] = React.useState<string[]>([]);
@@ -38,11 +43,16 @@ const [Priority, setPriorityTo] = React.useState<string[]>([]);
             description: data.description || "",
             category_id: data.category.id || "",
             template_id: data.template.id || "",
+            status: data.status || "draft",
             priority: data.priority || "medium",
             client_id: data?.client?.id || "",
             maker_id: data?.maker?.id || "",
             checker_id: data?.checker?.id || "",
             due_date: data.due_date || "",
+            started_at: data.started_at || "",
+            completed_at: data.completed_at || "",
+            maker_notes: data.maker_notes || "",
+            checker_notes: data.checker_notes || "",
           });
         }
       })();
@@ -62,17 +72,30 @@ const [Priority, setPriorityTo] = React.useState<string[]>([]);
       Swal.fire("Validation Error", "Due date is required!", "warning");
       return;
     }
+    if (!task.started_at) {
+      Swal.fire("Validation Error", "Start date is required!", "warning");
+      return;
+    }
+    if (!task.completed_at) {
+      Swal.fire("Validation Error", "Completion date is required!", "warning");
+      return;
+    }
 
     const formData = new FormData();
     formData.append("title", task.title);
     formData.append("description", task.description);
     formData.append("category_id", task.category_id.toString());
     formData.append("template_id", task.template_id.toString());
+    formData.append("status", task.status);
     formData.append("priority", task.priority);
     formData.append("client_id", task.client_id.toString());
     formData.append("maker_id", task.maker_id.toString());
     formData.append("checker_id", task.checker_id.toString());
     formData.append("due_date", task.due_date);
+    formData.append("started_at", task.started_at);
+    formData.append("completed_at", task.completed_at);
+    formData.append("maker_notes", task.maker_notes);
+    formData.append("checker_notes", task.checker_notes);
 
     const result = isEdit
       ? await updateTaskService(id as string, formData)

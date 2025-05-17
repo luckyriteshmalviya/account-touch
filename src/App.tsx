@@ -30,6 +30,17 @@ import TaskTable from "./pages/Tables/TaskTables";
 import AddOrEditTaskPage from "./pages/Forms/Task/AddOrEditTaskPage";
 import ViewTaskPage from "./pages/Forms/Task/ViewTaskPage";
 import TaskStepsPage from "./pages/processes/TaskStepsPage";
+import ViewQuestionnairesPage from "./pages/Forms/Questionnaires/ViewQuestionnairesPage";
+import AddOrEditQuestionnairesPage from "./pages/Forms/Questionnaires/AddOrEditQuestionnairesPage";
+import QuestionnairesTable from "./components/tables/Questionnaires/QuestionnairesTable";
+import QuestionnaiyTable from "./pages/Tables/QuestionnaiyTable";
+import ProcessTemplatesTable from "./pages/Tables/ProcessTemplatsTable";
+import AddOrEditProcessTemplatPage from "./pages/Forms/ProcessTemplat/AddOrEditProcessTemplatPage";
+import ViewProcessTemplatPage from "./pages/Forms/ProcessTemplat/ViewProcessTemplatPage";
+import AddOrEditQuestionPage from "./pages/Forms/Questions/AddOrEditQuestionPage";
+import Questions from "./pages/Tables/Questions";
+import DocumentType from "./pages/Tables/DocumentType";
+import AddOrEditDocumentTypePage from "./pages/Forms/DocumentTypes/AddOrEditDocumentType";
 
 export default function App() {
   return (
@@ -128,7 +139,6 @@ export default function App() {
                 </ProtectedRoutesLayout>
               }
             />
-
             <Route
               path="/manage-category"
               element={
@@ -211,6 +221,133 @@ export default function App() {
             {/* Charts */}
             <Route path="/line-chart" element={<LineChart />} />
             <Route path="/bar-chart" element={<BarChart />} />
+
+
+            {/* New modules Routes */}
+          <Route
+            path="/questionnaires-list"
+            element={
+               <ProtectedRoutesLayout>
+                  <QuestionnaiyTable />
+                </ProtectedRoutesLayout>
+            }
+          />
+           <Route
+              path="/manage-questionnaires"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditQuestionnairesPage />
+                </ProtectedRoutesLayout>
+              }
+            />
+            <Route
+              path="/manage-questionnaires/:id"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditQuestionnairesPage />
+                </ProtectedRoutesLayout>
+              }
+            />
+
+            <Route
+              path="/questionnaires/view/:id"
+              element={
+                <ProtectedRoutesLayout>
+                  <ViewQuestionnairesPage />
+                </ProtectedRoutesLayout>
+              }
+            />
+
+
+            <Route
+              path="/process-templates-list"
+              element={
+                <ProtectedRoutesLayout>
+                  <ProcessTemplatesTable />
+                </ProtectedRoutesLayout>
+              }
+            />
+            <Route
+              path="/manage-process-templates"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditProcessTemplatPage />
+                </ProtectedRoutesLayout>
+              }
+            />
+            <Route
+              path="/manage-process-templates/:id"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditProcessTemplatPage />
+                </ProtectedRoutesLayout>
+              }
+            />
+
+            <Route
+              path="/process-templates/view/:id"
+              element={
+                <ProtectedRoutesLayout>
+                  <ViewProcessTemplatPage />
+                </ProtectedRoutesLayout>
+              }
+            />
+
+            <Route
+              path="/document-type-list"
+              element={
+                <ProtectedRoutesLayout>
+                  <DocumentType />
+                </ProtectedRoutesLayout>
+              }
+            />
+
+            <Route
+              path="/manage-document-type"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditDocumentTypePage/>
+                </ProtectedRoutesLayout>
+              }
+            />
+
+            <Route
+              path="/manage-document-type/:id"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditDocumentTypePage/>
+                </ProtectedRoutesLayout>
+              }
+            />
+
+            <Route
+              path="/questions-list"
+              element={
+                <ProtectedRoutesLayout>
+                  <Questions/>
+                </ProtectedRoutesLayout>
+              }
+            />
+
+            <Route
+              path="/manage-question"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditQuestionPage />
+                </ProtectedRoutesLayout>
+              }
+            />
+
+            <Route
+              path="/manage-question/:id"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditQuestionPage />
+                </ProtectedRoutesLayout>
+              }
+            />
+          {/* New modules Routes */}
+
           </Route>
 
           {/* Auth Layout */}

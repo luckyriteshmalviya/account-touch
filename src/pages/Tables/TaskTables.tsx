@@ -10,10 +10,10 @@ export default function TaskTable() {
         title="Task Tables Dashboard | boltecpros"
         description="This is the Task list table page for boltecpros."
       />
-      <PageBreadcrumb pageTitle="Task List" />
+      <PageBreadcrumb pageTitle="Task Table" />
       <div className="space-y-6">
         <ComponentCard
-          // title="Task List"
+          title="Task Table"
           addUnit="Add Task"
           route="/manage-task"
         >

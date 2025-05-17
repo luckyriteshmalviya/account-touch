@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 interface Option {
   value: string;
@@ -11,8 +11,6 @@ interface SelectProps {
   onChange: (value: string) => void;
   className?: string;
   defaultValue?: string;
-  value?: string;
-  disabled?: boolean;
 }
 
 const Select: React.FC<SelectProps> = ({
@@ -21,23 +19,14 @@ const Select: React.FC<SelectProps> = ({
   onChange,
   className = "",
   defaultValue = "",
-  value,
-  disabled = false,
 }) => {
-  // Manage the selected value - use value prop if provided, otherwise use defaultValue
+  // Manage the selected value
   const [selectedValue, setSelectedValue] = useState<string>(defaultValue);
 
-  // Update internal state when value prop changes
-  useEffect(() => {
-    if (value !== undefined) {
-      setSelectedValue(value);
-    }
-  }, [value]);
-
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newValue = e.target.value;
-    setSelectedValue(newValue);
-    onChange(newValue); // Trigger parent handler
+    const value = e.target.value;
+    setSelectedValue(value);
+    onChange(value); // Trigger parent handler
   };
 
   return (
@@ -47,9 +36,8 @@ const Select: React.FC<SelectProps> = ({
           ? "text-gray-800 dark:text-white/90"
           : "text-gray-400 dark:text-gray-400"
       } ${className}`}
-      value={value !== undefined ? value : selectedValue}
+      value={selectedValue}
       onChange={handleChange}
-      disabled={disabled}
     >
       {/* Placeholder option */}
       <option

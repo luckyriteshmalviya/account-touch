@@ -1,27 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import ComponentCard from "../../../components/common/ComponentCard";
 import Label from "../../../components/form/Label";
 import Input from "../../../components/form/input/InputField";
 import MultiSelect from "../../../components/form/MultiSelect";
 import { priorityToOptions } from "../../../constants/arrays";
-import Select from "../../../components/form/Select";
-
-interface Category {
-  id: number;
-  name: string;
-}
-
-interface Template {
-  id: number;
-  title: string;
-}
-
-interface User {
-  id: number;
-  full_name: string;
-  is_active: boolean;
-  assigned_to?: number;
-}
 
 interface TaskFormProps {
   task: {
@@ -29,11 +11,16 @@ interface TaskFormProps {
     description: string;
     category_id: string;
     template_id: string;
+    status: string;
     priority: string;
     client_id: string;
     maker_id: string;
     checker_id: string;
     due_date: string;
+    started_at: string;
+    completed_at: string;
+    maker_notes: string;
+    checker_notes: string;
   };
   setTask: React.Dispatch<React.SetStateAction<any>>;
   setPriorityTo: React.Dispatch<React.SetStateAction<string[]>>;
@@ -42,8 +29,6 @@ interface TaskFormProps {
 }
 
 const formatDateForInput = (dateString: string) => {
-  if (!dateString) return "";
-
   // Ensure dateString is in ISO 8601 format
   const date = new Date(dateString);
   const year = date.getFullYear();
@@ -56,204 +41,9 @@ const formatDateForInput = (dateString: string) => {
 };
 
 const TaskForm = ({ task, setTask, onSubmit, setPriorityTo, editMode = false }: TaskFormProps) => {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [clients, setClients] = useState<User[]>([]);
-  const [makers, setMakers] = useState<User[]>([]);
-  const [checkers, setCheckers] = useState<User[]>([]);
-  const [selectedMaker, setSelectedMaker] = useState<User | null>(null);
-
-  // Fetch categories
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        // Get the auth token from localStorage
-        const auth = JSON.parse(localStorage.getItem("auth") || "{}");
-        const accessToken = auth?.access;
-
-        // Use the token in the request
-        const response = await fetch(
-          'https://api.accountouch.com/api/tasks/categories/',
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${accessToken}`
-            }
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('Categories API response:', data);
-        // The data is in the results array
-        setCategories(data.results || []);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    };
-
-    fetchCategories();
-  }, []);
-
-  // Fetch templates based on selected category
-  useEffect(() => {
-    const fetchTemplates = async () => {
-      if (!task.category_id) return;
-
-      try {
-        // Get the auth token from localStorage
-        const auth = JSON.parse(localStorage.getItem("auth") || "{}");
-        const accessToken = auth?.access;
-
-        // Use the token in the request
-        const response = await fetch(
-          `https://api.accountouch.com/api/tasks/task-templates/?category=${task.category_id}`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${accessToken}`
-            }
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        // The data is in the results array
-        setTemplates(data.results || []);
-      } catch (error) {
-        console.error("Error fetching templates:", error);
-      }
-    };
-
-    fetchTemplates();
-  }, [task.category_id]);
-
-  // Fetch clients
-  useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        // Get the auth token from localStorage
-        const auth = JSON.parse(localStorage.getItem("auth") || "{}");
-        const accessToken = auth?.access;
-
-        // Use the token in the request
-        const response = await fetch(
-          'https://api.accountouch.com/api/users/users/?roles__name=Client',
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${accessToken}`
-            }
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        // Filter only active clients (is_active) from the results array
-        setClients((data.results || []).filter((client: User) => client.is_active));
-      } catch (error) {
-        console.error("Error fetching clients:", error);
-      }
-    };
-
-    fetchClients();
-  }, []);
-
-  // Fetch makers
-  useEffect(() => {
-    const fetchMakers = async () => {
-      try {
-        // Get the auth token from localStorage
-        const auth = JSON.parse(localStorage.getItem("auth") || "{}");
-        const accessToken = auth?.access;
-
-        // Use the token in the request
-        const response = await fetch(
-          'https://api.accountouch.com/api/users/users/?roles__name=Maker',
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${accessToken}`
-            }
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        // Filter only active makers (is_active) from the results array
-        setMakers((data.results || []).filter((maker: User) => maker.is_active));
-      } catch (error) {
-        console.error("Error fetching makers:", error);
-      }
-    };
-
-    fetchMakers();
-  }, []);
-
-  // Fetch checkers
-  useEffect(() => {
-    const fetchCheckers = async () => {
-      try {
-        // Get the auth token from localStorage
-        const auth = JSON.parse(localStorage.getItem("auth") || "{}");
-        const accessToken = auth?.access;
-
-        // Use the token in the request
-        const response = await fetch(
-          'https://api.accountouch.com/api/users/users/?roles__name=Checker',
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${accessToken}`
-            }
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        // Filter only active checkers from the results array
-        setCheckers((data.results || []).filter((checker: User) => checker.is_active));
-      } catch (error) {
-        console.error("Error fetching checkers:", error);
-      }
-    };
-
-    fetchCheckers();
-  }, []);
-
-  // Set checker based on selected maker
-  useEffect(() => {
-    if (task.maker_id && makers.length > 0) {
-      const maker = makers.find(m => m.id.toString() === task.maker_id);
-      setSelectedMaker(maker || null);
-
-      if (maker && maker.assigned_to !== undefined && maker.assigned_to !== null) {
-        // If assigned_to is populated, use it to set the checker_id
-        setTask((prev: any) => ({ ...prev, checker_id: maker?.assigned_to?.toString() }));
-      }
-    }
-  }, [task.maker_id, makers, setTask]);
-
+  console.log(task.due_date,'task1');
+  console.log(task.completed_at,'task1');
+  console.log(task.started_at,'task3');
   return (
     <form
       onSubmit={(e) => {
@@ -290,158 +80,154 @@ const TaskForm = ({ task, setTask, onSubmit, setPriorityTo, editMode = false }: 
           </div>
 
           <div className="space-y-6">
-            <Label htmlFor="category_id">Category</Label>
-            {/* Debug output */}
-            {/* <div className="text-xs text-gray-500 mb-1">
-              Current category_id: {task.category_id}, Categories loaded: {categories.length}
-            </div> */}
-            <Select
-              options={[
-                { value: "", label: "Select Category" },
-                ...categories.map((category) => ({
-                  value: category.id.toString(),
-                  label: category.name
-                }))
-              ]}
-              onChange={(value) => {
-                console.log('Selected category:', value); // Debug log
-                setTask((prev: any) => ({
-                  ...prev,
-                  category_id: value,
-                  // Reset template when category changes
-                  template_id: ""
-                }));
-              }}
+            <Label htmlFor="category_id">Category ID</Label>
+            <Input
               value={task.category_id}
-              className="w-full"
-              placeholder="Select Category"
+              type="string"
+              id="category_id"
+              onChange={(e) =>
+                setTask((prev: any) => ({ ...prev, category_id: Number(e.target.value) }))
+              }
+              required
             />
           </div>
 
           <div className="space-y-6">
-            <Label htmlFor="template_id">Template</Label>
-            {/* <div className="text-xs text-gray-500 mb-1">
-              Current template_id: {task.template_id}, Templates loaded: {templates.length}
-            </div> */}
-            <Select
-              options={[
-                { value: "", label: "Select Template" },
-                ...templates.map((template) => ({
-                  value: template.id.toString(),
-                  label: template.title
-                }))
-              ]}
-              onChange={(value) =>
-                setTask((prev: any) => ({ ...prev, template_id: value }))
-              }
+            <Label htmlFor="template_id">Template ID</Label>
+            <Input
               value={task.template_id}
-              disabled={!task.category_id}
-              className="w-full"
+              type="string"
+              id="template_id"
+              onChange={(e) =>
+                setTask((prev: any) => ({ ...prev, template_id: Number(e.target.value) }))
+              }
+              required
             />
           </div>
 
           <div className="space-y-6">
-            <Label htmlFor="priority">Priority</Label>
-            <Select
-              options={[
-                { value: "", label: "Select Priority" },
-                ...priorityToOptions.map((priority) => ({
-                  value: priority.value,
-                  label: priority.text
-                }))
-              ]}
-              onChange={(value) =>
-                setTask((prev: any) => ({ ...prev, priority: value }))
+            <Label htmlFor="status">Status</Label>
+            <Input
+              value={task.status}
+              type="text"
+              id="status"
+              onChange={(e) =>
+                setTask((prev: any) => ({ ...prev, status: e.target.value }))
               }
-              value={task.priority}
-              className="w-full"
+              required
             />
           </div>
 
           <div className="space-y-6">
-            <Label htmlFor="client_id">Client</Label>
-            {/* <div className="text-xs text-gray-500 mb-1">
-              Current client_id: {task.client_id}, Clients loaded: {clients.length}
-            </div> */}
-            <Select
-              options={[
-                { value: "", label: "Select Client" },
-                ...clients.map((client) => ({
-                  value: client.id.toString(),
-                  label: client.full_name
-                }))
-              ]}
-              onChange={(value) =>
-                setTask((prev: any) => ({ ...prev, client_id: value }))
-              }
+            <MultiSelect
+                label="Priority"
+                options={priorityToOptions}
+                defaultSelected={["2"]}
+                onChange={(values) => setPriorityTo(values)}
+              />
+          </div>
+
+          <div className="space-y-6">
+            <Label htmlFor="client_id">Client ID</Label>
+            <Input
               value={task.client_id}
-              className="w-full"
-            />
-          </div>
-
-          <div className="space-y-6">
-            <Label htmlFor="maker_id">Maker</Label>
-            {/* <div className="text-xs text-gray-500 mb-1">
-              Current maker_id: {task.maker_id}, Makers loaded: {makers.length}
-            </div> */}
-            <Select
-              options={[
-                { value: "", label: "Select Maker" },
-                ...makers.map((maker) => ({
-                  value: maker.id.toString(),
-                  label: maker.full_name
-                }))
-              ]}
-              onChange={(value) =>
-                setTask((prev: any) => ({ ...prev, maker_id: value }))
+              type="string"
+              id="client_id"
+              onChange={(e) =>
+                setTask((prev: any) => ({ ...prev, client_id: Number(e.target.value) }))
               }
-              value={task.maker_id}
-              className="w-full"
+              required
             />
           </div>
 
           <div className="space-y-6">
-            <Label htmlFor="checker_id">Checker</Label>
-            {/* <div className="text-xs text-gray-500 mb-1">
-              Current checker_id: {task.checker_id}, Checkers loaded: {checkers.length}
-            </div> */}
-            {selectedMaker?.assigned_to ? (
-              // If maker has an assigned checker, show it as read-only
-              <Input
-                value={checkers.find(c => c.id === selectedMaker.assigned_to)?.full_name || "Auto-assigned"}
-                type="text"
-                id="checker_id"
-                readOnly
-                disabled
-                className="bg-gray-100"
-              />
-            ) : (
-              // Otherwise, show a dropdown for manual selection
-              <Select
-                options={[
-                  { value: "", label: "Select Checker" },
-                  ...checkers.map((checker) => ({
-                    value: checker.id.toString(),
-                    label: checker.full_name
-                  }))
-                ]}
-                onChange={(value) =>
-                  setTask((prev: any) => ({ ...prev, checker_id: value }))
-                }
-                value={task.checker_id}
-                className="w-full"
-              />
-            )}
+            <Label htmlFor="maker_id">Maker ID</Label>
+            <Input
+              value={task.maker_id}
+              type="string"
+              id="maker_id"
+              onChange={(e) =>
+                setTask((prev: any) => ({ ...prev, maker_id: Number(e.target.value) }))
+              }
+              required
+            />
+          </div>
+
+          <div className="space-y-6">
+            <Label htmlFor="checker_id">Checker ID</Label>
+            <Input
+              value={task.checker_id}
+              type="string"
+              id="checker_id"
+              onChange={(e) =>
+                setTask((prev: any) => ({ ...prev, checker_id: Number(e.target.value) }))
+              }
+              required
+            />
           </div>
 
           <div className="space-y-6">
             <Label htmlFor="due_date">Due Date</Label>
             <Input
-              value={formatDateForInput(task.due_date)}
+              value={formatDateForInput(task.due_date)}  // Format the date before passing it to the input
               type="datetime-local"
               id="due_date"
               onChange={(e) =>
                 setTask((prev: any) => ({ ...prev, due_date: e.target.value }))
+              }
+              required
+            />
+          </div>
+
+          {/* Started At Field */}
+          <div className="space-y-6">
+            <Label htmlFor="started_at">Started At</Label>
+            <Input
+              value={formatDateForInput(task.started_at)}  // Format the date before passing it to the input
+              type="datetime-local"
+              id="started_at"
+              onChange={(e) =>
+                setTask((prev: any) => ({ ...prev, started_at: e.target.value }))
+              }
+              required
+            />
+          </div>
+
+          {/* Completed At Field */}
+          <div className="space-y-6">
+            <Label htmlFor="completed_at">Completed At</Label>
+            <Input
+              value={formatDateForInput(task.completed_at)}  // Format the date before passing it to the input
+              type="datetime-local"
+              id="completed_at"
+              onChange={(e) =>
+                setTask((prev: any) => ({ ...prev, completed_at: e.target.value }))
+              }
+              required
+            />
+          </div>
+
+          <div className="space-y-6">
+            <Label htmlFor="maker_notes">Maker Notes</Label>
+            <Input
+              value={task.maker_notes}
+              type="text"
+              id="maker_notes"
+              onChange={(e) =>
+                setTask((prev: any) => ({ ...prev, maker_notes: e.target.value }))
+              }
+              required
+            />
+          </div>
+
+          <div className="space-y-6">
+            <Label htmlFor="checker_notes">Checker Notes</Label>
+            <Input
+              value={task.checker_notes}
+              type="text"
+              id="checker_notes"
+              onChange={(e) =>
+                setTask((prev: any) => ({ ...prev, checker_notes: e.target.value }))
               }
               required
             />

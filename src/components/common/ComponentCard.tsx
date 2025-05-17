@@ -23,8 +23,8 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
     >
       {/* Card Header */}
       <div className="px-6 py-5">
-        <div className="flex items-center justify-between text-base font-medium text-gray-800 dark:text-white/90">
-          <h3>{title}</h3>
+        <div className="flex justify-between text-base font-medium text-gray-800 dark:text-white/90">
+          <h3> {title}</h3>
           {addUnit && (
             <Link
               to={route || ""}

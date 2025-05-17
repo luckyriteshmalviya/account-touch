@@ -1,52 +1,41 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+
 import {
+
   ChevronDownIcon,
   HorizontaLDots,
-  // TableIcon,
-  // UserCircleIcon,
+  TableIcon,
+  UserCircleIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 import SidebarWidget from "./SidebarWidget";
 
 type NavItem = {
   name: string;
-  icon?: React.ReactNode;
+  icon: React.ReactNode;
   path?: string;
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
 };
 
 const navItems: NavItem[] = [
   {
-    // icon: <UserCircleIcon />,
-    name: "Users",
-    path: "/user-tables",
+    icon: <UserCircleIcon />,
+    name: "User Profile",
+    path: "/profile",
   },
   {
-    name: "Master Data",
-    // icon: <TableIcon />,
+    name: "Tables",
+    icon: <TableIcon />,
     subItems: [
-      // { name: "Users", path: "/user-tables", pro: false },
+      { name: "Users", path: "/user-tables", pro: false },
       { name: "Categories", path: "/category-list", pro: false },
+      { name: "Task Tables", path: "/task-list", pro: false },
+      { name: "Questionnaires", path: "/questionnaires-list", pro: false },
+      { name: "Process Templates", path: "/process-templates-list", pro: false },
       { name: "Questions", path: "/questions-list", pro: false },
-      { name: "Document Types", path: "/document-list", pro: false },
-      // { name: "Task List", path: "/task-list", pro: false },
+      { name: "Document Type", path: "/document-type-list", pro: false },
     ],
-  },
-  {
-    name: "Templates",
-    // icon: <TableIcon />,
-    subItems: [
-      { name: "Questionnires", path: "/questions-list", pro: false },
-      { name: "Processes", path: "/process-list", pro: false },
-      { name: "Task", path: "/task-list", pro: false },
-      { name: "Hot Task", path: "/hot-task-list", pro: false },
-    ],
-  },
-  {
-    // icon: <UserCircleIcon />,
-    name: "Tasks",
-    path: "/task-list",
   },
 ];
 
