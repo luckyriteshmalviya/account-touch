@@ -38,15 +38,15 @@ const navItems: NavItem[] = [
     // icon: <TableIcon />,
     subItems: [
       { name: "Questionnires", path: "/questions-list", pro: false },
-      { name: "Processes", path: "/questions-list", pro: false },
-      { name: "Task", path: "/document-list", pro: false },
-      { name: "Hot Task", path: "/document-list", pro: false },
+      { name: "Processes", path: "/process-list", pro: false },
+      { name: "Task", path: "/task-list", pro: false },
+      { name: "Hot Task", path: "/hot-task-list", pro: false },
     ],
   },
   {
     // icon: <UserCircleIcon />,
     name: "Tasks",
-    path: "/profile",
+    path: "/task-list",
   },
 ];
 

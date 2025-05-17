@@ -10,10 +10,10 @@ export default function CategoryTable() {
         title="Category Tables Dashboard | boltecpros"
         description="This is the Category list table page for boltecpros."
       />
-      <PageBreadcrumb pageTitle="Category Table" />
+      <PageBreadcrumb pageTitle="Category List" />
       <div className="space-y-6">
         <ComponentCard
-          title="Category Table"
+          title=""
           addUnit="Add Category"
           route="/manage-category"
         >
