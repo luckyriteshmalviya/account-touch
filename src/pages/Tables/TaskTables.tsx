@@ -12,11 +12,7 @@ export default function TaskTable() {
       />
       <PageBreadcrumb pageTitle="Task List" />
       <div className="space-y-6">
-        <ComponentCard
-          // title="Task List"
-          addUnit="Add Task"
-          route="/manage-task"
-        >
+        <ComponentCard title="" addUnit="Add Task" route="/manage-task">
           <TasksTable />
         </ComponentCard>
       </div>

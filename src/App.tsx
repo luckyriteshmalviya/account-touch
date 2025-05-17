@@ -30,6 +30,12 @@ import TaskTable from "./pages/Tables/TaskTables";
 import AddOrEditTaskPage from "./pages/Forms/Task/AddOrEditTaskPage";
 import ViewTaskPage from "./pages/Forms/Task/ViewTaskPage";
 import TaskStepsPage from "./pages/processes/TaskStepsPage";
+import QuestionnaiyTable from "./pages/Tables/QuestionnairesTable";
+import AddOrEditQuestionnairesPage from "./pages/Forms/Questionnaires/AddorEditQuestionnairesPage";
+import ViewQuestionnairesPage from "./pages/Forms/Questionnaires/ViewQuestionnaires";
+import ProcessTemplatesTable from "./pages/Tables/ProcessTemplatesTable";
+import AddOrEditProcessTemplatPage from "./pages/Forms/ProcessTemplate/AddOrEditProcessTemplatePage";
+import ViewProcessTemplatPage from "./pages/Forms/ProcessTemplate/ViewProcessTemplatePage";
 
 export default function App() {
   return (
@@ -211,6 +217,82 @@ export default function App() {
             {/* Charts */}
             <Route path="/line-chart" element={<LineChart />} />
             <Route path="/bar-chart" element={<BarChart />} />
+
+            {/* Questionnaires */}
+            <Route
+              path="/questionnaires-list"
+              element={
+                <ProtectedRoutesLayout>
+                  <QuestionnaiyTable />
+                </ProtectedRoutesLayout>
+              }
+            />
+            <Route
+              path="/manage-questionnaires"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditQuestionnairesPage />
+                </ProtectedRoutesLayout>
+              }
+            />
+
+            <Route
+              path="/manage-questionnaires/:id"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditQuestionnairesPage />
+                </ProtectedRoutesLayout>
+              }
+            />
+
+            <Route
+              path="/questionnaires/view/:id"
+              element={
+                <ProtectedRoutesLayout>
+                  <ViewQuestionnairesPage />
+                </ProtectedRoutesLayout>
+              }
+            />
+
+            <Route
+              path="/process-templates-list"
+              element={
+                <ProtectedRoutesLayout>
+                  <ProcessTemplatesTable />
+                </ProtectedRoutesLayout>
+              }
+            />
+            <Route
+              path="/manage-process-templates"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditProcessTemplatPage />
+                </ProtectedRoutesLayout>
+              }
+            />
+            <Route
+              path="/manage-process-templates/:id"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditProcessTemplatPage />
+                </ProtectedRoutesLayout>
+              }
+            />
+
+            <Route
+              path="/process-templates/view/:id"
+              element={
+                <ProtectedRoutesLayout>
+                  <ViewProcessTemplatPage />
+                </ProtectedRoutesLayout>
+              }
+            />
+
+
+
+
+
+            
           </Route>
 
           {/* Auth Layout */}
