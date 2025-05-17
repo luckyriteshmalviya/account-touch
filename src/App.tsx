@@ -36,6 +36,8 @@ import ViewQuestionnairesPage from "./pages/Forms/Questionnaires/ViewQuestionnai
 import ProcessTemplatesTable from "./pages/Tables/ProcessTemplatesTable";
 import AddOrEditProcessTemplatPage from "./pages/Forms/ProcessTemplate/AddOrEditProcessTemplatePage";
 import ViewProcessTemplatPage from "./pages/Forms/ProcessTemplate/ViewProcessTemplatePage";
+import DocumentType from "./pages/Tables/DocumentType";
+import AddOrEditDocumentType from "./pages/Forms/DocumentTypes/AddOrEditDocumentType";
 
 export default function App() {
   return (
@@ -290,9 +292,59 @@ export default function App() {
 
 
 
+            <Route
+              path="/document-type-list"
+              element={
+                <ProtectedRoutesLayout>
+                  <DocumentType />
+                </ProtectedRoutesLayout>
+              }
+            />
 
+            <Route
+              path="/manage-document-type"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditDocumentType />
+                </ProtectedRoutesLayout>
+              }
+            />
 
-            
+            <Route
+              path="/manage-document-type/:id"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditDocumentType />
+                </ProtectedRoutesLayout>
+              }
+            />
+
+           {/*  <Route
+              path="/questions-list"
+              element={
+                <ProtectedRoutesLayout>
+                  <Questions />
+                </ProtectedRoutesLayout>
+              }
+            />
+
+            <Route
+              path="/manage-question"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditQuestionPage />
+                </ProtectedRoutesLayout>
+              }
+            />
+
+            <Route
+              path="/manage-question/:id"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditQuestionPage />
+                </ProtectedRoutesLayout>
+              }
+            /> */}
           </Route>
 
           {/* Auth Layout */}

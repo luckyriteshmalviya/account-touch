@@ -29,7 +29,7 @@ const navItems: NavItem[] = [
       // { name: "Users", path: "/user-tables", pro: false },
       { name: "Categories", path: "/category-list", pro: false },
       { name: "Questions", path: "/questions-list", pro: false },
-      { name: "Document Types", path: "/document-list", pro: false },
+      { name: "Document Types", path: "/document-type-list", pro: false },
       // { name: "Task List", path: "/task-list", pro: false },
     ],
   },
