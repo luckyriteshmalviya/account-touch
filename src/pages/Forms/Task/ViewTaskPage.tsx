@@ -133,9 +133,12 @@ export default function ViewTaskPage() {
                     <span className="mr-2 inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm font-medium">
                       {index + 1}
                     </span>
-                    <span className="text-gray-800 dark:text-gray-200">
+                    <button 
+                      onClick={() => navigate(`/tasks/steps/${id}?step=${index}`)}
+                      className="text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 underline"
+                    >
                       {process.process_template_name || `Step ${index + 1}`}
-                    </span>
+                    </button>
                   </div>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                     process.status === 'completed' ? 'bg-green-100 text-green-800' :

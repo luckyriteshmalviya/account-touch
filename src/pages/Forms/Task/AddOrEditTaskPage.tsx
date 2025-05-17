@@ -62,35 +62,17 @@ const [Priority, setPriorityTo] = React.useState<string[]>([]);
       Swal.fire("Validation Error", "Due date is required!", "warning");
       return;
     }
-    // if (!task.started_at) {
-    //   Swal.fire("Validation Error", "Start date is required!", "warning");
-    //   return;
-    // }
-    // if (!task.completed_at) {
-    //   Swal.fire("Validation Error", "Completion date is required!", "warning");
-    //   return;
-    // }
 
     const formData = new FormData();
     formData.append("title", task.title);
     formData.append("description", task.description);
     formData.append("category_id", task.category_id.toString());
     formData.append("template_id", task.template_id.toString());
-    // formData.append("status", task.status);
     formData.append("priority", task.priority);
     formData.append("client_id", task.client_id.toString());
     formData.append("maker_id", task.maker_id.toString());
     formData.append("checker_id", task.checker_id.toString());
     formData.append("due_date", task.due_date);
-    // formData.append("started_at", task.started_at);
-    // formData.append("completed_at", task.completed_at);
-    // formData.append("maker_notes", task.maker_notes);
-    // formData.append("checker_notes", task.checker_notes);
-
-    console.log("FormData contents:");
-for (const pair of formData.entries()) {
-  console.log(pair[0] + ": " + pair[1]);
-}
 
     const result = isEdit
       ? await updateTaskService(id as string, formData)

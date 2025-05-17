@@ -43,7 +43,7 @@ interface TaskFormProps {
 
 const formatDateForInput = (dateString: string) => {
   if (!dateString) return "";
-  
+
   // Ensure dateString is in ISO 8601 format
   const date = new Date(dateString);
   const year = date.getFullYear();
@@ -63,8 +63,6 @@ const TaskForm = ({ task, setTask, onSubmit, setPriorityTo, editMode = false }: 
   const [checkers, setCheckers] = useState<User[]>([]);
   const [selectedMaker, setSelectedMaker] = useState<User | null>(null);
 
-  console.log("task while edit", task);
-
   // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
@@ -72,7 +70,7 @@ const TaskForm = ({ task, setTask, onSubmit, setPriorityTo, editMode = false }: 
         // Get the auth token from localStorage
         const auth = JSON.parse(localStorage.getItem("auth") || "{}");
         const accessToken = auth?.access;
-        
+
         // Use the token in the request
         const response = await fetch(
           'https://api.accountouch.com/api/tasks/categories/',
@@ -84,11 +82,11 @@ const TaskForm = ({ task, setTask, onSubmit, setPriorityTo, editMode = false }: 
             }
           }
         );
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        
+
         const data = await response.json();
         console.log('Categories API response:', data);
         // The data is in the results array
@@ -105,12 +103,12 @@ const TaskForm = ({ task, setTask, onSubmit, setPriorityTo, editMode = false }: 
   useEffect(() => {
     const fetchTemplates = async () => {
       if (!task.category_id) return;
-      
+
       try {
         // Get the auth token from localStorage
         const auth = JSON.parse(localStorage.getItem("auth") || "{}");
         const accessToken = auth?.access;
-        
+
         // Use the token in the request
         const response = await fetch(
           `https://api.accountouch.com/api/tasks/task-templates/?category=${task.category_id}`,
@@ -122,11 +120,11 @@ const TaskForm = ({ task, setTask, onSubmit, setPriorityTo, editMode = false }: 
             }
           }
         );
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        
+
         const data = await response.json();
         // The data is in the results array
         setTemplates(data.results || []);
@@ -145,7 +143,7 @@ const TaskForm = ({ task, setTask, onSubmit, setPriorityTo, editMode = false }: 
         // Get the auth token from localStorage
         const auth = JSON.parse(localStorage.getItem("auth") || "{}");
         const accessToken = auth?.access;
-        
+
         // Use the token in the request
         const response = await fetch(
           'https://api.accountouch.com/api/users/users/?roles__name=Client',
@@ -157,11 +155,11 @@ const TaskForm = ({ task, setTask, onSubmit, setPriorityTo, editMode = false }: 
             }
           }
         );
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        
+
         const data = await response.json();
         // Filter only active clients (is_active) from the results array
         setClients((data.results || []).filter((client: User) => client.is_active));
@@ -180,7 +178,7 @@ const TaskForm = ({ task, setTask, onSubmit, setPriorityTo, editMode = false }: 
         // Get the auth token from localStorage
         const auth = JSON.parse(localStorage.getItem("auth") || "{}");
         const accessToken = auth?.access;
-        
+
         // Use the token in the request
         const response = await fetch(
           'https://api.accountouch.com/api/users/users/?roles__name=Maker',
@@ -192,11 +190,11 @@ const TaskForm = ({ task, setTask, onSubmit, setPriorityTo, editMode = false }: 
             }
           }
         );
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        
+
         const data = await response.json();
         // Filter only active makers (is_active) from the results array
         setMakers((data.results || []).filter((maker: User) => maker.is_active));
@@ -215,7 +213,7 @@ const TaskForm = ({ task, setTask, onSubmit, setPriorityTo, editMode = false }: 
         // Get the auth token from localStorage
         const auth = JSON.parse(localStorage.getItem("auth") || "{}");
         const accessToken = auth?.access;
-        
+
         // Use the token in the request
         const response = await fetch(
           'https://api.accountouch.com/api/users/users/?roles__name=Checker',
@@ -227,11 +225,11 @@ const TaskForm = ({ task, setTask, onSubmit, setPriorityTo, editMode = false }: 
             }
           }
         );
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        
+
         const data = await response.json();
         // Filter only active checkers from the results array
         setCheckers((data.results || []).filter((checker: User) => checker.is_active));
@@ -248,7 +246,7 @@ const TaskForm = ({ task, setTask, onSubmit, setPriorityTo, editMode = false }: 
     if (task.maker_id && makers.length > 0) {
       const maker = makers.find(m => m.id.toString() === task.maker_id);
       setSelectedMaker(maker || null);
-      
+
       if (maker && maker.assigned_to !== undefined && maker.assigned_to !== null) {
         // If assigned_to is populated, use it to set the checker_id
         setTask((prev: any) => ({ ...prev, checker_id: maker?.assigned_to?.toString() }));
@@ -294,9 +292,9 @@ const TaskForm = ({ task, setTask, onSubmit, setPriorityTo, editMode = false }: 
           <div className="space-y-6">
             <Label htmlFor="category_id">Category</Label>
             {/* Debug output */}
-            <div className="text-xs text-gray-500 mb-1">
+            {/* <div className="text-xs text-gray-500 mb-1">
               Current category_id: {task.category_id}, Categories loaded: {categories.length}
-            </div>
+            </div> */}
             <Select
               options={[
                 { value: "", label: "Select Category" },
@@ -307,11 +305,11 @@ const TaskForm = ({ task, setTask, onSubmit, setPriorityTo, editMode = false }: 
               ]}
               onChange={(value) => {
                 console.log('Selected category:', value); // Debug log
-                setTask((prev: any) => ({ 
-                  ...prev, 
+                setTask((prev: any) => ({
+                  ...prev,
                   category_id: value,
                   // Reset template when category changes
-                  template_id: "" 
+                  template_id: ""
                 }));
               }}
               value={task.category_id}
@@ -322,9 +320,9 @@ const TaskForm = ({ task, setTask, onSubmit, setPriorityTo, editMode = false }: 
 
           <div className="space-y-6">
             <Label htmlFor="template_id">Template</Label>
-            <div className="text-xs text-gray-500 mb-1">
+            {/* <div className="text-xs text-gray-500 mb-1">
               Current template_id: {task.template_id}, Templates loaded: {templates.length}
-            </div>
+            </div> */}
             <Select
               options={[
                 { value: "", label: "Select Template" },
@@ -343,19 +341,28 @@ const TaskForm = ({ task, setTask, onSubmit, setPriorityTo, editMode = false }: 
           </div>
 
           <div className="space-y-6">
-            <MultiSelect
-                label="Priority"
-                options={priorityToOptions}
-                defaultSelected={["2"]}
-                onChange={(values) => setPriorityTo(values)}
-              />
+            <Label htmlFor="priority">Priority</Label>
+            <Select
+              options={[
+                { value: "", label: "Select Priority" },
+                ...priorityToOptions.map((priority) => ({
+                  value: priority.value,
+                  label: priority.text
+                }))
+              ]}
+              onChange={(value) =>
+                setTask((prev: any) => ({ ...prev, priority: value }))
+              }
+              value={task.priority}
+              className="w-full"
+            />
           </div>
 
           <div className="space-y-6">
             <Label htmlFor="client_id">Client</Label>
-            <div className="text-xs text-gray-500 mb-1">
+            {/* <div className="text-xs text-gray-500 mb-1">
               Current client_id: {task.client_id}, Clients loaded: {clients.length}
-            </div>
+            </div> */}
             <Select
               options={[
                 { value: "", label: "Select Client" },
@@ -374,9 +381,9 @@ const TaskForm = ({ task, setTask, onSubmit, setPriorityTo, editMode = false }: 
 
           <div className="space-y-6">
             <Label htmlFor="maker_id">Maker</Label>
-            <div className="text-xs text-gray-500 mb-1">
+            {/* <div className="text-xs text-gray-500 mb-1">
               Current maker_id: {task.maker_id}, Makers loaded: {makers.length}
-            </div>
+            </div> */}
             <Select
               options={[
                 { value: "", label: "Select Maker" },
@@ -395,9 +402,9 @@ const TaskForm = ({ task, setTask, onSubmit, setPriorityTo, editMode = false }: 
 
           <div className="space-y-6">
             <Label htmlFor="checker_id">Checker</Label>
-            <div className="text-xs text-gray-500 mb-1">
+            {/* <div className="text-xs text-gray-500 mb-1">
               Current checker_id: {task.checker_id}, Checkers loaded: {checkers.length}
-            </div>
+            </div> */}
             {selectedMaker?.assigned_to ? (
               // If maker has an assigned checker, show it as read-only
               <Input

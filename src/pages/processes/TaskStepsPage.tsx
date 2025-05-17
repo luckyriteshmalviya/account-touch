@@ -30,6 +30,17 @@ export default function TaskStepsPage() {
           const data = await getTaskDetailsService(id);
           if (data) {
             setTask(data);
+            
+            // Check for step query parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const stepParam = urlParams.get('step');
+            if (stepParam !== null) {
+              const stepIndex = parseInt(stepParam);
+              if (!isNaN(stepIndex) && stepIndex >= 0 && stepIndex < data.processes?.length) {
+                setCurrentStep(stepIndex);
+              }
+            }
+            
           } else {
             setError("Failed to load task details");
           }
@@ -42,7 +53,18 @@ export default function TaskStepsPage() {
         }
       }
     })();
-  }, [id, currentStep]);
+  }, [id]);
+
+  // Function to handle step navigation
+  const handleStepClick = (stepIndex: number) => {
+    // Update URL with the new step parameter without refreshing the page
+    const url = new URL(window.location.href);
+    url.searchParams.set('step', stepIndex.toString());
+    window.history.pushState({}, '', url);
+    
+    // Update current step
+    setCurrentStep(stepIndex);
+  };
 
   const handleStepComplete = (stepIndex: number) => {
     setCompletedSteps((prev) => [...prev, stepIndex]);
@@ -99,20 +121,25 @@ export default function TaskStepsPage() {
         <div className="flex items-center justify-between">
           {processes.map((process, index) => (
             <div key={process.id} className="flex flex-col items-center">
-              <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium ${
+              <button
+                onClick={() => handleStepClick(index)}
+                className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium cursor-pointer transition-colors ${
                   completedSteps.includes(index)
-                    ? 'bg-green-500'
+                    ? 'bg-green-500 hover:bg-green-600'
                     : currentStep === index
-                      ? 'bg-blue-500'
-                      : 'bg-gray-300 dark:bg-gray-600'
+                      ? 'bg-blue-500 hover:bg-blue-600'
+                      : 'bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500'
                 }`}
+                aria-label={`Go to step ${index + 1}`}
               >
                 {completedSteps.includes(index) ? '✓' : index + 1}
-              </div>
-              <span className="text-sm mt-2 text-center">
+              </button>
+              <button
+                onClick={() => handleStepClick(index)}
+                className="text-sm mt-2 text-center hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
+              >
                 {process.process_template_name || `Step ${index + 1}`}
-              </span>
+              </button>
             </div>
           ))}
         </div>
