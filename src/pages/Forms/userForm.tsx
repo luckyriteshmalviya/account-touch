@@ -290,7 +290,7 @@ export const UserForm = ({
         <ComponentCard title="Status">
           <div className="flex gap-4 justify-between">
             <Switch
-              label="is_active"
+              label="Active"
               checked={isActive}
               onChange={() => setIsActive(!isActive)}
               disabled={isDisabled}
@@ -298,7 +298,7 @@ export const UserForm = ({
           </div>
         </ComponentCard>
 
-        <ComponentCard title="Additional Details">
+        <ComponentCard title="Pan Details">
           {[
             { label: "PAN Card Number", field: "pan_card" },
             // { label: "Password", field: "password" },

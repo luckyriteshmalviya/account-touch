@@ -10,10 +10,10 @@ export default function UserTables() {
         title="User Tables Dashboard | boltecpros"
         description="This is User list Basic Tables Dashboard page for boltecpros."
       />
-      <PageBreadcrumb pageTitle="User Table" />
+      <PageBreadcrumb pageTitle="User List" />
       <div className="space-y-6">
         <ComponentCard
-          title="User List"
+          title=""
           addUnit="Add User"
           route="/add-user"
         >

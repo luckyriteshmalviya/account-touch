@@ -1,37 +1,52 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-
 import {
-
   ChevronDownIcon,
   HorizontaLDots,
-  TableIcon,
-  UserCircleIcon,
+  // TableIcon,
+  // UserCircleIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 import SidebarWidget from "./SidebarWidget";
 
 type NavItem = {
   name: string;
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   path?: string;
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
 };
 
 const navItems: NavItem[] = [
   {
-    icon: <UserCircleIcon />,
-    name: "User Profile",
-    path: "/profile",
+    // icon: <UserCircleIcon />,
+    name: "Users",
+    path: "/user-tables",
   },
   {
-    name: "Tables",
-    icon: <TableIcon />,
+    name: "Master Data",
+    // icon: <TableIcon />,
     subItems: [
-      { name: "Users", path: "/user-tables", pro: false },
+      // { name: "Users", path: "/user-tables", pro: false },
       { name: "Categories", path: "/category-list", pro: false },
-      { name: "Task List", path: "/task-list", pro: false },
+      { name: "Questions", path: "/questions-list", pro: false },
+      { name: "Document Types", path: "/document-list", pro: false },
+      // { name: "Task List", path: "/task-list", pro: false },
     ],
+  },
+  {
+    name: "Templates",
+    // icon: <TableIcon />,
+    subItems: [
+      { name: "Questionnires", path: "/questions-list", pro: false },
+      { name: "Processes", path: "/questions-list", pro: false },
+      { name: "Task", path: "/document-list", pro: false },
+      { name: "Hot Task", path: "/document-list", pro: false },
+    ],
+  },
+  {
+    // icon: <UserCircleIcon />,
+    name: "Tasks",
+    path: "/profile",
   },
 ];
 
