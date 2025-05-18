@@ -29,7 +29,13 @@ interface Order {
     last_name: string;
     full_name: string;
   };
-  assigned_to: string | null;
+  assigned_to: {
+    id: number;
+    email: string | null;
+    first_name: string;
+    last_name: string;
+    full_name: string;
+  } | null;
   pan_card?: string;
   aadhar_card?: string;
 }
@@ -82,22 +88,10 @@ export default function UserTableOne() {
 
     // Update the filteredData
     setFilteredData(filtered);
-
-    // Adjust the pagination if necessary
-    const totalFilteredPages = Math.ceil(filtered.length / pageSize);
-    if (page > totalFilteredPages && totalFilteredPages > 0) {
-      setPage(1); // Reset page to 1 if there are fewer filtered pages
-    }
-
-    // If status is "All", show all records, otherwise apply filter
-    if (statusFilter === "") {
-      setFilteredData(tableData); // Show all users when no status filter is applied
-    }
-
   }, [statusFilter, tableData]);
 
   // Calculate total pages for pagination
-  const totalPages = Math.ceil(totalCount / pageSize); // We use totalCount from API response to get the total number of pages
+  const totalPages = Math.ceil(totalCount / pageSize);
 
   // Get paginated data based on current page
   const paginatedData = filteredData.slice((page - 1) * pageSize, page * pageSize);
@@ -244,7 +238,16 @@ export default function UserTableOne() {
                     <TableCell className="px-4 py-4 text-start">{order.email || "-"}</TableCell>
                     <TableCell className="px-4 py-4 text-start">{order.roles?.join(", ")}</TableCell>
                     <TableCell className="px-4 py-4 text-start">{order.is_active ? "Active" : "Inactive"}</TableCell>
-                    <TableCell className="px-4 py-4 text-start">{order.assigned_to || "-"}</TableCell>
+                    <TableCell className="px-4 py-4 text-start">
+                      {order.assigned_to ? (
+                        <span 
+                          className="text-blue-600 hover:text-blue-800 cursor-pointer hover:underline"
+                          onClick={() => navigate(`/user-details/${order?.assigned_to?.id}`)}
+                        >
+                          {order?.assigned_to?.full_name}
+                        </span>
+                      ) : "-"}
+                    </TableCell>
                     <TableCell className="flex items-center gap-3 px-4 py-3">
                       <Eye
                         className="w-5 h-5 text-blue-600 hover:text-blue-800 cursor-pointer"

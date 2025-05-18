@@ -39,7 +39,7 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "Questionnires", path: "/questionnaires-list", pro: false },
       { name: "Processes", path: "/process-templates-list", pro: false },
-      { name: "Task", path: "/task-list", pro: false },
+      { name: "Task", path: "/task-test", pro: false },
       { name: "Hot Task", path: "/hot-task-list", pro: false },
     ],
   },
