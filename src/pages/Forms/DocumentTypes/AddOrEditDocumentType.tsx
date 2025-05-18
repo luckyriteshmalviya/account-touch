@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DocumentTypeForm from "./DocumentTypeForm";
-
+import {
+  addDocumentTypeService,
+  updateDocumentTypeService,
+  getDocumentTypeDetailsService,
+} from "../../../services/restApi/documentTypes";
 import Swal from "sweetalert2";
-import { addDocumentTypeService, getDocumentTypeDetailsService, updateDocumentTypeService } from "../../../services/restApi/documentTypes";
 
 const AddOrEditDocumentType = () => {
   const { id } = useParams<{ id?: string }>();
@@ -19,7 +22,7 @@ const AddOrEditDocumentType = () => {
 
   useEffect(() => {
     if (isEditMode && id) {
-      getDocumentTypeDetailsService(id).then((res:any) => {
+      getDocumentTypeDetailsService(id).then((res) => {
         if (res) {
           setDocumentType({
             name: res.name || "",

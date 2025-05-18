@@ -7,13 +7,13 @@ export default function DocumentType() {
   return (
     <>
       <PageMeta
-        title="Document Type Tables Dashboard | boltecpros"
+        title="Document List"
         description="This is the Category list table page for boltecpros."
       />
       <PageBreadcrumb pageTitle="Document Type Table" />
       <div className="space-y-6">
         <ComponentCard
-          title="Document Type Table"
+          title=""
           addUnit="Add Document Type"
           route="/manage-document-type"
         >

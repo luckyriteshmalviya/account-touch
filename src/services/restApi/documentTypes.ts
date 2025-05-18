@@ -128,7 +128,7 @@ export const updateDocumentTypeService = async (
 };
 
 // Delete document type by ID
-export const deleteDocumentTypeService = async (id: any) => {
+export const deleteDocumentTypeService = async (id: string | number) => {
   try {
     const token = getAccessToken();
     const res = await fetch(

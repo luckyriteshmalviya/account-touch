@@ -40,6 +40,8 @@ import DocumentType from "./pages/Tables/DocumentType";
 import AddOrEditDocumentType from "./pages/Forms/DocumentTypes/AddOrEditDocumentType";
 import Questions from "./pages/Tables/Questions";
 import AddOrEditQuestionPage from "./pages/Forms/Questions/AddOrEditQuestionPage";
+import ViewQuestionPage from "./pages/Forms/Questions/ViewQuestionPage";
+import ViewDocumentTypePage from "./pages/Forms/DocumentTypes/ViewDocumentTypePage";
 
 export default function App() {
   return (
@@ -292,13 +294,20 @@ export default function App() {
               }
             />
 
-
-
             <Route
               path="/document-type-list"
               element={
                 <ProtectedRoutesLayout>
                   <DocumentType />
+                </ProtectedRoutesLayout>
+              }
+            />
+
+            <Route
+              path="/document-type/view/:id"
+              element={
+                <ProtectedRoutesLayout>
+                  <ViewDocumentTypePage />
                 </ProtectedRoutesLayout>
               }
             />
@@ -321,11 +330,20 @@ export default function App() {
               }
             />
 
-             <Route
+            <Route
               path="/questions-list"
               element={
                 <ProtectedRoutesLayout>
                   <Questions />
+                </ProtectedRoutesLayout>
+              }
+            />
+
+            <Route
+              path="/question/view/:id"
+              element={
+                <ProtectedRoutesLayout>
+                  <ViewQuestionPage />
                 </ProtectedRoutesLayout>
               }
             />
@@ -346,7 +364,7 @@ export default function App() {
                   <AddOrEditQuestionPage />
                 </ProtectedRoutesLayout>
               }
-            /> 
+            />
           </Route>
 
           {/* Auth Layout */}

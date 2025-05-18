@@ -1,38 +1,44 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import { getQuestionDetailsService } from "../../../services/restApi/Questions";
-import QuestionsForm from "./QuestionsForm";
+import QuestionForm from "./QuestionsForm";
+import {
+  getQuestionDetailsService,
+  addQuestionService,
+  updateQuestionService,
+} from "../../../services/restApi/Questions";
+
+interface Question {
+  id?: string;
+  text: string;
+  description?: string;
+  question_type: string;
+}
 
 export default function AddOrEditQuestionPage() {
-  const [question, setQuestion] = useState({
+  const [question, setQuestion] = useState<Question>({
     text: "",
     description: "",
-    questionType: "Descriptive",
-    choices: [],
-    isActive: true,
-    id: null,
+    question_type: "descriptive",
   });
 
-  const { slug } = useParams<{ slug?: string }>();
-  const isEdit = !!slug;
+  const { id } = useParams<{ id?: string }>();
+  const isEdit = !!id;
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isEdit && slug) {
+    if (isEdit && id) {
       setLoading(true);
-      getQuestionDetailsService(slug)
+      getQuestionDetailsService(id)
         .then((data) => {
           if (data) {
             setQuestion({
+              id: data.id,
               text: data.text || "",
               description: data.description || "",
-              questionType: data.question_type || "Descriptive",
-              choices: data.choices || [],
-              isActive: data.is_active ?? true,
-              id: data.id,
+              question_type: data.question_type?.toLowerCase() || "descriptive",
             });
           } else {
             setError("Failed to load question.");
@@ -41,7 +47,7 @@ export default function AddOrEditQuestionPage() {
         .catch(() => setError("Failed to load question."))
         .finally(() => setLoading(false));
     }
-  }, [slug, isEdit]);
+  }, [id, isEdit]);
 
   const handleSuccess = async () => {
     await Swal.fire({
@@ -51,7 +57,39 @@ export default function AddOrEditQuestionPage() {
       timer: 2000,
       showConfirmButton: false,
     });
-    navigate("/question-list");
+    navigate("/questions-list");
+  };
+
+  const handleSubmit = async () => {
+    const formData = new FormData();
+    formData.append("text", question.text);
+    formData.append("description", question.description || "");
+    formData.append("question_type", question.question_type);
+
+    setLoading(true);
+    let response = null;
+
+    try {
+      if (isEdit && question.id) {
+        response = await updateQuestionService(question.id, formData);
+      } else {
+        response = await addQuestionService(formData);
+      }
+
+      if (response) {
+        handleSuccess();
+      } else {
+        throw new Error("API returned null response");
+      }
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Failed",
+        text: `Failed to ${isEdit ? "update" : "add"} question.`,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) return <div>Loading...</div>;
@@ -59,10 +97,10 @@ export default function AddOrEditQuestionPage() {
   return (
     <div>
       {error && <div className="text-red-500 mb-4">{error}</div>}
-      <QuestionsForm
+      <QuestionForm
         question={question}
         setQuestion={setQuestion}
-        onSuccess={handleSuccess}
+        onSubmit={handleSubmit}
         editMode={isEdit}
       />
     </div>

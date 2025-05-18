@@ -7,9 +7,13 @@ import {
   TableRow,
 } from "../../ui/table";
 import { useNavigate } from "react-router-dom";
-import { Edit, Trash } from "lucide-react";
+
+import { Edit, Trash, Eye } from "lucide-react";
 import Swal from "sweetalert2";
-import { deleteQuestionService, getQuestionListService } from "../../../services/restApi/Questions";
+import {
+  deleteQuestionService,
+  getQuestionListService,
+} from "../../../services/restApi/Questions";
 
 interface Question {
   id: number;
@@ -50,9 +54,9 @@ function QuestionsTable() {
   const handleDelete = async () => {
     if (deleteId !== null) {
       try {
-        const result:any = await deleteQuestionService(deleteId);
-        if (result?.status === 204 || result?.success) {
-          setQuestions(prev => prev.filter(q => q.id !== deleteId));
+        const result = await deleteQuestionService(deleteId);
+        if (result) {
+          setQuestions((prev) => prev.filter((q) => q.id !== deleteId));
           Swal.fire("Deleted!", "Question deleted successfully.", "success");
         } else {
           throw new Error("Delete failed");
@@ -88,15 +92,17 @@ function QuestionsTable() {
             <Table>
               <TableHeader className="border-b border-gray-100">
                 <TableRow>
-                  {["#", "Text", "Type", "Created At", "Actions"].map(header => (
-                    <TableCell
-                      key={header}
-                      isHeader
-                      className="px-4 py-3 font-medium text-gray-500 text-start"
-                    >
-                      {header}
-                    </TableCell>
-                  ))}
+                  {["#", "Text", "Type", "Created At", "Actions"].map(
+                    (header) => (
+                      <TableCell
+                        key={header}
+                        isHeader
+                        className="px-4 py-3 font-medium text-gray-500 text-start"
+                      >
+                        {header}
+                      </TableCell>
+                    )
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody className="divide-y divide-gray-100">
@@ -117,9 +123,27 @@ function QuestionsTable() {
                     <TableRow key={q.id}>
                       <TableCell className="px-4 py-3">{q.id}</TableCell>
                       <TableCell className="px-4 py-3">{q.text}</TableCell>
-                      <TableCell className="px-4 py-3">{q.question_type}</TableCell>
-                      <TableCell className="px-4 py-3">{new Date(q.created_at).toLocaleString()}</TableCell>
+                      <TableCell className="px-4 py-3">
+                        {q.question_type
+                          .split("_")
+                          .map((item) => item[0].toUpperCase() + item.slice(1))
+                          .join(" ")}
+                      </TableCell>
+                      <TableCell className="px-4 py-3">
+                        {new Date(q.created_at).toLocaleString("en-IN", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                          hour12: true,
+                        })}
+                      </TableCell>
                       <TableCell className="flex items-center gap-3 px-4 py-3">
+                        <Eye
+                          className="w-5 h-5 text-blue-600 hover:text-blue-800 cursor-pointer"
+                          onClick={() => navigate(`/question/view/${q.id}`)}
+                        />
                         <Edit
                           className="w-5 h-5 text-blue-600 hover:text-blue-800 cursor-pointer"
                           onClick={() => navigate(`/manage-question/${q.id}`)}
@@ -147,7 +171,9 @@ function QuestionsTable() {
         >
           Prev
         </button>
-        <span className="px-4 py-2">{page} / {totalPages}</span>
+        <span className="px-4 py-2">
+          {page} / {totalPages}
+        </span>
         <button
           disabled={page === totalPages}
           className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
@@ -162,7 +188,9 @@ function QuestionsTable() {
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-xl w-[90%] max-w-md">
             <h2 className="text-lg font-semibold mb-4">Delete Confirmation</h2>
-            <p className="mb-6">Are you sure you want to delete this question?</p>
+            <p className="mb-6">
+              Are you sure you want to delete this question?
+            </p>
             <div className="flex justify-end space-x-4">
               <button
                 className="px-4 py-2 bg-gray-200 rounded"

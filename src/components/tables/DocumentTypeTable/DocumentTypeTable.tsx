@@ -6,23 +6,28 @@ import {
   TableHeader,
   TableRow,
 } from "../../ui/table";
+import {
+  getDocumentTypeListService,
+  deleteDocumentTypeService,
+} from "../../../services/restApi/documentTypes";
 import { useNavigate } from "react-router-dom";
-import { Trash2, Eye, Pencil } from "lucide-react";
-import { deleteDocumentTypeService, getDocumentTypeListService } from "../../../services/restApi/documentTypes";
+import Swal from "sweetalert2";
+import { Edit, Eye, Trash } from "lucide-react";
 
 interface DocumentType {
   id: number;
   name: string;
-  slug: string;
-  created_at: string;
+  description: string;
+  is_active: boolean; // <-- Add this field
 }
 
-export default function DocumentTypeTable() {
+export default function DocumentTypesTable() {
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [search, setSearch] = useState("");
+  const [deleteId, setDeleteId] = useState<number | null>(null);
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
   const [totalPages, setTotalPages] = useState(1);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -37,37 +42,34 @@ export default function DocumentTypeTable() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    const confirm = window.confirm("Are you sure you want to delete this document type?");
-    if (!confirm) return;
-
-    const res = await deleteDocumentTypeService(id);
-    if (res) {
-      fetchDocumentTypes(); // Refresh the list
+  const handleDelete = async () => {
+    if (deleteId !== null) {
+      const success = await deleteDocumentTypeService(deleteId);
+      if (success) {
+        setDocumentTypes((prev) => prev.filter((doc) => doc.id !== deleteId));
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "Deleted Successfully!",
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error!",
+          text: "Something went wrong!",
+        });
+      }
+      setDeleteId(null);
     }
-  };
-
-  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.checked) {
-      setSelectedIds(documentTypes.map((doc) => doc.id));
-    } else {
-      setSelectedIds([]);
-    }
-  };
-
-  const handleSelectOne = (id: number) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
   };
 
   return (
     <>
-      {/* Search Bar */}
+      {/* Filters */}
       <div className="flex justify-between items-center mb-4">
         <input
           type="text"
-          placeholder="Search document types..."
+          placeholder="Search..."
           className="px-3 py-2 border rounded"
           value={search}
           onChange={(e) => {
@@ -75,72 +77,68 @@ export default function DocumentTypeTable() {
             setPage(1);
           }}
         />
-        {/* <button
-          onClick={() => navigate("/add-document-type")}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center space-x-1"
-        >
-          <Plus size={16} />
-          <span>Add</span>
-        </button> */}
       </div>
 
       {/* Table */}
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
         <div className="max-w-full overflow-x-auto">
-          <div className="min-w-[900px]">
+          <div className="min-w-[850px]">
             <Table>
               <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                 <TableRow>
-                  <TableCell className="px-4 py-3">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.length === documentTypes.length}
-                      onChange={handleSelectAll}
-                    />
-                  </TableCell>
-                  <TableCell isHeader>Name</TableCell>
-                  <TableCell isHeader>Slug</TableCell>
-                  <TableCell isHeader>Created At</TableCell>
-                  <TableCell isHeader>Actions</TableCell>
+                  {["#", "Name", "Is Active", "Description", "Actions"].map(
+                    (header) => (
+                      <TableCell
+                        key={header}
+                        isHeader
+                        className="px-4 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                      >
+                        {header}
+                      </TableCell>
+                    )
+                  )}
                 </TableRow>
               </TableHeader>
-              <TableBody>
+              <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                 {documentTypes.map((doc) => (
-                  <TableRow key={doc.id}>
-                    <TableCell className="px-4 py-3">
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.includes(doc.id)}
-                        onChange={() => handleSelectOne(doc.id)}
-                      />
+                  <TableRow key={doc.id} className="text-center">
+                    <TableCell className="px-4 py-4 text-start">
+                      {doc.id}
                     </TableCell>
-                    <TableCell>{doc.name}</TableCell>
-                    <TableCell>{doc.slug}</TableCell>
-                    <TableCell>{new Date(doc.created_at).toLocaleString()}</TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <button
-                          title="View"
-                          className="text-green-600 hover:text-green-800"
-                          onClick={() => navigate(`/view-document-type/${doc.id}`)}
-                        >
-                          <Eye size={18} />
-                        </button>
-                        <button
-                          title="Edit"
-                          className="text-blue-600 hover:text-blue-800"
-                          onClick={() => navigate(`/manage-document-type/${doc.id}`)}
-                        >
-                          <Pencil size={18} />
-                        </button>
-                        <button
-                          title="Delete"
-                          className="text-red-600 hover:text-red-800"
-                          onClick={() => handleDelete(doc.id)}
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
+                    <TableCell className="px-4 py-4 text-start">
+                      {doc.name}
+                    </TableCell>
+                    <TableCell className="px-4 py-4 text-start">
+                      {doc.is_active ? (
+                        <span className="inline-block w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                          ✓
+                        </span>
+                      ) : (
+                        <span className="inline-block w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                          ×
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="px-4 py-4 text-start">
+                      {doc.description || "-"}
+                    </TableCell>
+                    <TableCell className="flex items-center gap-3 px-4 py-3">
+                      <Eye
+                        className="w-5 h-5 text-blue-600 hover:text-blue-800 cursor-pointer"
+                        onClick={() =>
+                          navigate(`/document-type/view/${doc.id}`)
+                        }
+                      />
+                      <Edit
+                        className="w-5 h-5 text-blue-600 hover:text-blue-800 cursor-pointer"
+                        onClick={() =>
+                          navigate(`/manage-document-type/${doc.id}`)
+                        }
+                      />
+                      <Trash
+                        className="w-5 h-5 text-red-600 hover:text-red-800 cursor-pointer"
+                        onClick={() => setDeleteId(doc.id)}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -159,15 +157,45 @@ export default function DocumentTypeTable() {
         >
           Prev
         </button>
-        <span className="px-4 py-2">{page} / {totalPages}</span>
+        <span className="px-4 py-2">
+          {page} / {totalPages}
+        </span>
         <button
-          disabled={page === totalPages || totalPages === 0}
+          disabled={page === totalPages}
           className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
           onClick={() => setPage((prev) => prev + 1)}
         >
           Next
         </button>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteId !== null && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-[90%] max-w-md">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+              Delete Confirmation
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Are you sure you want to delete this document type?
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-white rounded"
+                onClick={() => setDeleteId(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                onClick={handleDelete}
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
