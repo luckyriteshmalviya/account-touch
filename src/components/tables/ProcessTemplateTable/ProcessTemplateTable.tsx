@@ -6,14 +6,13 @@ import {
   TableHeader,
   TableRow,
 } from "../../ui/table";
-
+import {
+  getProcessTemplatListService,
+  deleteProcessTemplatService,
+} from "../../../services/restApi/processTemplate";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { Edit, Eye, Trash } from "lucide-react";
-import {
-  deleteProcessTemplatService,
-  getProcessTemplatListService,
-} from "../../../services/restApi/processTemplate";
 
 interface RequiredDocument {
   id: number;

@@ -12,7 +12,7 @@ import {
   deleteTaskService,
   getTaskListService,
 } from "../../../services/restApi/task";
-import { Edit, Eye, Trash } from "lucide-react";
+import { Edit, Eye } from "lucide-react";
 
 interface Task {
   id: string;

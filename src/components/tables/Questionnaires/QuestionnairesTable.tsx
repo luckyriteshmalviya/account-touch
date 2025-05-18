@@ -6,14 +6,13 @@ import {
   TableHeader,
   TableRow,
 } from "../../ui/table";
-
+import {
+  getQuestionnairesListService,
+  deleteQuestionnairesService,
+} from "../../../services/restApi/Questionnaires";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { Edit, Eye, Trash } from "lucide-react";
-import {
-  deleteQuestionnairesService,
-  getQuestionnairesListService,
-} from "../../../services/restApi/Questionnaires";
 
 interface Questionnaires {
   title: number;

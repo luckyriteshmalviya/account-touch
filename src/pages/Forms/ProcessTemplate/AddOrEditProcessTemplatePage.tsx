@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import ProcessTemplatForm from "./ProcessTemplateForm";
+import {
+  addProcessTemplatService,
+  updateProcessTemplatService,
+  getProcessTemplatDetailsService,
+} from "../../../services/restApi/processTemplate";
 
 // Assuming you have this service for fetching questionnaire list
 import { getQuestionnairesListService } from "../../../services/restApi/Questionnaires";
-import {
-  addProcessTemplatService,
-  getProcessTemplatDetailsService,
-  updateProcessTemplatService,
-} from "../../../services/restApi/processTemplate";
-import ProcessTemplatForm from "./ProcessTemplateForm";
 
 interface Questionnaire {
   id: string;
@@ -30,6 +30,8 @@ export default function AddOrEditProcessTemplatPage() {
   );
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+
+  console.log(setPage, setSearch)
 
   const { id } = useParams();
   const isEdit = !!id;

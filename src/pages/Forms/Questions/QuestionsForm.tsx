@@ -9,14 +9,14 @@ interface Choice {
   order: number;
 }
 
-interface Question {
-  text: string;
-  description?: string;
-  is_active: boolean;
-  validation_rules?: string;
-  question_type: string;
-  choices: Choice[];
-}
+// interface Question {
+//   text: string;
+//   description?: string;
+//   is_active: boolean;
+//   validation_rules?: string;
+//   question_type: string;
+//   choices: Choice[];
+// }
 
 interface QuestionFormProps {
   question: any;

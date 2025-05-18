@@ -96,7 +96,7 @@ export default function ViewProcessTemplatPage() {
                   <td className="px-6 py-4 text-gray-900 dark:text-white">
                     <ol className="list-decimal pl-5 space-y-4">
                       {processTemplat?.questionnaire?.questions.map(
-                        (question: any, index: number) => (
+                        (question: any) => (
                           <li key={question?.id}>
                             <p className="font-semibold">{question?.text}</p>
                             <p className="text-sm text-gray-600">

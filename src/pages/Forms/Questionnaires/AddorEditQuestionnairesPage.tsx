@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import QuestionnairesForm from "./QuestionnairesForm";
 import {
   addQuestionnairesService,
   updateQuestionnairesService,
   getQuestionnairesDetailsService,
 } from "../../../services/restApi/Questionnaires";
-import QuestionnairesForm from "./QuestionnairesForm";
 
 export default function AddOrEditQuestionnairesPage() {
   const [questionnaires, setQuestionnaires] = useState({

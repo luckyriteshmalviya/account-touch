@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import ComponentCard from "../../../components/common/ComponentCard";
 import Label from "../../../components/form/Label";
 import Input from "../../../components/form/input/InputField";
-import MultiSelect from "../../../components/form/MultiSelect";
 import { priorityToOptions } from "../../../constants/arrays";
 import Select from "../../../components/form/Select";
 
@@ -63,6 +62,7 @@ const TaskForm = ({ task, setTask, onSubmit, setPriorityTo, editMode = false }: 
   const [checkers, setCheckers] = useState<User[]>([]);
   const [selectedMaker, setSelectedMaker] = useState<User | null>(null);
 
+  console.log(setPriorityTo)
   // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
