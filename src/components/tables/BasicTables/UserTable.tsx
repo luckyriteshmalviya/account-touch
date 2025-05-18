@@ -90,11 +90,8 @@ export default function UserTableOne() {
     setFilteredData(filtered);
   }, [statusFilter, tableData]);
 
-  // Calculate total pages for pagination
-  const totalPages = Math.ceil(totalCount / pageSize);
-
-  // Get paginated data based on current page
-  const paginatedData = filteredData.slice((page - 1) * pageSize, page * pageSize);
+  // Use the appropriate data source based on whether filtering is applied
+  const displayData = statusFilter ? filteredData : tableData;
 
   // Handler for showing user details
   const showDetails = (order: Order) => {
@@ -219,9 +216,9 @@ export default function UserTableOne() {
               </TableHeader>
               {/* udpate on 3/5/2025  px-4 */}
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                {paginatedData.map((order, index) => (
+                {displayData.map((order, index) => (
                   <TableRow key={order.id}>
-                    <TableCell className="px-4 py-4 text-start">{index+1}</TableCell>
+                    <TableCell className="px-4 py-4 text-start">{(page - 1) * pageSize + index + 1}</TableCell>
                     <TableCell className="px-4 py-4 text-start">
                       <div className="flex items-center gap-3">
                         <div>
@@ -267,7 +264,7 @@ export default function UserTableOne() {
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
+      {totalCount > pageSize && (
         <div className="flex justify-end mt-4">
           <button
             onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
@@ -277,11 +274,11 @@ export default function UserTableOne() {
             Prev
           </button>
           <span className="px-4 py-2 text-sm">
-            Page {page} of {totalPages}
+            Page {page} of {Math.ceil(totalCount / pageSize)}
           </span>
           <button
-            onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-            disabled={page >= totalPages}
+            onClick={() => setPage((prev) => Math.min(prev + 1, Math.ceil(totalCount / pageSize)))}
+            disabled={page >= Math.ceil(totalCount / pageSize)}
             className="px-4 py-2 mx-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
           >
             Next
