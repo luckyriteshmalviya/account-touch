@@ -29,7 +29,7 @@ export const UserForm = ({
   const isDisabled = !!id && !editMode;
   // Local state for switches
   const [isActive, setIsActive] = useState(user.is_active);
-
+ 
   // Error state for validation
   const [errors, setErrors] = useState<any>({});
 
@@ -290,7 +290,7 @@ export const UserForm = ({
         <ComponentCard title="Status">
           <div className="flex gap-4 justify-between">
             <Switch
-              label="is_active"
+              label="Active"
               checked={isActive}
               onChange={() => setIsActive(!isActive)}
               disabled={isDisabled}
@@ -298,7 +298,7 @@ export const UserForm = ({
           </div>
         </ComponentCard>
 
-        <ComponentCard title="Additional Details">
+        <ComponentCard title="PAN Details">
           {[
             { label: "PAN Card Number", field: "pan_card" },
             // { label: "Password", field: "password" },

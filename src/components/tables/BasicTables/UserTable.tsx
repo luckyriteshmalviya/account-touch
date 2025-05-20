@@ -29,24 +29,23 @@ interface Order {
     last_name: string;
     full_name: string;
   };
-  assigned_to: string | null;
+  assigned_to: any | null;
   pan_card?: string;
   aadhar_card?: string;
 }
 
 export default function UserTableOne() {
   const navigate = useNavigate();
+
   const [tableData, setTableData] = useState<Order[]>([]);
-  const [filteredData, setFilteredData] = useState<Order[]>([]);
   const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const pageSize = 10;
-  const [totalCount, setTotalCount] = useState(0); // Total number of records (needed for pagination)
 
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
-  // Fetch users with current filters and pagination
   const fetchUsers = async () => {
     const params: any = {
       page,
@@ -55,59 +54,29 @@ export default function UserTableOne() {
 
     if (searchTerm) params.search = searchTerm;
     if (roleFilter) params.role = roleFilter;
+    if (statusFilter !== "") params.is_active = statusFilter === "true";
 
-    const res = await getUserListService(params);
-
-    if (res && Array.isArray(res.results)) {
-      setTableData(res.results);
-      setTotalCount(res.count); // Update the total count for pagination
+    try {
+      const res = await getUserListService(params);
+      if (res && Array.isArray(res.results)) {
+        setTableData(res.results);
+        setTotalCount(res.count);
+      }
+    } catch (error) {
+      console.error("Failed to fetch users:", error);
     }
   };
 
-  // Effect to fetch users when filters or page changes
   useEffect(() => {
     fetchUsers();
-  }, [page, searchTerm, roleFilter]);
+  }, [page, searchTerm, roleFilter, statusFilter]);
 
-  // Effect to apply status filtering when statusFilter changes
-  useEffect(() => {
-    let filtered = [...tableData];
+  const totalPages = Math.ceil(totalCount / pageSize);
 
-    // Apply the status filter
-    if (statusFilter === "true") {
-      filtered = filtered.filter((user) => user.is_active);
-    } else if (statusFilter === "false") {
-      filtered = filtered.filter((user) => !user.is_active);
-    }
-
-    // Update the filteredData
-    setFilteredData(filtered);
-
-    // Adjust the pagination if necessary
-    const totalFilteredPages = Math.ceil(filtered.length / pageSize);
-    if (page > totalFilteredPages && totalFilteredPages > 0) {
-      setPage(1); // Reset page to 1 if there are fewer filtered pages
-    }
-
-    // If status is "All", show all records, otherwise apply filter
-    if (statusFilter === "") {
-      setFilteredData(tableData); // Show all users when no status filter is applied
-    }
-
-  }, [statusFilter, tableData]);
-
-  // Calculate total pages for pagination
-  const totalPages = Math.ceil(totalCount / pageSize); // We use totalCount from API response to get the total number of pages
-
-  // Get paginated data based on current page
-  const paginatedData = filteredData.slice((page - 1) * pageSize, page * pageSize);
-
-  // Handler for showing user details
   const showDetails = (order: Order) => {
     navigate(`/user-details/${order.id}`, { state: { hideFields: true } });
   };
 
-  // Handler for deleting a user
   const handleDelete = async (id: number) => {
     const result = await Swal.fire({
       title: "Are you sure?",
@@ -122,6 +91,7 @@ export default function UserTableOne() {
     if (result.isConfirmed) {
       const auth = JSON.parse(localStorage.getItem("auth") || "{}");
       const accessToken = auth?.access;
+
       try {
         const response = await fetch(
           `https://api.accountouch.com/api/users/users/${id}`,
@@ -135,37 +105,29 @@ export default function UserTableOne() {
         );
 
         if (response.status === 204) {
-          setTableData((prevUsers) =>
-            prevUsers.filter((user) => user.id !== id)
-          );
-          Swal.fire({
-            icon: "success",
-            title: "Deleted!",
-            text: "User has been deleted.",
-            timer: 2000,
-            showConfirmButton: false,
-          });
+          setTableData((prev) => prev.filter((user) => user.id !== id));
+          setTotalCount((prev) => prev - 1);
+          Swal.fire("Deleted!", "User has been deleted.", "success");
         } else {
           Swal.fire("Error", "There was a problem deleting the user.", "error");
         }
-      } catch (e) {
-        console.log("Delete API error", e);
+      } catch (err) {
+        console.error("Delete API error:", err);
         Swal.fire("Error", "Something went wrong. Please try again.", "error");
       }
     }
   };
 
   return (
-    <>
+    <div className="w-full">
       {/* Filters */}
-      {/* udpate on 3/5/2025 */}
       <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
         <input
           type="text"
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
-            setPage(1); // Reset to page 1 when searching
+            setPage(1);
           }}
           placeholder="Search by name, phone, email, PAN, Aadhar"
           className="px-3 py-2 border rounded-md"
@@ -175,7 +137,7 @@ export default function UserTableOne() {
           value={roleFilter}
           onChange={(e) => {
             setRoleFilter(e.target.value);
-            setPage(1); // Reset to page 1 when filter changes
+            setPage(1);
           }}
           className="px-3 py-2 border rounded-md"
         >
@@ -187,12 +149,11 @@ export default function UserTableOne() {
           <option value="Client">Client</option>
         </select>
 
-        {/* udpate on 3/5/2025 */}
         <select
           value={statusFilter}
           onChange={(e) => {
             setStatusFilter(e.target.value);
-            setPage(1); // Reset to page 1 when filter changes
+            setPage(1);
           }}
           className="px-3 py-2 border rounded-md w-[120px]"
         >
@@ -205,46 +166,64 @@ export default function UserTableOne() {
       {/* Table */}
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
         <div className="max-w-full overflow-x-auto">
-        {/* udpate on 3/5/2025 */}
           <div className="min-w-[850px]">
             <Table>
               <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                 <TableRow>
-                  {["#", "User name", "Phone Number", "Email", "Roles", "Status", "Assigned To", "Action"].map(
-                    (header) => (
-                      <TableCell
-                        key={header}
-                        isHeader
-                        className="px-4 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                      >
-                        {header}
-                      </TableCell>
-                    )
-                  )}
+                  {[
+                    "#",
+                    "User name",
+                    "Phone Number",
+                    "Email",
+                    "Roles",
+                    "Status",
+                    "Assigned To",
+                    "Action",
+                  ].map((header) => (
+                    <TableCell
+                      key={header}
+                      isHeader
+                      className="px-4 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      {header}
+                    </TableCell>
+                  ))}
                 </TableRow>
               </TableHeader>
-              {/* udpate on 3/5/2025  px-4 */}
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                {paginatedData.map((order, index) => (
+                {tableData.map((order, index) => (
                   <TableRow key={order.id}>
-                    <TableCell className="px-4 py-4 text-start">{index+1}</TableCell>
                     <TableCell className="px-4 py-4 text-start">
-                      <div className="flex items-center gap-3">
-                        <div>
-                          <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                            {order.full_name}
-                          </span>
-                          <span className="block text-gray-500 text-theme-xs dark:text-gray-400">
-                            {new Date(order.date_joined).toDateString()}
-                          </span>
-                        </div>
+                      {(page - 1) * pageSize + index + 1}
+                    </TableCell>
+                    <TableCell className="px-4 py-4 text-start">
+                      <div>
+                        <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+                          {order.full_name}
+                        </span>
+                        <span className="block text-gray-500 text-theme-xs dark:text-gray-400">
+                          {new Date(order.date_joined).toDateString()}
+                        </span>
                       </div>
                     </TableCell>
-                    <TableCell className="px-4 py-4 text-start">{order.phone_number}</TableCell>
-                    <TableCell className="px-4 py-4 text-start">{order.email || "-"}</TableCell>
-                    <TableCell className="px-4 py-4 text-start">{order.roles?.join(", ")}</TableCell>
-                    <TableCell className="px-4 py-4 text-start">{order.is_active ? "Active" : "Inactive"}</TableCell>
-                    <TableCell className="px-4 py-4 text-start">{order.assigned_to || "-"}</TableCell>
+                    <TableCell className="px-4 py-4 text-start">
+                      {order.phone_number}
+                    </TableCell>
+                    <TableCell className="px-4 py-4 text-start">
+                      {order.email || "-"}
+                    </TableCell>
+                    <TableCell className="px-4 py-4 text-start">
+                      {order.roles?.join(", ")}
+                    </TableCell>
+                    <TableCell className="px-4 py-4 text-start">
+                      {order.is_active ? "Active" : "Inactive"}
+                    </TableCell>
+                    <TableCell
+                      className={`px-4 py-4 text-start ${order.assigned_to?.full_name ? "font-bold text-[#417893] underline" : ""
+                        }`}
+                    >
+                      {order.assigned_to?.full_name || "-"}
+                    </TableCell>
                     <TableCell className="flex items-center gap-3 px-4 py-3">
                       <Eye
                         className="w-5 h-5 text-blue-600 hover:text-blue-800 cursor-pointer"
@@ -263,28 +242,38 @@ export default function UserTableOne() {
         </div>
       </div>
 
-      {/* Pagination */}
+      {/* Pagination - Updated with page numbers */}
       {totalPages > 1 && (
-        <div className="flex justify-end mt-4">
+        <div className="flex justify-center items-center mt-6 gap-2 flex-wrap">
           <button
             onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
             disabled={page === 1}
-            className="px-4 py-2 mx-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+            className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
           >
             Prev
           </button>
-          <span className="px-4 py-2 text-sm">
-            Page {page} of {totalPages}
-          </span>
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((pg) => (
+            <button
+              key={pg}
+              onClick={() => setPage(pg)}
+              className={`px-3 py-1 rounded ${page === pg ? "bg-blue-600 text-white" : "bg-gray-200 hover:bg-gray-300"
+                }`}
+            >
+              {pg}
+            </button>
+          ))}
+
           <button
             onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-            disabled={page >= totalPages}
-            className="px-4 py-2 mx-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+            disabled={page === totalPages}
+            className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
           >
             Next
           </button>
         </div>
       )}
-    </>
+
+    </div>
   );
 }

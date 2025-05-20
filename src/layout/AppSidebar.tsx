@@ -35,6 +35,7 @@ const navItems: NavItem[] = [
       { name: "Process Templates", path: "/process-templates-list", pro: false },
       { name: "Questions", path: "/questions-list", pro: false },
       { name: "Document Type", path: "/document-type-list", pro: false },
+      { name: "Task Templates", path: "/task-templates-list", pro: false },
     ],
   },
 ];
