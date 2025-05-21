@@ -83,15 +83,15 @@ export const getTaskTemplatDetailsService = async (id: string) => {
   }
 };
 
-export const addTaskTemplatService = async (payload: any) => {
+export const addTaskTemplatService = async (payload: FormData) => {
   const token = getAccessToken();
   const res = await fetch("https://api.accountouch.com/api/tasks/task-templates/", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
+      // "Content-Type": "application/json",
     },
-    body: JSON.stringify(payload),
+    body: payload,
   });
   return res.json();
 };

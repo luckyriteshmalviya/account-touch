@@ -1,7 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ComponentCard from "../../../components/common/ComponentCard";
 import Label from "../../../components/form/Label";
 import Input from "../../../components/form/input/InputField";
+
+interface ProcessTemplate {
+  id: number;
+  name: string;
+  process_type: string;
+  title: string;
+}
 
 interface Category {
   id: number;
@@ -20,11 +27,13 @@ interface TaskTemplatFormProps {
     order: number;
     priority: Priority;
     fees: string;
+    process_templates: any;  
   };
   setTaskTemplat: React.Dispatch<React.SetStateAction<any>>;
   onSubmit: (formData: FormData) => void;
   editMode?: boolean;
   categoryList: Category[];
+  processTemplates: ProcessTemplate[];
 }
 
 const TaskTemplatForm = ({
@@ -33,8 +42,17 @@ const TaskTemplatForm = ({
   onSubmit,
   editMode = false,
   categoryList,
+  processTemplates,
 }: TaskTemplatFormProps) => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  const [selectedProcesses, setSelectedProcesses] = useState<{ title: any; process_type: any; process_template_id: any; order: any }[]>([
+    { title: 'GST Ret Q P', process_type: 'questionnaire', process_template_id: 0, order: 0 },
+    { title: 'IT RETURN User Document PT', process_type: 'documentation', process_template_id: 0, order: 0 },
+    { title: 'IT RETURN Payment', process_type: 'payment', process_template_id: 0, order: 0 },
+    { title: 'IT RETURN Final Document PT', process_type: 'document_preparation', process_template_id: 0, order: 0 },
+  ]);
+  const [processErrors, setProcessErrors] = useState<string>("");
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
@@ -52,11 +70,58 @@ const TaskTemplatForm = ({
     return Object.keys(newErrors).length === 0;
   };
 
+  const validateProcessSelections = () => {
+    // Define expected process types by index
+    const expectedTypes = [
+      'questionnaire',
+      'documentation',
+      'payment',
+      'document_preparation',
+    ];
+
+    const selectedDetails = selectedProcesses.map(sel =>
+      processTemplates.find(pt => pt.id === sel.process_template_id)
+    );
+
+    // Check for incorrect types per index
+    for (let i = 0; i < expectedTypes.length; i++) {
+      if (!selectedDetails[i]) {
+        setProcessErrors(`Please select a process template for step ${i + 1}.`);
+        return false;
+      }
+
+      if (selectedDetails[i]?.process_type !== expectedTypes[i]) {
+        setProcessErrors(
+          `Step ${i + 1} must be a "${expectedTypes[i]}" process type.`
+        );
+        return false;
+      }
+    }
+
+    // Check for uniqueness
+    const processTypes = selectedDetails.map(pt => pt?.process_type);
+    const orders = selectedProcesses.map(p => p.order);
+
+    const hasDuplicateTypes = new Set(processTypes).size !== processTypes.length;
+    const hasDuplicateOrders = new Set(orders).size !== orders.length;
+
+    if (hasDuplicateTypes || hasDuplicateOrders) {
+      setProcessErrors("Each process type and order must be unique.");
+      return false;
+    }
+
+    // All good
+    setProcessErrors("");
+    return true;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (validate()) {
-      const formData = new FormData();
+    const isValidForm = validate();
+    const isValidProcess = validateProcessSelections();
 
+    if (isValidForm && isValidProcess) {
+      const formData = new FormData();
       formData.append("title", taskTemplat.title);
       formData.append("description", taskTemplat.description);
       formData.append("category_id", taskTemplat.category_id.toString());
@@ -65,6 +130,7 @@ const TaskTemplatForm = ({
       formData.append("order", taskTemplat.order.toString());
       formData.append("priority", taskTemplat.priority);
       formData.append("fees", taskTemplat.fees);
+      formData.append("process_templates", JSON.stringify(selectedProcesses));
 
       if (taskTemplat.image instanceof File) {
         formData.append("image", taskTemplat.image);
@@ -74,7 +140,7 @@ const TaskTemplatForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} encType="multipart/form-data">
       <ComponentCard title={editMode ? "Edit Task Template" : "Add New Task Template"}>
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
 
@@ -224,8 +290,73 @@ const TaskTemplatForm = ({
             />
             {errors.fees && <p className="text-red-500 text-sm">{errors.fees}</p>}
           </div>
-
         </div>
+        <div className="space-y-4">
+          <ComponentCard title="Assign Process Templates">
+            {/* Header Row */}
+            <div className="grid grid-cols-2 gap-4 font-semibold text-sm text-gray-700 mb-2">
+              <div>Process Template</div>
+              <div>Order</div>
+            </div>
+
+            {/* Process Rows */}
+            {selectedProcesses.map((process, index) => {
+              const matchedTemplate = processTemplates.find(pt => pt.title === process.title);
+              const matchedTitle = matchedTemplate?.title || "";
+
+              return (
+                <div key={index} className="mb-4">
+                  {/* Label above row */}
+                  {matchedTitle && (
+                    <div className="text-sm font-semibold text-gray-600 mb-1">
+                      GST RETURN - {matchedTitle} (Order: {index})
+                    </div>
+                  )}
+
+                  {/* Row with dropdown and input */}
+                  <div className="grid grid-cols-2 gap-4 items-center">
+                    <select
+                      className="border px-2 py-2 rounded"
+                      value={taskTemplat?.process_templates[index]?.process_template_id}
+                      onChange={(e) => {
+                        const updated = selectedProcesses.map((item, idx) =>
+                          idx == index ? { ...item, process_template_id: e.target.value } : item
+                        );
+                        setSelectedProcesses(updated);
+                      }}
+                    >
+                      <option value="">-- Select Process Template --</option>
+                      {processTemplates.map((pt) => (
+                        <option key={pt.id} value={pt.id}>
+                          {pt.title} ({pt.process_type})
+                        </option>
+                      ))}
+                    </select>
+                    <Input
+                      type="number"
+                      className="border px-2 py-2 rounded"
+                      value={String(taskTemplat?.process_templates[index]?.order)}
+                      min="0" // <-- string, not number
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        const value = Number(e.target.value);
+                        if (value >= 0) {
+                          const updated = selectedProcesses.map((item, idx) =>
+                            idx === index ? { ...item, order: value } : item
+                          );
+                          setSelectedProcesses(updated);
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Error Message */}
+            {processErrors && <p className="text-red-500 mt-2">{processErrors}</p>}
+          </ComponentCard>
+        </div>
+
 
         {/* Submit */}
         <div className="mt-6">
