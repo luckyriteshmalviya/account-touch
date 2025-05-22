@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { X } from "lucide-react";
 import { getTaskTemplatDetailsService } from "../../../services/restApi/taskTemplate";
 
 export default function ViewTaskTemplatPage() {
   const { id } = useParams();
   const [taskTemplat, setTaskTemplat] = useState<any>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -46,16 +48,21 @@ export default function ViewTaskTemplatPage() {
               <td className="px-6 py-4 text-gray-900 dark:text-white">{taskTemplat.category?.name || "-"}</td>
             </tr>
 
-            <tr>
-              <td className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-300">Image</td>
-              <td className="px-6 py-4 text-gray-900 dark:text-white">
-                {taskTemplat.image ? (
-                  <img src={taskTemplat.image} alt="Task Template" className="w-20 h-20 object-cover rounded" />
-                ) : (
-                  "-"
-                )}
-              </td>
-            </tr>
+           <tr>
+        <td className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-300">Image</td>
+        <td className="px-6 py-4 text-gray-900 dark:text-white">
+          {taskTemplat.image ? (
+            <img
+              src={taskTemplat.image}
+              alt="Task Template"
+              className="w-20 h-20 object-cover rounded cursor-pointer"
+              onClick={() => setIsPreviewOpen(true)}
+            />
+          ) : (
+            "-"
+          )}
+        </td>
+      </tr>
 
             <tr>
               <td className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-300">Is Active</td>
@@ -112,6 +119,22 @@ export default function ViewTaskTemplatPage() {
           </tbody>
         </table>
       </div>
+
+      {isPreviewOpen && (
+        <div className="fixed inset-0 z-[100000] bg-black bg-opacity-80 flex items-center justify-center">
+          <button
+            onClick={() => setIsPreviewOpen(false)}
+            className="absolute top-5 right-5 text-white text-2xl"
+          >
+            <X className="w-8 h-8" />
+          </button>
+          <img
+            src={taskTemplat.image}
+            alt="Full Preview"
+            className="max-w-full max-h-full object-contain rounded"
+          />
+        </div>
+      )}
     </div>
   );
 }
