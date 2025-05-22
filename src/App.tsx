@@ -42,6 +42,9 @@ import Questions from "./pages/Tables/Questions";
 import AddOrEditQuestionPage from "./pages/Forms/Questions/AddOrEditQuestionPage";
 import ViewQuestionPage from "./pages/Forms/Questions/ViewQuestionPage";
 import ViewDocumentTypePage from "./pages/Forms/DocumentTypes/ViewDocumentTypePage";
+import ViewTaskTemplatPage from "./pages/Forms/TaskTemplates/ViewTaskTemplatePage";
+import TaskTemplatesTable from "./pages/Tables/TaskTemplateTable";
+import AddOrEditTaskTemplatPage from "./pages/Forms/TaskTemplates/AddOrEditTaskTemplate";
 
 export default function App() {
   return (
@@ -362,6 +365,42 @@ export default function App() {
               element={
                 <ProtectedRoutesLayout>
                   <AddOrEditQuestionPage />
+                </ProtectedRoutesLayout>
+              }
+            />
+
+             <Route
+              path="/task-templates/view/:id"
+              element={
+                <ProtectedRoutesLayout>
+                  <ViewTaskTemplatPage />
+                </ProtectedRoutesLayout>
+              }
+            />
+
+
+            <Route
+              path="/task-templates-list"
+              element={
+                <ProtectedRoutesLayout>
+                  <TaskTemplatesTable/>
+                </ProtectedRoutesLayout>
+              }
+            />
+
+            <Route
+              path="/manage-task-templates"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditTaskTemplatPage />
+                </ProtectedRoutesLayout>
+              }
+            />
+            <Route
+              path="/manage-task-templates/:id"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditTaskTemplatPage />
                 </ProtectedRoutesLayout>
               }
             />

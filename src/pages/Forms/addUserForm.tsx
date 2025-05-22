@@ -8,6 +8,9 @@ import { useNavigate } from "react-router";
 
 export const AddUserForm = () => {
   const navigate = useNavigate();
+  const localStorageProfile = localStorage.getItem("auth");
+  const parsedProfile = JSON.parse(localStorageProfile || "{}");
+ 
   const [user, setUser] = React.useState({
     first_name: "",
     last_name: "",
@@ -25,6 +28,11 @@ export const AddUserForm = () => {
     gst_site_login: "",
     gst_site_password: "",
     is_active: true,
+    created_by: {
+    first_name: parsedProfile?.user?.first_name || "",
+    last_name: parsedProfile?.user?.last_name || "",
+    email: parsedProfile?.user?.email || "",
+  },
   });
 
   const [selectedRoles, setSelectedRoles] = React.useState<string[]>([]);

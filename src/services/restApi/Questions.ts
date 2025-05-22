@@ -142,7 +142,7 @@ export const patchQuestionService = async (id: string, patchData: Record<string,
 // ----------------------
 // 6. Delete a Question
 // ----------------------
-export const deleteQuestionService = async (id: string | number) => {
+export const deleteQuestionService = async (id: any | number) => {
   try {
     const res = await fetch(`${API_BASE}/${id}/`, {
       method: "DELETE",
