@@ -43,6 +43,8 @@ export default function AddOrEditTaskTemplatPage() {
   const [processtype, setprocesstype] = useState("");
   const [processTemplates, setProcessTemplates] = useState<ProcessTemplate[]>([]);
 
+  console.log(setPage, setSearch, setprocesstype);
+
   useEffect(() => {
     async function fetchCategories() {
       try {
@@ -71,7 +73,6 @@ export default function AddOrEditTaskTemplatPage() {
       (async () => {
         try {
           const data = await getTaskTemplatDetailsService(id as string);
-          let obj = '[{"title":"GST Ret Q P","process_type":"questionnaire","process_template_id":"26b62df7-4f91-48d8-8ddd-22515857869d","order":1},{"title":"IT RETURN User Document PT","process_type":"documentation","process_template_id":"b3c8c87d-3f0d-47bd-b665-415c49da7304","order":2},{"title":"IT RETURN Payment","process_type":"payment","process_template_id":"2e1002d8-e83e-426b-a641-71bd8bf769db","order":3},{"title":"IT RETURN Final Document PT","process_type":"document_preparation","process_template_id":"e4e9bbeb-211a-4274-854e-ecccbb38b85f","order":4}]';
           setTaskTemplat({
             title: data?.title || "",
             description: data?.description || "",
