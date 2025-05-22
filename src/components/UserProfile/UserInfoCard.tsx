@@ -18,7 +18,14 @@ export default function UserInfoCard() {
   );
   const localStorageProfile = localStorage.getItem("auth");
   const parsedProfile = userProfile || JSON.parse(localStorageProfile || "{}");
+
+  console.log("parsedProfile",parsedProfile)
   
+  // Check if the user has a client role
+  const isClient = parsedProfile?.user?.roles?.some((role: any) => 
+    role.slug === "client"
+  );
+
   return (
     <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
@@ -33,7 +40,7 @@ export default function UserInfoCard() {
                 First Name
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-              {parsedProfile?.user?.first_name}
+                {parsedProfile?.user?.first_name}
               </p>
             </div>
 
@@ -42,7 +49,7 @@ export default function UserInfoCard() {
                 Last Name
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-              {parsedProfile?.user?.last_name}
+                {parsedProfile?.user?.last_name}
               </p>
             </div>
 
@@ -51,7 +58,7 @@ export default function UserInfoCard() {
                 Email address
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-              {parsedProfile?.email}
+                {parsedProfile?.email}
               </p>
             </div>
 
@@ -60,18 +67,78 @@ export default function UserInfoCard() {
                 Phone
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-              {parsedProfile?.phone_number}
+                {parsedProfile?.phone_number}
               </p>
             </div>
 
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Bio
+                Country
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-              {parsedProfile?.user.bio}
+                {parsedProfile?.user?.country}
               </p>
             </div>
+
+            {/* <div>
+              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                Status
+              </p>
+              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                {parsedProfile?.user?.is_active ? "Active" : "Inactive"}
+              </p>
+            </div> */}
+
+            {!isClient && parsedProfile?.user?.roles && parsedProfile.user.roles.length > 0 && (
+              <div>
+                <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                  Role
+                </p>
+                <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                  {parsedProfile.user.roles[0].name}
+                </p>
+              </div>
+            )}
+
+            {isClient && (
+              <>
+                <div>
+                  <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                    PAN Card
+                  </p>
+                  <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                    {parsedProfile?.user?.pan_card || "Not provided"}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                    Name as per PAN Card
+                  </p>
+                  <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                    {parsedProfile?.user?.name_as_per_pan_card || "Not provided"}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                    GST Number
+                  </p>
+                  <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                    {parsedProfile?.user?.gst_number || "Not provided"}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                    GST Login
+                  </p>
+                  <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                    {parsedProfile?.user?.gst_site_login || "Not provided"}
+                  </p>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
