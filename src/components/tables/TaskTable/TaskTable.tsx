@@ -6,7 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../ui/table";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import {
   deleteTaskService,
@@ -164,25 +164,32 @@ export default function TasksTable() {
             <Table>
               <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                 <TableRow>
-                  {["Title", "Status", "Priority", "Client", "Maker", "Created At", "Due Date", "Actions"].map(
-                    (header) => (
-                      <TableCell
-                        key={header}
-                        isHeader
-                        className="px-4 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                      >
-                        {header}
-                      </TableCell>
-                    )
-                  )}
+                  {[
+                    "Title",
+                    "Status",
+                    "Priority",
+                    "Client",
+                    "Maker",
+                    "Created At",
+                    "Due Date",
+                    "Actions",
+                  ].map((header) => (
+                    <TableCell
+                      key={header}
+                      isHeader
+                      className="px-4 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      {header}
+                    </TableCell>
+                  ))}
                 </TableRow>
               </TableHeader>
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                 {tasks.map((task) => (
                   <TableRow key={task.id} className="text-center">
                     <TableCell className="px-4 py-4 text-start">
-                      <a 
-                        href={`/tasks/view/${task.id}`} 
+                      <a
+                        href={`/tasks/view/${task.id}`}
                         className="text-blue-600 hover:text-blue-800 hover:underline"
                         onClick={(e) => {
                           e.preventDefault();
@@ -192,15 +199,32 @@ export default function TasksTable() {
                         {task.title}
                       </a>
                     </TableCell>
-                    <TableCell className="px-4 py-4 text-start capitalize">{task.status}</TableCell>
-                    <TableCell className="px-4 py-4 text-start capitalize">{task.priority}</TableCell>
-                    <TableCell className="px-4 py-4 text-start">{task.client?.full_name || 'N/A'}</TableCell>
-                    <TableCell className="px-4 py-4 text-start">{task.maker?.full_name || 'N/A'}</TableCell>
+                    <TableCell className="px-4 py-4 text-start capitalize">
+                      {task.status}
+                    </TableCell>
+                    <TableCell className="px-4 py-4 text-start capitalize">
+                      {task.priority}
+                    </TableCell>
+                    <TableCell className="px-4 py-4 text-start">
+                      {" "}
+                      <Link to={`/user-details/${task.client?.id}`}>
+                        {" "}
+                        {task.client?.full_name || "N/A"}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="px-4 py-4 text-start">
+                      {" "}
+                      <Link to={`/user-details/${task.client?.id}`}>
+                        {task.maker?.full_name || "N/A"}{" "}
+                      </Link>
+                    </TableCell>
                     <TableCell className="px-4 py-4 text-start">
                       {new Date(task.created_at).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="px-4 py-4 text-start">
-                      {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'N/A'}
+                      {task.due_date
+                        ? new Date(task.due_date).toLocaleDateString()
+                        : "N/A"}
                     </TableCell>
                     <TableCell className="flex items-center gap-3 px-4 py-3">
                       <Eye

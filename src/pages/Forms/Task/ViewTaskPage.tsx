@@ -138,9 +138,6 @@ export default function ViewTaskPage() {
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
                     Priority: {task.priority || "-"}
                   </span>
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                    Order: {task.order || "-"}
-                  </span>
                 </div>
               </div>
 

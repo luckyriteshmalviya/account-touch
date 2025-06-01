@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ComponentCard from "../../components/common/ComponentCard";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
@@ -49,6 +49,10 @@ export const UserForm = ({
 
   // Error state for validation
   const [errors, setErrors] = useState<any>({});
+
+  useEffect(() => {
+    setIsActive(user.is_active);
+  }, [user.is_active]);
 
   // Validation function
   const validateForm = () => {
@@ -303,7 +307,8 @@ export const UserForm = ({
                 </p>
               )}
             </div>
-            { (selectedRoles?.value === "client" || selectedRoles?.value === "maker")  && (
+            {(selectedRoles?.value === "client" ||
+              selectedRoles?.value === "maker") && (
               <div className="space-y-6">
                 <Label htmlFor="Assigned To">
                   Assigned To <span className="text-red-500">*</span>
@@ -402,7 +407,7 @@ export const UserForm = ({
           </div>
         </ComponentCard>
 
-        {param.id && (
+        {/* {param.id && (
           <ComponentCard title="Created By">
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-6">
@@ -423,8 +428,8 @@ export const UserForm = ({
                   disabled={isDisabled}
                 />
               </div>
-            </div>
-            {/* {!hideFields && (
+            </div> */}
+        {/* {!hideFields && (
             <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
               <div className="space-y-6">
                 <Label htmlFor="Creator Email">Creator Email</Label>
@@ -437,8 +442,8 @@ export const UserForm = ({
               </div>
             </div>
           )} */}
-          </ComponentCard>
-        )}
+        {/* </ComponentCard>
+        )} */}
 
         {/* Buttons */}
         <div className="mt-6 flex gap-4">
