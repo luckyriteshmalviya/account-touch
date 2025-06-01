@@ -101,7 +101,7 @@ export default function ProcessTemplatTable() {
             className="block w-full px-4 py-3 pr-10 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option disabled value="">
-              --------
+              Select Process
             </option>
             <option value="questionnaire">Questionnaire</option>
             <option value="documentation">Documentation</option>
@@ -122,7 +122,7 @@ export default function ProcessTemplatTable() {
                     "Title",
                     "Process Type",
                     "Status",
-                    "Is Active",
+                    "Active",
                     "Created At",
                     "Required Document",
                     "Action",
@@ -156,11 +156,11 @@ export default function ProcessTemplatTable() {
                         {proc.status || "-"}
                       </TableCell>
                       <TableCell className="px-4 py-4 text-start">
-                        {proc.required_documents?.[0]?.is_active ? (
+                        {/* {proc.required_documents?.[0]?.is_active ? ( */}
                           <span className="text-green-600 text-xl">✅</span>
-                        ) : (
+                        {/* ) : (
                           <span className="text-red-600 text-xl">❌</span>
-                        )}
+                        )} */}
                       </TableCell>{" "}
                       <TableCell className="px-4 py-4 text-start">
                         {proc?.required_documents?.[0]?.created_at

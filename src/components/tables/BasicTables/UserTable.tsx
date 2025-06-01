@@ -170,7 +170,6 @@ export default function UserTableOne() {
               <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                 <TableRow>
                   {[
-                    "#",
                     "User name",
                     "Phone Number",
                     "Email",
@@ -190,11 +189,11 @@ export default function UserTableOne() {
                 </TableRow>
               </TableHeader>
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                {tableData.map((order, index) => (
+                {tableData.map((order) => (
                   <TableRow key={order.id}>
-                    <TableCell className="px-4 py-4 text-start">
+                    {/* <TableCell className="px-4 py-4 text-start">
                       {(page - 1) * pageSize + index + 1}
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell className="px-4 py-4 text-start">
                       <div>
                         <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import TaskForm from "./TaskForm";
 import Swal from "sweetalert2";
@@ -21,9 +21,6 @@ export default function AddOrEditTaskPage() {
     due_date: "",
   });
 
-const [Priority, setPriorityTo] = React.useState<string[]>([]);
-
-  console.log("Priority", Priority);
   const { id } = useParams();
   const isEdit = !!id;
   const navigate = useNavigate();
@@ -71,7 +68,9 @@ const [Priority, setPriorityTo] = React.useState<string[]>([]);
     formData.append("priority", task.priority);
     formData.append("client_id", task.client_id.toString());
     formData.append("maker_id", task.maker_id.toString());
+    if(task?.checker_id){
     formData.append("checker_id", task.checker_id.toString());
+    }
     formData.append("due_date", task.due_date);
 
     const result = isEdit
@@ -90,7 +89,6 @@ const [Priority, setPriorityTo] = React.useState<string[]>([]);
     <TaskForm
       task={task}
       setTask={setTask}
-      setPriorityTo={setPriorityTo}
       onSubmit={handleSubmit}
       editMode={isEdit}
     />

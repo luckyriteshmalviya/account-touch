@@ -86,7 +86,7 @@ export default function DocumentTypesTable() {
             <Table>
               <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                 <TableRow>
-                  {["#", "Name", "Is Active", "Description", "Actions"].map(
+                  {[ "Name", "Active", "Description", "Actions"].map(
                     (header) => (
                       <TableCell
                         key={header}
@@ -102,9 +102,9 @@ export default function DocumentTypesTable() {
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                 {documentTypes.map((doc) => (
                   <TableRow key={doc.id} className="text-center">
-                    <TableCell className="px-4 py-4 text-start">
+                    {/* <TableCell className="px-4 py-4 text-start">
                       {doc.id}
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell className="px-4 py-4 text-start">
                       {doc.name}
                     </TableCell>

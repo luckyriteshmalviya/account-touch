@@ -92,7 +92,7 @@ function QuestionsTable() {
             <Table>
               <TableHeader className="border-b border-gray-100">
                 <TableRow>
-                  {["#", "Text", "Type", "Created At", "Actions"].map(
+                  {["Text", "Type", "Created At", "Actions"].map(
                     (header) => (
                       <TableCell
                         key={header}
@@ -121,7 +121,7 @@ function QuestionsTable() {
                 ) : (
                   questions.map((q) => (
                     <TableRow key={q.id}>
-                      <TableCell className="px-4 py-3">{q.id}</TableCell>
+                      {/* <TableCell className="px-4 py-3">{q.id}</TableCell> */}
                       <TableCell className="px-4 py-3">{q.text}</TableCell>
                       <TableCell className="px-4 py-3">
                         {q.question_type

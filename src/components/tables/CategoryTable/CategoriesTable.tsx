@@ -86,7 +86,7 @@ export default function CategoriesTable() {
             <Table>
               <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                 <TableRow>
-                  {["#", "Name", "Description", "Image", "Actions"].map(
+                  {[ "Name", "Description", "Image", "Actions"].map(
                     (header) => (
                       <TableCell
                         key={header}
@@ -102,7 +102,7 @@ export default function CategoriesTable() {
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                 {categories.map((cat) => (
                   <TableRow key={cat.id} className="text-center">
-                    <TableCell className="px-4 py-4 text-start">{cat.id}</TableCell>
+                    {/* <TableCell className="px-4 py-4 text-start">{cat.id}</TableCell> */}
                     <TableCell className="px-4 py-4 text-start">{cat.name}</TableCell>
                     <TableCell className="px-4 py-4 text-start">{cat.description || "-"}</TableCell>
                     <TableCell className="px-4 py-4 text-start">

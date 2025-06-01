@@ -1,41 +1,54 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import ComponentCard from "../../components/common/ComponentCard";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
-import MultiSelect from "../../components/form/MultiSelect";
 import Switch from "../../components/form/switch/Switch";
-import { assignedToOptions, rolesOptions } from "../../constants/arrays";
+import { rolesOptions } from "../../constants/arrays";
+import Select from "react-select";
+import { useNavigate, useParams } from "react-router";
 
 interface UserFormProps {
   id?: string | undefined;
   user: any;
   setUser: React.Dispatch<React.SetStateAction<any>>;
-  setSelectedRoles: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedRoles: { value: string; label: string } | null;
+  setSelectedRoles: any;
+  assignedTo?: any;
   setAssignedTo: React.Dispatch<React.SetStateAction<string[]>>;
   submitForm?: () => void;
+  assignedToOptions?: any[];
 }
 
 export const UserForm = ({
   id,
   user,
   setUser,
+  selectedRoles,
   setSelectedRoles,
+  assignedTo,
   setAssignedTo,
   submitForm,
+  assignedToOptions,
 }: UserFormProps) => {
   const [editMode, setEditMode] = React.useState(false);
+
+  const param = useParams<{ id: string }>();
+
+  const navigate = useNavigate();
+  const transformedAssignedToOptions = assignedToOptions
+    ? assignedToOptions?.map((user) => ({
+        label: user.full_name || user.first_name || user.email,
+        value: user.id,
+      }))
+    : [];
 
   // Compute disabled logic once
   const isDisabled = !!id && !editMode;
   // Local state for switches
   const [isActive, setIsActive] = useState(user.is_active);
- 
+
   // Error state for validation
   const [errors, setErrors] = useState<any>({});
-
-  useEffect(() => {
-    setIsActive(user.is_active);
-  }, [user]);
 
   // Validation function
   const validateForm = () => {
@@ -56,6 +69,17 @@ export const UserForm = ({
     const phoneRegex = /^[0-9]{9,15}$/;
     if (user.phone_number && !phoneRegex.test(user.phone_number)) {
       newErrors.phone_number = "Phone number must contain 9-15 digits.";
+    }
+
+    // Roles validation
+    if (!selectedRoles || !selectedRoles.value) {
+      newErrors.roles = "Please select a role.";
+    }
+
+    // If 'Maker' role is selected, ensure at least one user is assigned
+    if (selectedRoles?.value === "maker" && assignedTo.length === 0) {
+      newErrors.assigned_to =
+        "Please assign at least one user to the 'Assigned To' field when selecting 'Maker' as a role.";
     }
 
     setErrors(newErrors);
@@ -84,7 +108,7 @@ export const UserForm = ({
         encType="multipart/form-data"
       >
         <ComponentCard title="Personal Details">
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+          <div className="grid grid-cols-2 gap-6">
             <div className="space-y-6">
               <Label htmlFor="First Name">
                 First Name <span className="text-red-500">*</span>
@@ -125,7 +149,7 @@ export const UserForm = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+          <div className="grid grid-cols-2 gap-6 ">
             <div className="space-y-6">
               <Label htmlFor="Email">
                 Email <span className="text-red-500">*</span>
@@ -155,12 +179,21 @@ export const UserForm = ({
                 value={user.phone_number}
                 type="text"
                 id="phoneNumber"
-                onChange={(e) =>
+                onChange={(e) => {
+                  // console.log("Phone number input:",e.target.value, Number(e.target.value));
+                  // if (Number(e.target.value)) {
+                  //   setErrors((prev: any) => ({
+                  //     ...prev,
+                  //     phone_number: "Phone number must be numerical",
+                  //   }));
+                  //   return;
+                  // }
+
                   setUser((prev: any) => ({
                     ...prev,
                     phone_number: e.target.value,
-                  }))
-                }
+                  }));
+                }}
                 disabled={isDisabled}
               />
               {errors.phone_number && (
@@ -185,22 +218,6 @@ export const UserForm = ({
                 disabled={isDisabled}
               />
             </div>
-            {/* {!hideFields && (
-              <div className="space-y-6">
-                <Label htmlFor="Profile Picture">Profile Picture</Label>
-                <Input
-                  type="file"
-                  id="profilePicture"
-                  onChange={(e) =>
-                    setUser((prev: any) => ({
-                      ...prev,
-                      profile_picture: e.target.files?.[0],
-                    }))
-                  }
-                  disabled={isDisabled}
-                />
-              </div>
-            )} */}
           </div>
           {/* {!hideFields && (
             <div className="space-y-6">
@@ -267,46 +284,105 @@ export const UserForm = ({
         </ComponentCard>
 
         <ComponentCard title="Roles and Responsibilities">
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+          <div className="grid grid-cols-2 gap-6">
             <div className="space-y-6">
-              <MultiSelect
-                disabled={isDisabled}
-                label="Roles"
+              <Label htmlFor="roles">Roles</Label>
+              <Select
+                id="roles"
+                name="roles"
+                value={selectedRoles}
                 options={rolesOptions}
-                onChange={(values) => setSelectedRoles(values)}
+                onChange={(values: any) => setSelectedRoles(values)}
+                closeMenuOnSelect={true}
+                isSearchable
               />
+
+              {errors.roles && (
+                <p className="text-red-500 text-sm" id="first_name">
+                  {errors.roles}
+                </p>
+              )}
             </div>
-            <div className="space-y-6">
-              <MultiSelect
-                disabled={isDisabled}
-                label="Assigned To"
-                options={assignedToOptions}
-                onChange={(values) => setAssignedTo(values)}
-              />
-            </div>
+            { (selectedRoles?.value === "client" || selectedRoles?.value === "maker")  && (
+              <div className="space-y-6">
+                <Label htmlFor="Assigned To">
+                  Assigned To <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  id="assignedTo"
+                  // value={transformedAssignedToOptions.filter((option: any) =>
+                  //   assignedTo.includes(option.value)
+                  // )}
+                  value={assignedTo}
+                  name="Assigned To"
+                  options={transformedAssignedToOptions}
+                  onChange={(values: any) => {
+                    setErrors({});
+                    setAssignedTo(values);
+                  }}
+                  closeMenuOnSelect={true}
+                  isSearchable
+                />
+
+                {errors.assigned_to && (
+                  <p className="text-red-500 text-sm" id="assigned_to">
+                    {errors.assigned_to}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </ComponentCard>
 
-        <ComponentCard title="Status">
-          <div className="flex gap-4 justify-between">
-            <Switch
-              label="Active"
-              checked={isActive}
-              onChange={() => setIsActive(!isActive)}
-              disabled={isDisabled}
-            />
-          </div>
-        </ComponentCard>
+        {param.id && (
+          <ComponentCard title="Status">
+            <div className="flex gap-4 justify-between">
+              <Switch
+                label="Active"
+                checked={isActive}
+                onChange={() => setIsActive(!isActive)}
+                disabled={isDisabled}
+              />
+            </div>
+          </ComponentCard>
+        )}
 
         <ComponentCard title="PAN Details">
-          {[
-            { label: "PAN Card Number", field: "pan_card" },
-            // { label: "Password", field: "password" },
-            { label: "Name as per PAN Card", field: "name_as_per_pan_card" },
-            { label: "Aadhar Card Number", field: "aadhar_card" },
-          ]
-            .filter(({ field }) => !(field === "password"))
-            .map(({ label, field }) => (
+          <div className="grid grid-cols-2 gap-6">
+            {[
+              { label: "PAN Card Number", field: "pan_card" },
+              // { label: "Password", field: "password" },
+              { label: "Name as per PAN Card", field: "name_as_per_pan_card" },
+              { label: "Aadhar Card Number", field: "aadhar_card" },
+            ]
+              .filter(({ field }) => !(field === "password"))
+              .map(({ label, field }) => (
+                <div className="space-y-6" key={field}>
+                  <Label htmlFor={field}>{label}</Label>
+                  <Input
+                    value={user[field]}
+                    type="text"
+                    id={field}
+                    onChange={(e) =>
+                      setUser((prev: any) => ({
+                        ...prev,
+                        [field]: e.target.value,
+                      }))
+                    }
+                    disabled={isDisabled}
+                  />
+                </div>
+              ))}
+          </div>
+        </ComponentCard>
+
+        <ComponentCard title="GST Details">
+          <div className="grid grid-cols-2 gap-6 ">
+            {[
+              { label: "GST Number", field: "gst_number" },
+              { label: "GST Portal Login", field: "gst_site_login" },
+              { label: "GST Portal Password", field: "gst_site_password" },
+            ].map(({ label, field }) => (
               <div className="space-y-6" key={field}>
                 <Label htmlFor={field}>{label}</Label>
                 <Input
@@ -323,54 +399,32 @@ export const UserForm = ({
                 />
               </div>
             ))}
-        </ComponentCard>
-
-        <ComponentCard title="GST Details">
-          {[
-            { label: "GST Number", field: "gst_number" },
-            { label: "GST Portal Login", field: "gst_site_login" },
-            { label: "GST Portal Password", field: "gst_site_password" },
-          ].map(({ label, field }) => (
-            <div className="space-y-6" key={field}>
-              <Label htmlFor={field}>{label}</Label>
-              <Input
-                value={user[field]}
-                type="text"
-                id={field}
-                onChange={(e) =>
-                  setUser((prev: any) => ({
-                    ...prev,
-                    [field]: e.target.value,
-                  }))
-                }
-                disabled={isDisabled}
-              />
-            </div>
-          ))}
-        </ComponentCard>
-
-        <ComponentCard title="Created By">
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-            <div className="space-y-6">
-              <Label htmlFor="Creator First Name">Creator First Name</Label>
-              <Input
-                value={user.created_by?.first_name}
-                type="text"
-                disabled={isDisabled}
-                id="creatorFirstName"
-              />
-            </div>
-            <div className="space-y-6">
-              <Label htmlFor="Creator Last Name">Creator Last Name</Label>
-              <Input
-                value={user.created_by?.last_name}
-                type="text"
-                id="creatorLastName"
-                disabled={isDisabled}
-              />
-            </div>
           </div>
-          {/* {!hideFields && (
+        </ComponentCard>
+
+        {param.id && (
+          <ComponentCard title="Created By">
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-6">
+                <Label htmlFor="Creator First Name">Creator First Name</Label>
+                <Input
+                  value={user.created_by?.first_name}
+                  type="text"
+                  disabled={isDisabled}
+                  id="creatorFirstName"
+                />
+              </div>
+              <div className="space-y-6">
+                <Label htmlFor="Creator Last Name">Creator Last Name</Label>
+                <Input
+                  value={user.created_by?.last_name}
+                  type="text"
+                  id="creatorLastName"
+                  disabled={isDisabled}
+                />
+              </div>
+            </div>
+            {/* {!hideFields && (
             <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
               <div className="space-y-6">
                 <Label htmlFor="Creator Email">Creator Email</Label>
@@ -383,7 +437,8 @@ export const UserForm = ({
               </div>
             </div>
           )} */}
-        </ComponentCard>
+          </ComponentCard>
+        )}
 
         {/* Buttons */}
         <div className="mt-6 flex gap-4">
@@ -405,13 +460,27 @@ export const UserForm = ({
             </button>
           )}
           {id && editMode && (
-            <button
-              type="submit"
-              onClick={() => setEditMode(true)}
-              className="px-8 p-2 border border-1 border-green-600 bg-green-500 text-white rounded-lg"
-            >
-              Save Changes
-            </button>
+            <div className="flex gap-4">
+              <button
+                type="submit"
+                onClick={() => setEditMode(true)}
+                className="px-8 p-2 border border-1 border-green-600 bg-green-500 text-white rounded-lg"
+              >
+                Save Changes
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setEditMode(false);
+
+                  navigate("/user-list");
+                }}
+                className="px-8 p-2 border border-1 border-zinc-400 hover:bg-blue-400 rounded-lg"
+              >
+                Cancel
+              </button>
+            </div>
           )}
         </div>
       </form>

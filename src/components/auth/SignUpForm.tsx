@@ -6,8 +6,8 @@ import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
 import { signUp } from "../../services/restApi/auth";
 // import { toast } from "react-toastify";
-import MultiSelect from "../form/MultiSelect";
-import { rolesOptions } from "../../constants/arrays";
+// import MultiSelect from "../form/MultiSelect";
+// import { rolesOptions } from "../../constants/arrays";
 import Swal from "sweetalert2";
 
 export default function SignUpForm() {
@@ -46,10 +46,10 @@ export default function SignUpForm() {
 
       if (response.id && response) {
         Swal.fire({
-                icon: 'success',
-                title: 'Login!',
-                text: "User registered successfully!",
-              });
+          icon: "success",
+          title: "Login!",
+          text: "User registered successfully!",
+        });
         localStorage.setItem(
           "auth",
           JSON.stringify({
@@ -61,15 +61,15 @@ export default function SignUpForm() {
         navigate("/");
       } else {
         Swal.fire({
-          icon: 'error',
-          title: 'Login!',
+          icon: "error",
+          title: "Login!",
           text: "Registration failed",
         });
       }
     } catch (error) {
       Swal.fire({
-        icon: 'error',
-        title: 'Login!',
+        icon: "error",
+        title: "Login!",
         text: "Something went wrong while signing up.",
       });
     }
@@ -110,7 +110,9 @@ export default function SignUpForm() {
                     name="fname"
                     placeholder="Enter your first name"
                     value={state.fname}
-                    onChange={(e) => setState({ ...state, fname: e.target.value })}
+                    onChange={(e) =>
+                      setState({ ...state, fname: e.target.value })
+                    }
                   />
                 </div>
                 {/* Last Name */}
@@ -124,7 +126,9 @@ export default function SignUpForm() {
                     name="lname"
                     placeholder="Enter your last name"
                     value={state.lname}
-                    onChange={(e) => setState({ ...state, lname: e.target.value })}
+                    onChange={(e) =>
+                      setState({ ...state, lname: e.target.value })
+                    }
                   />
                 </div>
               </div>
@@ -139,7 +143,9 @@ export default function SignUpForm() {
                   name="email"
                   placeholder="Enter your email"
                   value={state.email}
-                  onChange={(e) => setState({ ...state, email: e.target.value })}
+                  onChange={(e) =>
+                    setState({ ...state, email: e.target.value })
+                  }
                 />
               </div>
               {/* Phone */}
@@ -153,7 +159,9 @@ export default function SignUpForm() {
                   name="phone"
                   placeholder="Enter your phone number"
                   value={state.phone}
-                  onChange={(e) => setState({ ...state, phone: e.target.value })}
+                  onChange={(e) =>
+                    setState({ ...state, phone: e.target.value })
+                  }
                 />
               </div>
               {/* Country */}
@@ -167,20 +175,22 @@ export default function SignUpForm() {
                   name="country"
                   placeholder="Enter your country"
                   value={state.country}
-                  onChange={(e) => setState({ ...state, country: e.target.value })}
+                  onChange={(e) =>
+                    setState({ ...state, country: e.target.value })
+                  }
                 />
               </div>
               {/* Roles */}
               <div className="space-y-6">
-  <MultiSelect
+                {/* <MultiSelect
     label="Roles"
     options={rolesOptions}
     defaultSelected={["1"]}
     onChange={(values: string[]) =>
       setState((prev:any) => ({ ...prev, roles: values }))
     }
-  />
-</div>
+  /> */}
+              </div>
               {/* Password */}
               <div>
                 <Label>
@@ -191,7 +201,9 @@ export default function SignUpForm() {
                     placeholder="Enter your password"
                     type={showPassword ? "text" : "password"}
                     value={state.password}
-                    onChange={(e) => setState({ ...state, password: e.target.value })}
+                    onChange={(e) =>
+                      setState({ ...state, password: e.target.value })
+                    }
                   />
                   <span
                     onClick={() => setShowPassword(!showPassword)}
@@ -215,7 +227,9 @@ export default function SignUpForm() {
                     placeholder="Confirm your password"
                     type={showPassword ? "text" : "password"}
                     value={state.password2}
-                    onChange={(e) => setState({ ...state, password2: e.target.value })}
+                    onChange={(e) =>
+                      setState({ ...state, password2: e.target.value })
+                    }
                   />
                 </div>
               </div>
@@ -228,8 +242,14 @@ export default function SignUpForm() {
                 />
                 <p className="inline-block font-normal text-gray-500 dark:text-gray-400">
                   By creating an account, you agree to the{" "}
-                  <span className="text-gray-800 dark:text-white/90">Terms and Conditions</span> and{" "}
-                  <span className="text-gray-800 dark:text-white">Privacy Policy</span>.
+                  <span className="text-gray-800 dark:text-white/90">
+                    Terms and Conditions
+                  </span>{" "}
+                  and{" "}
+                  <span className="text-gray-800 dark:text-white">
+                    Privacy Policy
+                  </span>
+                  .
                 </p>
               </div>
               {/* Submit */}

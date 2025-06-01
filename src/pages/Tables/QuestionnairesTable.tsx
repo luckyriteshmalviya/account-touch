@@ -8,9 +8,9 @@ export default function QuestionnaiyTable() {
     <>
       <PageMeta
         title="Questionnaires Tables Dashboard | boltecpros"
-        description="This is the Questionnaires list table page for boltecpros."
+        description="This is the Questionnaires template list table page for boltecpros."
       />
-      <PageBreadcrumb pageTitle="Questionnaires List" />
+      <PageBreadcrumb pageTitle="Questionnaires Template List" />
       <div className="space-y-6">
         <ComponentCard
           title=""

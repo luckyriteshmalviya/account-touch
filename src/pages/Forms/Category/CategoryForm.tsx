@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import ComponentCard from "../../../components/common/ComponentCard";
 import Label from "../../../components/form/Label";
 import Input from "../../../components/form/input/InputField";
+import TextArea from "../../../components/form/input/TextArea";
+import { useNavigate } from "react-router";
 
 interface CategoryFormProps {
   category: {
@@ -15,9 +17,20 @@ interface CategoryFormProps {
   editMode?: boolean;
 }
 
-const CategoryForm = ({ category, setCategory, onSubmit, editMode = false }: CategoryFormProps) => {
+const CategoryForm = ({
+  category,
+  setCategory,
+  onSubmit,
+  editMode = false,
+}: CategoryFormProps) => {
   const [preview, setPreview] = useState<string | null>(null);
-  const [errors, setErrors] = useState<{ name?: string; description?: string; image?: string }>({});
+  const [errors, setErrors] = useState<{
+    name?: string;
+    description?: string;
+    image?: string;
+  }>({});
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (category.image) {
@@ -32,7 +45,8 @@ const CategoryForm = ({ category, setCategory, onSubmit, editMode = false }: Cat
   }, [category.image, category.imageUrl]);
 
   const validate = () => {
-    const newErrors: { name?: string; description?: string; image?: string } = {};
+    const newErrors: { name?: string; description?: string; image?: string } =
+      {};
 
     if (!category.name.trim()) {
       newErrors.name = "Name is required.";
@@ -58,7 +72,7 @@ const CategoryForm = ({ category, setCategory, onSubmit, editMode = false }: Cat
   return (
     <form onSubmit={handleSubmit}>
       <ComponentCard title={editMode ? "Edit Category" : "Add New Category"}>
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-1">
           {/* Name Field */}
           <div className="space-y-2">
             <Label htmlFor="name">
@@ -73,15 +87,14 @@ const CategoryForm = ({ category, setCategory, onSubmit, editMode = false }: Cat
               }
               required
             />
-            {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+            {errors.name && (
+              <p className="text-red-500 text-sm">{errors.name}</p>
+            )}
           </div>
 
           {/* Description Field */}
           <div className="space-y-2">
-            <Label htmlFor="description">
-              Description <span className="text-red-500">*</span>
-            </Label>
-            <Input
+            {/* <Input
               value={category.description}
               type="text"
               id="description"
@@ -89,12 +102,30 @@ const CategoryForm = ({ category, setCategory, onSubmit, editMode = false }: Cat
                 setCategory((prev: any) => ({ ...prev, description: e.target.value }))
               }
               required
+            /> */}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">
+              Description <span className="text-red-500">*</span>
+            </Label>
+            <TextArea
+              rows={6}
+              value={category.description}
+              error
+              // onChange={(value) => setMessageTwo(value)}
+              onChange={(value) =>
+                setCategory((prev: any) => ({ ...prev, description: value }))
+              }
+              // hint="Please enter a valid message."
             />
-            {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
+            {errors.description && (
+              <p className="text-red-500 text-sm">{errors.description}</p>
+            )}
           </div>
 
           {/* Image Upload */}
-          <div className="space-y-2 col-span-2">
+          <div className="space-y-2">
             <Label htmlFor="image">
               Image <span className="text-red-500">*</span>
             </Label>
@@ -118,18 +149,33 @@ const CategoryForm = ({ category, setCategory, onSubmit, editMode = false }: Cat
                 }));
               }}
             />
-            {errors.image && <p className="text-red-500 text-sm">{errors.image}</p>}
+            {errors.image && (
+              <p className="text-red-500 text-sm">{errors.image}</p>
+            )}
           </div>
         </div>
 
-        {/* Submit Button */}
-        <div className="mt-6">
-          <button
-            type="submit"
-            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            {editMode ? "Save Changes" : "Add Category"}
-          </button>
+        <div className="flex gap-4">
+          <div className="mt-6">
+            <button
+              type="submit"
+              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              {editMode ? "Save Changes" : "Add Category"}
+            </button>
+          </div>
+
+          {editMode && (
+            <div className="mt-6">
+              <button
+                type="button"
+                onClick={() => navigate("/category-list")}
+                className="px-6 p-2 border border-1 border-zinc-400 hover:bg-blue-400 rounded-lg"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
         </div>
       </ComponentCard>
     </form>

@@ -10,7 +10,7 @@ export default function DocumentType() {
         title="Document List"
         description="This is the Category list table page for boltecpros."
       />
-      <PageBreadcrumb pageTitle="Document Type Table" />
+      <PageBreadcrumb pageTitle="Document Type List" />
       <div className="space-y-6">
         <ComponentCard
           title=""

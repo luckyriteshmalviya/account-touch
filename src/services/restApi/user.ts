@@ -21,8 +21,8 @@ interface UserPayload {
   gst_site_login: string;
   gst_site_password: string;
   is_active: boolean;
-  roles: string[];
-  assigned_to: string[];
+  role_names: string;
+  assigned_to_id: any;
 }
 
 // Add new user
@@ -31,7 +31,6 @@ export const addUserService = async (payload: UserPayload) => {
     const auth = JSON.parse(localStorage.getItem("auth") || "{}");
     const accessToken = auth?.access;
 
-    console.log(payload,'payload');
     const formData = new FormData();
 
     // Append user fields to FormData
@@ -45,13 +44,39 @@ export const addUserService = async (payload: UserPayload) => {
       }
     });
 
-    const response = await fetch(`https://api.accountouch.com/api/users/users/`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`, // ✅ No Content-Type here
-      },
-      body: formData,
-    });
+    const response = await fetch(
+      `https://api.accountouch.com/api/users/users/`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // ✅ No Content-Type here
+        },
+        body: formData,
+      }
+    );
+
+    const data = await response.json();
+    return data;
+  } catch (e) {
+    console.error("Error in addUserService:", e);
+    return null;
+  }
+};
+
+export const fetchAssignedToList = async (role:string = "Checker") => {
+  try {
+    const auth = JSON.parse(localStorage.getItem("auth") || "{}");
+    const accessToken = auth?.access;
+    const response = await fetch(
+      `https://api.accountouch.com/api/users/users/?roles__name=${role}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
 
     const data = await response.json();
     return data;
@@ -70,13 +95,16 @@ export const getUserListService = async (params = {}) => {
     // Construct query string from `params` object
     const query = new URLSearchParams(params).toString();
 
-    const response = await fetch(`https://api.accountouch.com/api/users/users/?${query}`, {
-      method: "GET",
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    });
+    const response = await fetch(
+      `https://api.accountouch.com/api/users/users/?${query}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
 
     const data = await response.json();
     return data;
@@ -94,16 +122,19 @@ export const userDetailsService = async (userId: string) => {
     //   method: "GET",
     // });
     const auth = JSON.parse(localStorage.getItem("auth") || "{}");
-    
+
     const accessToken = auth?.access;
 
-    const response = await fetch(`https://api.accountouch.com/api/users/users/${userId}/`, {
-      method: "GET",
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`
-      },
-    });
+    const response = await fetch(
+      `https://api.accountouch.com/api/users/users/${userId}/`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
     const data = await response.json();
     return data;
   } catch (e) {
@@ -112,22 +143,26 @@ export const userDetailsService = async (userId: string) => {
   }
 };
 
-
-export const updateUserService = async (payload: UserPayload, userId: string) => {
+export const updateUserService = async (
+  payload: UserPayload,
+  userId: string
+) => {
   try {
-
     const auth = JSON.parse(localStorage.getItem("auth") || "{}");
-    
+
     const accessToken = auth?.access;
-    
-    const response = await fetch(`https://api.accountouch.com/api/users/users/${userId}/`, {
-      method: "PUT",
-      body: JSON.stringify(payload),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`
-      },
-    });
+
+    const response = await fetch(
+      `https://api.accountouch.com/api/users/users/${userId}/`,
+      {
+        method: "PUT",
+        body: JSON.stringify(payload),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
     const data = await response.json();
     return data;
   } catch (e) {

@@ -36,13 +36,6 @@ export default function Payment({ process, onComplete, onPrevious }: PaymentProp
                         min={minimumFees}
                     />
                 </label>
-
-                <p className="text-gray-600 dark:text-gray-300 mt-2">
-                    Process Type: <span className="font-medium">{process.process_template_detail.process_type}</span>
-                </p>
-                <p className="text-gray-600 dark:text-gray-300 mt-2">
-                    Title: <span className="font-medium">{process.process_template_name || "Payment Process"}</span>
-                </p>
                 <p className="text-gray-600 dark:text-gray-300 mt-2">
                     Payment Status: <span className="font-medium">{process.status}</span>
                 </p>

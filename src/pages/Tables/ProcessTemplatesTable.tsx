@@ -7,13 +7,13 @@ export default function ProcessTemplatesTable() {
   return (
     <>
       <PageMeta
-        title="ProcessTemplates Tables Dashboard | boltecpros"
+        title="Process Template List Dashboard | boltecpros"
         description="This is the ProcessTemplates list table page for boltecpros."
       />
-      <PageBreadcrumb pageTitle="ProcessTemplates Table" />
+      <PageBreadcrumb pageTitle="Process Templates List" />
       <div className="space-y-6">
         <ComponentCard
-          title="ProcessTemplates Table"
+          title=""
           addUnit="Add ProcessTemplates"
           route="/manage-process-templates"
         >

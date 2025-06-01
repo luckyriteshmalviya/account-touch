@@ -3,6 +3,7 @@ import ComponentCard from "../../../components/common/ComponentCard";
 import Label from "../../../components/form/Label";
 import Input from "../../../components/form/input/InputField";
 import Checkbox from "../../../components/form/input/Checkbox";
+import { useNavigate, useParams } from "react-router";
 
 interface DocumentTypeFormProps {
   documentType: {
@@ -24,6 +25,9 @@ const DocumentTypeForm = ({
   const [errors, setErrors] = useState<{ name?: string; description?: string }>(
     {}
   );
+
+  const { id } = useParams<{ id?: string }>();
+  const navigate = useNavigate();
 
   const validate = () => {
     const newErrors: { name?: string; description?: string } = {};
@@ -89,17 +93,22 @@ const DocumentTypeForm = ({
         </div>
 
         {/* Is Active */}
-        <div className="mb-6">
-          <Checkbox
-            id="isActive"
-            checked={documentType.isActive}
-            onChange={(isChecked: boolean) =>
-              setDocumentType((prev: any) => ({ ...prev, isActive: isChecked }))
-            }
-            label="Is Active"
-            subLabel="Whether this document type is currently active"
-          />
-        </div>
+        {id && (
+          <div className="mb-6">
+            <Checkbox
+              id="isActive"
+              checked={documentType.isActive}
+              onChange={(isChecked: boolean) =>
+                setDocumentType((prev: any) => ({
+                  ...prev,
+                  isActive: isChecked,
+                }))
+              }
+              label="Active"
+              subLabel="Whether this document type is currently active"
+            />
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="flex space-x-4">
@@ -107,22 +116,18 @@ const DocumentTypeForm = ({
             type="submit"
             className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
-            {editMode ? "Update" : "Save"}
+            {editMode ? "Save Changes" : "Save"}
           </button>
-          <button
-            type="button"
-            className="px-6 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-            onClick={() => alert("Save and add another (Not implemented)")}
-          >
-            Save and add another
-          </button>
-          <button
-            type="button"
-            className="px-6 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-            onClick={() => alert("Save and continue editing (Not implemented)")}
-          >
-            Save and continue editing
-          </button>
+
+          {editMode && (
+            <button
+              type="button"
+              onClick={() => navigate("/document-type-list")}
+              className="px-6 py-2 border border-1 border-zinc-400 hover:bg-blue-400 rounded-lg"
+            >
+              Cancel
+            </button>
+          )}
         </div>
       </ComponentCard>
     </form>

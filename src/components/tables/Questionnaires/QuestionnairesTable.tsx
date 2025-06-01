@@ -91,8 +91,7 @@ export default function QuestionnairesTable() {
                 <TableRow>
                   {[
                     "Title",
-                    "Id",
-                    "IS Active",
+                    "Active",
                     "Created At",
                     "Number Of Question",
                     "Description",
@@ -114,9 +113,9 @@ export default function QuestionnairesTable() {
                     <TableCell className="px-4 py-4 text-start bold text-[#417893]">
                       {ques.title}
                     </TableCell>
-                    <TableCell className="px-4 py-4 text-start">
+                    {/* <TableCell className="px-4 py-4 text-start">
                       {ques.id}
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell className="px-4 py-4 text-start">
                       {ques.is_active ? (
                         <span className="text-green-600 text-xl">✅</span>

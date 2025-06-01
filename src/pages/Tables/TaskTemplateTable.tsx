@@ -7,13 +7,13 @@ export default function TaskTemplatesTable() {
   return (
     <>
       <PageMeta
-        title="TaskTemplates Tables Dashboard | boltecpros"
-        description="This is the TaskTemplates list table page for boltecpros."
+        title="Task Templates List Dashboard | boltecpros"
+        description="This is the Task Templates list table page for boltecpros."
       />
-      <PageBreadcrumb pageTitle="TaskTemplates Table" />
+      <PageBreadcrumb pageTitle="Task Templates List" />
       <div className="space-y-6">
         <ComponentCard
-          title="TaskTemplates Table"
+          title=""
           addUnit="Add TaskTemplates"
           route="/manage-task-templates"
         >

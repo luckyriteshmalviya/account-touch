@@ -10,6 +10,7 @@ import {
 
 // Assuming you have this service for fetching questionnaire list
 import { getQuestionnairesListService } from "../../../services/restApi/Questionnaires";
+import { getDocumentTypeListService } from "../../../services/restApi/documentTypes";
 
 interface Questionnaire {
   id: string;
@@ -20,7 +21,7 @@ export default function AddOrEditProcessTemplatPage() {
   const [processTemplat, setProcessTemplat] = useState({
     title: "",
     description: "",
-    questionnaire_id: "", // Add this
+    // questionnaire_id: "", // Add this
     process_type: "",
     created_by_id: 0, // You'll probably get this from auth/user context
   });
@@ -28,47 +29,85 @@ export default function AddOrEditProcessTemplatPage() {
   const [questionnaireList, setQuestionnaireList] = useState<Questionnaire[]>(
     []
   );
+
+  const [selectedQuestionnaire, setSelectedQuestionnaire] = useState("");
+
+  const [documentList, setDocumentList] = useState<any[]>([]);
+  const [selectedDocumentType, setSelectedDocumentType] = useState<any[]>([]);
+
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
 
-  console.log(setPage, setSearch)
+  console.log(setPage, setSearch);
 
   const { id } = useParams();
   const isEdit = !!id;
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (processTemplat.process_type === "") return;
+
     // Fetch questionnaire list on mount
-    async function fetchQuestionnaires() {
-      try {
-        const data = await getQuestionnairesListService({ page, search });
-        setQuestionnaireList(data.results || []);
-      } catch (error) {
-        console.error("Error fetching questionnaires:", error);
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Failed to fetch questionnaire list.",
-        });
+    if (processTemplat.process_type === "questionnaire") {
+      async function fetchQuestionnaires() {
+        try {
+          const data = await getQuestionnairesListService({ page, search });
+          setQuestionnaireList(data.results || []);
+        } catch (error) {
+          console.error("Error fetching questionnaires:", error);
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Failed to fetch questionnaire list.",
+          });
+        }
       }
+      fetchQuestionnaires();
     }
-    fetchQuestionnaires();
-  }, []);
+
+    // Fetch questionnaire list on mount
+    if (
+      processTemplat.process_type === "documentation" ||
+      processTemplat.process_type === "document_preparation"
+    ) {
+      async function fetchdocuments() {
+        try {
+          const data = await getDocumentTypeListService({ page, search });
+          setDocumentList(data.results || []);
+        } catch (error) {
+          console.error("Error fetching questionnaires:", error);
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Failed to fetch questionnaire list.",
+          });
+        }
+      }
+      fetchdocuments();
+    }
+  }, [processTemplat.process_type]);
 
   useEffect(() => {
     if (isEdit) {
       (async () => {
         try {
           const data = await getProcessTemplatDetailsService(id as string);
-          const localStorageProfile = localStorage.getItem("auth");
-          const parsedProfile = JSON.parse(localStorageProfile || "{}");
           setProcessTemplat({
             title: data.title || "",
             description: data.description || "",
-            questionnaire_id: data?.questionnaire?.id || "",
+            // questionnaire_id: data?.questionnaire?.id || "",
             process_type: data.process_type, // dynamic now
-            created_by_id: parsedProfile?.user?.id || 0,
+            created_by_id: data.created_by?.id || 0,
           });
+
+          if (data.process_type === "questionnaire") {
+            setSelectedQuestionnaire(data?.questionnaire?.id || "");
+          } else {
+            const requiredDocumentIds =
+              data?.required_documents.map((item: any) => item.id) || [];
+
+            setSelectedDocumentType(requiredDocumentIds);
+          }
         } catch (error) {
           console.error("Error fetching process template details:", error);
           await Swal.fire({
@@ -90,7 +129,10 @@ export default function AddOrEditProcessTemplatPage() {
       });
       return;
     }
-    if (!processTemplat.questionnaire_id.trim()) {
+    if (
+      selectedQuestionnaire.length === 0 &&
+      processTemplat.process_type === "questionnaire"
+    ) {
       await Swal.fire({
         icon: "error",
         title: "Validation Error",
@@ -98,6 +140,20 @@ export default function AddOrEditProcessTemplatPage() {
       });
       return;
     }
+
+    if (
+      selectedDocumentType.length === 0 &&
+      (processTemplat.process_type === "documentation" ||
+        processTemplat.process_type === "document_preparation")
+    ) {
+      await Swal.fire({
+        icon: "error",
+        title: "Validation Error",
+        text: "Select Document!",
+      });
+      return;
+    }
+
     if (!processTemplat.process_type.trim()) {
       await Swal.fire({
         icon: "error",
@@ -109,13 +165,28 @@ export default function AddOrEditProcessTemplatPage() {
 
     const localStorageProfile = localStorage.getItem("auth");
     const parsedProfile = JSON.parse(localStorageProfile || "{}");
-    const payload = {
-      title: processTemplat.title,
-      description: processTemplat.description || "",
-      process_type: processTemplat.process_type, // dynamic now
-      questionnaire_id: processTemplat.questionnaire_id,
-      created_by_id: parsedProfile?.user?.id,
-    };
+    let payload;
+
+    if (
+      processTemplat.process_type === "documentation" ||
+      processTemplat.process_type === "document_preparation"
+    ) {
+      payload = {
+        title: processTemplat.title,
+        description: processTemplat.description || "",
+        process_type: processTemplat.process_type, // dynamic now
+        required_document_ids: selectedDocumentType || "", // Assuming selectedDocumentType is an array
+        created_by_id: parsedProfile?.user?.id,
+      };
+    } else {
+      payload = {
+        title: processTemplat.title,
+        description: processTemplat.description || "",
+        process_type: processTemplat.process_type, // dynamic now
+        questionnaire_id: selectedQuestionnaire || "", // Assuming selectedQuestionnaire is an array
+        created_by_id: parsedProfile?.user?.id,
+      };
+    }
 
     try {
       const result = isEdit
@@ -152,7 +223,12 @@ export default function AddOrEditProcessTemplatPage() {
       setProcessTemplat={setProcessTemplat}
       onSubmit={handleSubmit}
       editMode={isEdit}
-      questionnaireList={questionnaireList} // Pass list here
+      questionnaireList={questionnaireList}
+      setSelectedQuestionnaire={setSelectedQuestionnaire}
+      selectedQuestionnaire={selectedQuestionnaire}
+      documentList={documentList}
+      setSelectedDocumentType={setSelectedDocumentType}
+      selectedDocumentType={selectedDocumentType}
     />
   );
 }

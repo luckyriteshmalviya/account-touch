@@ -8,12 +8,10 @@ import {
 } from "../../ui/table";
 import {
     getTaskTemplatListService,
-    getTaskTemplatCategory,
-    deleteTaskTemplatService
+    getTaskTemplatCategory
 } from "../../../services/restApi/taskTemplate";
 import { useNavigate } from "react-router-dom";
 import { Edit, Eye, Trash } from "lucide-react";
-import Swal from "sweetalert2";
 
 interface Category {
     id: number;
@@ -34,7 +32,7 @@ interface TaskTemplat {
 }
 
 
-export default function TaskTemplatTable() {
+export default function HotTaskTemplatTable() {
     const [taskTemplat, setTaskTemplat] = useState<TaskTemplat[]>([]);
     const [deleteId, setDeleteId] = useState<number | null>(null);
     const [page, setPage] = useState(1);
@@ -70,24 +68,25 @@ export default function TaskTemplatTable() {
     };
 
     const handleDelete = async () => {
-        if (deleteId !== null) {
-            const success = await deleteTaskTemplatService(deleteId);
-            if (success) {
-                setTaskTemplat(prev => prev.filter(proc => proc.id !== deleteId));
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Deleted!',
-                    text: 'Deleted Successfully!',
-                });
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error!',
-                    text: 'Something went wrong!',
-                });
-            }
-            setDeleteId(null);
-        }
+        console.log(deleteId)
+        // if (deleteId !== null) {
+        //     const success = await deleteTaskTemplatService(deleteId);
+        //     if (success) {
+        //         setTaskTemplat(prev => prev.filter(proc => proc.id !== deleteId));
+        //         Swal.fire({
+        //             icon: 'success',
+        //             title: 'Deleted!',
+        //             text: 'Deleted Successfully!',
+        //         });
+        //     } else {
+        //         Swal.fire({
+        //             icon: 'error',
+        //             title: 'Error!',
+        //             text: 'Something went wrong!',
+        //         });
+        //     }
+        //     setDeleteId(null);
+        // }
     };
 
     return (
@@ -198,11 +197,11 @@ export default function TaskTemplatTable() {
                                         <TableCell className="py-3 px-4 flex items-center gap-2">
                                             <Eye
                                                 className="w-5 h-5 text-blue-600 hover:text-blue-800 cursor-pointer"
-                                                onClick={() => navigate(`/task-templates/view/${proc.id}`)}
+                                                onClick={() => navigate(`/hot-task-templates/view/${proc.id}`)}
                                             />
                                             <Edit
                                                 className="w-5 h-5 text-blue-600 hover:text-blue-800 cursor-pointer"
-                                                onClick={() => navigate(`/manage-task-templates/${proc.id}`)}
+                                                onClick={() => navigate(`/manage-hot-task-templates/${proc.id}`)}
                                             />
                                             <Trash
                                                 className="w-5 h-5 text-red-600 hover:text-red-800 cursor-pointer"

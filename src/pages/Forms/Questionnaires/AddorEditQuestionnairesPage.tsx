@@ -7,6 +7,7 @@ import {
   updateQuestionnairesService,
   getQuestionnairesDetailsService,
 } from "../../../services/restApi/Questionnaires";
+import { getQuestionListService } from "../../../services/restApi/Questions";
 
 export default function AddOrEditQuestionnairesPage() {
   const [questionnaires, setQuestionnaires] = useState({
@@ -14,6 +15,16 @@ export default function AddOrEditQuestionnairesPage() {
     description: "",
     is_active: true,
   });
+
+  const [questions, setQuestions] = useState<any[]>([]); // Assuming questions is an array of objects
+
+  const [selectedQuestions, setSelectedQuestions] = useState<any[]>([
+    {
+      value: "",
+      label: "",
+      type: "",
+    },
+  ]);
 
   const { id } = useParams();
   const isEdit = !!id;
@@ -56,6 +67,7 @@ export default function AddOrEditQuestionnairesPage() {
       title: questionnaires.title,
       description: questionnaires.description,
       is_active: questionnaires.is_active,
+      questions: selectedQuestions
     };
 
     try {
@@ -85,12 +97,35 @@ export default function AddOrEditQuestionnairesPage() {
     }
   };
 
+  useEffect(() => {
+    try {
+      // Fetching questions from the API or any other source
+      const fetchQuestions = async () => {
+        // Simulating an API call
+        const response = await getQuestionListService({});
+        setQuestions(response.results || []);
+      };
+
+      fetchQuestions();
+    } catch (error) {
+      console.error("Error fetching questions:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to fetch questions.",
+      });
+    }
+  }, []);
+
   return (
     <QuestionnairesForm
       questionnaires={questionnaires}
       setQuestionnaires={setQuestionnaires}
       onSubmit={handleSubmit}
       editMode={isEdit}
+      questions={questions}
+      selectedQuestions={selectedQuestions}
+      setSelectedQuestions={setSelectedQuestions}
     />
   );
 }

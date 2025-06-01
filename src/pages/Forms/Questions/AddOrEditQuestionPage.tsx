@@ -22,6 +22,10 @@ export default function AddOrEditQuestionPage() {
     question_type: "descriptive",
   });
 
+  const [multipleChoice, setMultipleChoice] = useState<
+    { text: string; order: number; question: number }[]
+  >([{ text: "", order: 0, question: 0 }]);
+
   const { id } = useParams<{ id?: string }>();
   const isEdit = !!id;
   const navigate = useNavigate();
@@ -66,6 +70,25 @@ export default function AddOrEditQuestionPage() {
     formData.append("description", question.description || "");
     formData.append("question_type", question.question_type);
 
+    if (question.question_type === "multiple_choice") {
+      formData.append(
+        "choices",
+        multipleChoice.map((choice) => JSON.stringify(choice)).join(",")
+      );
+    }
+
+    // let formData:any = {
+    //   text: question.text,
+    //   description: question.description || "",
+    //   question_type: question.question_type,
+    // };
+    // if(question.question_type === "multiple_choice") {
+    //   formData["choices"] = multipleChoice.map((choice) => ({
+    //     text: choice.text,
+    //     order: choice.order,
+    //     question: question.id || 0, // Assuming question.id is available
+    //   }));
+    // }
     setLoading(true);
     let response = null;
 
@@ -102,6 +125,8 @@ export default function AddOrEditQuestionPage() {
         setQuestion={setQuestion}
         onSubmit={handleSubmit}
         editMode={isEdit}
+        multipleChoice={multipleChoice}
+        setMultipleChoice={setMultipleChoice}
       />
     </div>
   );

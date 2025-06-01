@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ComponentCard from "../../../components/common/ComponentCard";
 import Label from "../../../components/form/Label";
 import Input from "../../../components/form/input/InputField";
+import TextArea from "../../../components/form/input/TextArea";
+import { useNavigate, useParams } from "react-router";
 
 interface ProcessTemplate {
   id: number;
@@ -27,13 +29,17 @@ interface TaskTemplatFormProps {
     order: number;
     priority: Priority;
     fees: string;
-    process_templates: any;  
+    process_templates_list: { process_template_id: string; order: number }[];
   };
   setTaskTemplat: React.Dispatch<React.SetStateAction<any>>;
   onSubmit: (formData: FormData) => void;
   editMode?: boolean;
   categoryList: Category[];
   processTemplates: ProcessTemplate[];
+  setSelectedProcesses: React.Dispatch<
+    React.SetStateAction<{ process_template_id: string; order: number }[]>
+  >;
+  selectedProcesses: { process_template_id: string; order: number }[];
 }
 
 const TaskTemplatForm = ({
@@ -43,273 +49,315 @@ const TaskTemplatForm = ({
   editMode = false,
   categoryList,
   processTemplates,
+  selectedProcesses,
+  setSelectedProcesses,
 }: TaskTemplatFormProps) => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  const [selectedProcesses, setSelectedProcesses] = useState<{ title: any; process_type: any; process_template_id: any; order: any }[]>([
-    { title: 'GST Ret Q P', process_type: 'questionnaire', process_template_id: 0, order: 0 },
-    { title: 'IT RETURN User Document PT', process_type: 'documentation', process_template_id: 0, order: 0 },
-    { title: 'IT RETURN Payment', process_type: 'payment', process_template_id: 0, order: 0 },
-    { title: 'IT RETURN Final Document PT', process_type: 'document_preparation', process_template_id: 0, order: 0 },
-  ]);
-  const [processErrors, setProcessErrors] = useState<string>("");
+  const navigate = useNavigate();
+  const { id } = useParams();
+  useEffect(() => {
+    // Initialize selectedProcesses from taskTemplat.process_templates_list if available
+    if (
+      taskTemplat.process_templates_list &&
+      Array.isArray(taskTemplat.process_templates_list) &&
+      taskTemplat.process_templates_list.length > 0
+    ) {
+      // Make sure we have at least 4 items
+      const initialProcesses = [...taskTemplat.process_templates_list];
+      while (initialProcesses.length < 4) {
+        initialProcesses.push({
+          process_template_id: "",
+          order: initialProcesses.length,
+        });
+      }
+      setSelectedProcesses(initialProcesses);
+    } else {
+      // Update taskTemplat with default selectedProcesses
+      setTaskTemplat((prev: any) => ({
+        ...prev,
+        process_templates_list: selectedProcesses,
+      }));
+    }
+  }, []);
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
     if (!taskTemplat.title.trim()) newErrors.title = "Title is required.";
-    if (!taskTemplat.description.trim()) newErrors.description = "Description is required.";
-    if (!taskTemplat.image || (typeof taskTemplat.image === "string" && !taskTemplat.image.trim())) {
+    if (!taskTemplat.description.trim())
+      newErrors.description = "Description is required.";
+    if (
+      !taskTemplat.image ||
+      (typeof taskTemplat.image === "string" && !taskTemplat.image.trim())
+    ) {
       newErrors.image = "Image is required.";
     }
-    if (!taskTemplat.category_id) newErrors.category_id = "Category is required.";
+    if (!taskTemplat.category_id)
+      newErrors.category_id = "Category is required.";
     if (!taskTemplat.priority) newErrors.priority = "Priority is required.";
     if (!taskTemplat.fees) newErrors.fees = "Fees is required.";
-    if (taskTemplat.order === undefined || taskTemplat.order === null) newErrors.order = "Order is required.";
+    if (taskTemplat.order === undefined || taskTemplat.order === null)
+      newErrors.order = "Order is required.";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const validateProcessSelections = () => {
-    // Define expected process types by index
-    const expectedTypes = [
-      'questionnaire',
-      'documentation',
-      'payment',
-      'document_preparation',
-    ];
-
-    const selectedDetails = selectedProcesses.map(sel =>
-      processTemplates.find(pt => pt.id === sel.process_template_id)
-    );
-
-    // Check for incorrect types per index
-    for (let i = 0; i < expectedTypes.length; i++) {
-      if (!selectedDetails[i]) {
-        setProcessErrors(`Please select a process template for step ${i + 1}.`);
-        return false;
-      }
-
-      if (selectedDetails[i]?.process_type !== expectedTypes[i]) {
-        setProcessErrors(
-          `Step ${i + 1} must be a "${expectedTypes[i]}" process type.`
-        );
-        return false;
-      }
-    }
-
-    // Check for uniqueness
-    const processTypes = selectedDetails.map(pt => pt?.process_type);
-    const orders = selectedProcesses.map(p => p.order);
-
-    const hasDuplicateTypes = new Set(processTypes).size !== processTypes.length;
-    const hasDuplicateOrders = new Set(orders).size !== orders.length;
-
-    if (hasDuplicateTypes || hasDuplicateOrders) {
-      setProcessErrors("Each process type and order must be unique.");
-      return false;
-    }
-
-    // All good
-    setProcessErrors("");
-    return true;
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const isValidForm = validate();
-    const isValidProcess = validateProcessSelections();
+    const isValid = validate();
 
-    if (isValidForm && isValidProcess) {
-      const formData = new FormData();
-      formData.append("title", taskTemplat.title);
-      formData.append("description", taskTemplat.description);
-      formData.append("category_id", taskTemplat.category_id.toString());
-      formData.append("is_active", taskTemplat.is_active ? "true" : "false");
-      formData.append("is_ready", taskTemplat.is_ready ? "true" : "false");
-      formData.append("order", taskTemplat.order.toString());
-      formData.append("priority", taskTemplat.priority);
-      formData.append("fees", taskTemplat.fees);
-      formData.append("process_templates", JSON.stringify(selectedProcesses));
-
-      if (taskTemplat.image instanceof File) {
-        formData.append("image", taskTemplat.image);
-      }
-      onSubmit(formData);
+    if (!isValid) {
+      return;
     }
+
+    // Create FormData for submission
+    const formData = new FormData();
+    formData.append("title", taskTemplat.title);
+    formData.append("description", taskTemplat.description);
+
+    // Handle image
+    if (taskTemplat.image instanceof File) {
+      formData.append("image", taskTemplat.image);
+    }
+
+    formData.append("category_id", String(taskTemplat.category_id));
+    formData.append("is_active", String(taskTemplat.is_active));
+    formData.append("is_ready", String(taskTemplat.is_ready));
+    formData.append("order", String(taskTemplat.order));
+    formData.append("priority", taskTemplat.priority);
+    formData.append("fees", taskTemplat.fees);
+
+    // Add process_templates_list - even if not fully validated
+    formData.append(
+      "process_templates_list",
+      JSON.stringify(selectedProcesses)
+    );
+
+    onSubmit(formData);
   };
 
   return (
-    <form onSubmit={handleSubmit} encType="multipart/form-data">
-      <ComponentCard title={editMode ? "Edit Task Template" : "Add New Task Template"}>
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <ComponentCard
+        title={editMode ? "Edit Task Template" : "Add New Task Template"}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Title */}
-          <div className="space-y-2">
-            <Label htmlFor="title">Title *</Label>
+          <div>
+            <Label htmlFor="title">Title</Label>
             <Input
-              value={taskTemplat.title}
-              type="text"
               id="title"
-              onChange={(e) => setTaskTemplat((prev: any) => ({ ...prev, title: e.target.value }))}
-              required
-            />
-            {errors.title && <p className="text-red-500 text-sm">{errors.title}</p>}
-          </div>
-
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Description *</Label>
-            <Input
-              value={taskTemplat.description}
               type="text"
-              id="description"
-              onChange={(e) => setTaskTemplat((prev: any) => ({ ...prev, description: e.target.value }))}
+              value={taskTemplat.title}
+              onChange={(e) =>
+                setTaskTemplat((prev: any) => ({
+                  ...prev,
+                  title: e.target.value,
+                }))
+              }
               required
             />
-            {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
-          </div>
-
-          {/* Image Upload */}
-          <div className="space-y-2">
-            <Label htmlFor="image">Image *</Label>
-
-            {/* Show preview if it's a URL string */}
-            {taskTemplat.image && typeof taskTemplat.image === "string" && (
-              <img
-                src={taskTemplat.image}
-                alt="Preview"
-                className="h-20 w-auto rounded border"
-              />
+            {errors.title && (
+              <p className="text-red-500 text-sm">{errors.title}</p>
             )}
-
-            <input
-              type="file"
-              accept="image/*"
-              id="image"
-              className="w-full border rounded px-3 py-2"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  setTaskTemplat((prev: any) => ({
-                    ...prev,
-                    image: file, // <-- store the File directly
-                  }));
-                }
-              }}
-            />
-            {errors.image && <p className="text-red-500 text-sm">{errors.image}</p>}
           </div>
 
           {/* Category */}
-          <div className="space-y-2">
-            <Label htmlFor="category_id">Category *</Label>
+          <div>
+            <Label htmlFor="category">Category</Label>
             <select
-              id="category_id"
-              className="w-full border rounded px-3 py-2"
-              value={taskTemplat.category_id}
-              onChange={(e) => setTaskTemplat((prev: any) => ({ ...prev, category_id: parseInt(e.target.value) }))}
+              id="category"
+              className="border px-2 py-2 rounded w-full"
+              value={taskTemplat.category_id || ""}
+              onChange={(e) =>
+                setTaskTemplat((prev: any) => ({
+                  ...prev,
+                  category_id: Number(e.target.value),
+                }))
+              }
               required
             >
               <option value="">-- Select Category --</option>
-              {categoryList.map((cat) => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              {categoryList.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
               ))}
             </select>
-            {errors.category_id && <p className="text-red-500 text-sm">{errors.category_id}</p>}
+            {errors.category_id && (
+              <p className="text-red-500 text-sm">{errors.category_id}</p>
+            )}
           </div>
 
-          {/* Is Active */}
-          <div className="space-y-2">
-            <Label htmlFor="is_active">Is Active *</Label>
-            <select
-              id="is_active"
-              className="w-full border rounded px-3 py-2"
-              value={String(taskTemplat.is_active)}
-              onChange={(e) => setTaskTemplat((prev: any) => ({ ...prev, is_active: e.target.value === 'true' }))}
-            >
-              <option value="true">True</option>
-              <option value="false">False</option>
-            </select>
+          {/* Description */}
+          <div className="md:col-span-2">
+            <Label htmlFor="description">Description</Label>
+            <TextArea
+              rows={4}
+              value={taskTemplat.description}
+              onChange={(value) =>
+                setTaskTemplat((prev: any) => ({ ...prev, description: value }))
+              }
+              // required
+            />
+            {errors.description && (
+              <p className="text-red-500 text-sm">{errors.description}</p>
+            )}
           </div>
 
-          {/* Is Ready */}
-          <div className="space-y-2">
-            <Label htmlFor="is_ready">Is Ready *</Label>
-            <select
-              id="is_ready"
-              className="w-full border rounded px-3 py-2"
-              value={String(taskTemplat.is_ready)}
-              onChange={(e) => setTaskTemplat((prev: any) => ({ ...prev, is_ready: e.target.value === 'true' }))}
-            >
-              <option value="true">True</option>
-              <option value="false">False</option>
-            </select>
+          {/* Image Upload */}
+          <div>
+            <Label htmlFor="image">Image</Label>
+            <Input
+              type="file"
+              className="border p-2 rounded w-full"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  setTaskTemplat((prev: any) => ({ ...prev, image: file }));
+                }
+              }}
+            />
+            {typeof taskTemplat.image === "string" && taskTemplat.image && (
+              <div className="mt-2">
+                <img
+                  src={taskTemplat.image}
+                  alt="Current"
+                  className="h-20 object-contain"
+                />
+                <p className="text-sm text-gray-500">Current image</p>
+              </div>
+            )}
+            {errors.image && (
+              <p className="text-red-500 text-sm">{errors.image}</p>
+            )}
           </div>
 
           {/* Order */}
-          <div className="space-y-2">
-            <Label htmlFor="order">Order *</Label>
+          <div>
+            <Label htmlFor="order">Order</Label>
             <Input
-              value={taskTemplat.order}
-              type="number"
               id="order"
-              onChange={(e) => setTaskTemplat((prev: any) => ({ ...prev, order: parseInt(e.target.value) }))}
+              type="number"
+              min="0"
+              value={taskTemplat.order}
+              onChange={(e) =>
+                setTaskTemplat((prev: any) => ({
+                  ...prev,
+                  order: Number(e.target.value),
+                }))
+              }
               required
             />
-            {errors.order && <p className="text-red-500 text-sm">{errors.order}</p>}
+            {errors.order && (
+              <p className="text-red-500 text-sm">{errors.order}</p>
+            )}
           </div>
 
           {/* Priority */}
-          <div className="space-y-2">
-            <Label htmlFor="priority">Priority *</Label>
+          <div>
+            <Label htmlFor="priority">Priority</Label>
             <select
               id="priority"
-              className="w-full border rounded px-3 py-2"
+              className="border px-2 py-2 rounded w-full"
               value={taskTemplat.priority}
-              onChange={(e) => setTaskTemplat((prev: any) => ({ ...prev, priority: e.target.value }))}
+              onChange={(e) =>
+                setTaskTemplat((prev: any) => ({
+                  ...prev,
+                  priority: e.target.value as Priority,
+                }))
+              }
               required
             >
-              <option value="">-- Select Priority --</option>
               <option value="low">Low</option>
               <option value="medium">Medium</option>
               <option value="high">High</option>
             </select>
-            {errors.priority && <p className="text-red-500 text-sm">{errors.priority}</p>}
+            {errors.priority && (
+              <p className="text-red-500 text-sm">{errors.priority}</p>
+            )}
           </div>
 
+          {/* Status */}
+          {id && (
+            <div>
+              <Label>Status</Label>
+              <div className="flex space-x-4 mt-2">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={taskTemplat.is_active}
+                    onChange={(e) =>
+                      setTaskTemplat((prev: any) => ({
+                        ...prev,
+                        is_active: e.target.checked,
+                      }))
+                    }
+                    className="mr-2"
+                  />
+                  Active
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={taskTemplat.is_ready}
+                    onChange={(e) =>
+                      setTaskTemplat((prev: any) => ({
+                        ...prev,
+                        is_ready: e.target.checked,
+                      }))
+                    }
+                    className="mr-2"
+                  />
+                  Ready
+                </label>
+              </div>
+            </div>
+          )}
+
           {/* Fees */}
-          <div className="space-y-2">
-            <Label htmlFor="fees">Fees *</Label>
+          <div>
+            <Label htmlFor="fees">Fees</Label>
             <Input
-              value={taskTemplat.fees}
-              type="text"
               id="fees"
-              onChange={(e) => setTaskTemplat((prev: any) => ({ ...prev, fees: e.target.value }))}
+              type="text"
+              value={taskTemplat.fees}
+              onChange={(e) =>
+                setTaskTemplat((prev: any) => ({
+                  ...prev,
+                  fees: e.target.value,
+                }))
+              }
               required
             />
-            {errors.fees && <p className="text-red-500 text-sm">{errors.fees}</p>}
+            {errors.fees && (
+              <p className="text-red-500 text-sm">{errors.fees}</p>
+            )}
           </div>
         </div>
         <div className="space-y-4">
-          <ComponentCard title="Assign Process Templates">
+          <br />
+          <div>
             {/* Header Row */}
-            <div className="grid grid-cols-2 gap-4 font-semibold text-sm text-gray-700 mb-2">
+            <div className="grid grid-cols-2 gap-4 font-bold text-lg text-gray-700 mb-2">
               <div>Process Template</div>
               <div>Order</div>
             </div>
 
-            {/* Process Rows */}
+            {/* Dynamic Process Rows */}
             {selectedProcesses.map((process, index) => {
-              const matchedTemplate = processTemplates.find(pt => pt.title === process.title);
+              const matchedTemplate = processTemplates.find(
+                (pt) => pt.id === Number(process.process_template_id)
+              );
               const matchedTitle = matchedTemplate?.title || "";
 
               return (
                 <div key={index} className="mb-4">
-                  {/* Label above row */}
+                  {/* Optional Label above row */}
                   {matchedTitle && (
                     <div className="text-sm font-semibold text-gray-600 mb-1">
-                      GST RETURN - {matchedTitle} (Order: {index})
+                      GST RETURN - {matchedTitle} (Order: {process.order})
                     </div>
                   )}
 
@@ -317,12 +365,15 @@ const TaskTemplatForm = ({
                   <div className="grid grid-cols-2 gap-4 items-center">
                     <select
                       className="border px-2 py-2 rounded"
-                      value={taskTemplat?.process_templates[index]?.process_template_id}
+                      value={process.process_template_id}
                       onChange={(e) => {
-                        const updated = selectedProcesses.map((item, idx) =>
-                          idx == index ? { ...item, process_template_id: e.target.value } : item
-                        );
+                        const updated = [...selectedProcesses];
+                        updated[index].process_template_id = e.target.value;
                         setSelectedProcesses(updated);
+                        setTaskTemplat((prev: any) => ({
+                          ...prev,
+                          process_templates_list: updated,
+                        }));
                       }}
                     >
                       <option value="">-- Select Process Template --</option>
@@ -335,15 +386,18 @@ const TaskTemplatForm = ({
                     <Input
                       type="number"
                       className="border px-2 py-2 rounded"
-                      value={String(taskTemplat?.process_templates[index]?.order)}
-                      min="0" // <-- string, not number
+                      value={String(process.order || 0)}
+                      min="0"
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         const value = Number(e.target.value);
                         if (value >= 0) {
-                          const updated = selectedProcesses.map((item, idx) =>
-                            idx === index ? { ...item, order: value } : item
-                          );
+                          const updated = [...selectedProcesses];
+                          updated[index].order = value;
                           setSelectedProcesses(updated);
+                          setTaskTemplat((prev: any) => ({
+                            ...prev,
+                            process_templates_list: updated,
+                          }));
                         }
                       }}
                     />
@@ -352,17 +406,48 @@ const TaskTemplatForm = ({
               );
             })}
 
-            {/* Error Message */}
-            {processErrors && <p className="text-red-500 mt-2">{processErrors}</p>}
-          </ComponentCard>
+            {/* Add Button */}
+            <div className="mt-2">
+              <button
+                type="button"
+                className="flex items-center text-blue-600 hover:text-blue-800 text-sm"
+                onClick={() => {
+                  const newProcess = {
+                    process_template_id: "",
+                    order: selectedProcesses.length,
+                  };
+                  const updated = [...selectedProcesses, newProcess];
+                  setSelectedProcesses(updated);
+                  setTaskTemplat((prev: any) => ({
+                    ...prev,
+                    process_templates_list: updated,
+                  }));
+                }}
+              >
+                <span className="text-lg font-bold mr-1">+</span> Add Process
+                Template
+              </button>
+            </div>
+          </div>
         </div>
 
-
-        {/* Submit */}
-        <div className="mt-6">
-          <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-            {editMode ? "Save Changes" : "Create Task Template"}
+        <div className="flex space-x-4">
+          <button
+            type="submit"
+            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            {editMode ? "Save Changes" : "Save"}
           </button>
+
+          {editMode && (
+            <button
+              type="button"
+              onClick={() => navigate("/task-templates-list")}
+              className="px-6 py-2 border border-1 border-zinc-400 hover:bg-blue-400 rounded-lg"
+            >
+              Cancel
+            </button>
+          )}
         </div>
       </ComponentCard>
     </form>

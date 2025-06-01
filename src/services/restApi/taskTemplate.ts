@@ -99,7 +99,7 @@ export const addTaskTemplatService = async (payload: FormData) => {
 export const updateTaskTemplatService = async (id: string, payload: any) => {
   const token = getAccessToken();
   const res = await fetch(`https://api.accountouch.com/api/tasks/task-templates/${id}/`, {
-    method: "PUT",
+    method: "PATCH",
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",

@@ -47,6 +47,24 @@ export default function SignInForm() {
 
     try {
       const response = await verifyOtp(payload);
+
+      if (response &&
+        response?.user?.roles?.length === 1 && response.user.roles?.[0]?.slug === "client"
+      ) {
+        setState({
+          country: "india",
+          phone_number: "",
+          email: "",
+          auth_type: "phone",
+        });
+        setShowOtp(false)
+        return Swal.fire({
+          icon: "error",
+          title: "Login!",
+          text: "Client Role don't have access to panel. Please login through another number",
+        });
+      }
+
       if (response?.access && response?.refresh) {
         localStorage.setItem(
           "auth",
@@ -60,26 +78,26 @@ export default function SignInForm() {
           })
         );
         Swal.fire({
-          icon: 'success',
-          title: 'Login!',
-          text: 'Login successfuly!',
+          icon: "success",
+          title: "Login!",
+          text: "Login successfuly!",
           timer: 2000, // 2 seconds
           showConfirmButton: false, // OK button hatana
         });
         navigate("/");
       } else {
         Swal.fire({
-          icon: 'error',
-          title: 'Login!',
-          text: 'Invalid OTP!',
+          icon: "error",
+          title: "Login!",
+          text: "Invalid OTP!",
         });
         // toast.error(response?.data?.message || "Invalid OTP");
       }
     } catch (error) {
       Swal.fire({
-        icon: 'error',
-        title: 'Login!',
-        text: 'Something went wrong while verifying OTP!',
+        icon: "error",
+        title: "Login!",
+        text: "Something went wrong while verifying OTP!",
       });
       // toast.error("Something went wrong while verifying OTP.");
     }
@@ -95,8 +113,8 @@ export default function SignInForm() {
       setErrors((prev) => ({ ...prev, phone_number: "Required" }));
       // toast.error("Phone number is required");
       Swal.fire({
-        icon: 'error',
-        title: 'Login!',
+        icon: "error",
+        title: "Login!",
         text: "Phone number is required",
         timer: 2000, // 2 seconds
         showConfirmButton: false, // OK button hatana
@@ -108,8 +126,8 @@ export default function SignInForm() {
       setErrors((prev) => ({ ...prev, email: "Required" }));
       // toast.error("Email is required");
       Swal.fire({
-        icon: 'error',
-        title: 'Login!',
+        icon: "error",
+        title: "Login!",
         text: "Email is required",
       });
       hasError = true;
@@ -131,13 +149,13 @@ export default function SignInForm() {
     try {
       const response = await sendOtp(payload);
       console.log(response, "response");
-      
+
       if (response?.message === "OTP sent successfully") {
         setShowOtp(true);
         setOtp(response?.otp);
         Swal.fire({
-          icon: 'success',
-          title: 'OTP!',
+          icon: "success",
+          title: "OTP!",
           text: "OTP sent successfully",
           timer: 2000, // 2 seconds
           showConfirmButton: false, // OK button hatana
@@ -146,10 +164,13 @@ export default function SignInForm() {
 
         // signIn(response?.otp);
       } else {
-        setErrors((prev) => ({ ...prev, phone_number: "No user found with this phone number." }));
+        setErrors((prev) => ({
+          ...prev,
+          phone_number: "No user found with this phone number.",
+        }));
         Swal.fire({
-          icon: 'error',
-          title: 'Login!',
+          icon: "error",
+          title: "Login!",
           text: "Failed to send OTP",
           timer: 2000, // 2 seconds
           showConfirmButton: false, // OK button hatana
@@ -158,8 +179,8 @@ export default function SignInForm() {
       }
     } catch (error) {
       Swal.fire({
-        icon: 'error',
-        title: 'Login!',
+        icon: "error",
+        title: "Login!",
         text: "Something went wrong while sending OTP.",
         timer: 2000, // 2 seconds
         showConfirmButton: false, // OK button hatana
@@ -188,13 +209,13 @@ export default function SignInForm() {
 
           <div className="flex gap-4 my-4">
             <label className="flex items-center gap-1">
-              <input
+              {/* <input
                 type="radio"
                 name="auth_type"
                 value="phone"
                 checked={state.auth_type === "phone"}
                 onChange={(e) => updateState("auth_type", e.target.value)}
-              />
+              /> */}
               Phone
             </label>
             {/* <label className="flex items-center gap-1">

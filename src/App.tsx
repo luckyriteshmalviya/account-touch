@@ -45,6 +45,9 @@ import ViewDocumentTypePage from "./pages/Forms/DocumentTypes/ViewDocumentTypePa
 import ViewTaskTemplatPage from "./pages/Forms/TaskTemplates/ViewTaskTemplatePage";
 import TaskTemplatesTable from "./pages/Tables/TaskTemplateTable";
 import AddOrEditTaskTemplatPage from "./pages/Forms/TaskTemplates/AddOrEditTaskTemplate";
+import HotTaskTemplatesTable from "./pages/Tables/HotTaskTemplateTable";
+import HotViewTaskTemplatPage from "./pages/Forms/HotTaskTemplates/HotViewTaskTemplatePage";
+import AddOrEditHotTaskTemplate from "./pages/Forms/HotTaskTemplates/AddOrEditHotTaskTemplate";
 
 export default function App() {
   return (
@@ -110,7 +113,7 @@ export default function App() {
               }
             />
             <Route
-              path="/user-tables"
+              path="/user-list"
               element={
                 <ProtectedRoutesLayout>
                   <UserTables />
@@ -369,7 +372,7 @@ export default function App() {
               }
             />
 
-             <Route
+            <Route
               path="/task-templates/view/:id"
               element={
                 <ProtectedRoutesLayout>
@@ -378,12 +381,11 @@ export default function App() {
               }
             />
 
-
             <Route
               path="/task-templates-list"
               element={
                 <ProtectedRoutesLayout>
-                  <TaskTemplatesTable/>
+                  <TaskTemplatesTable />
                 </ProtectedRoutesLayout>
               }
             />
@@ -401,6 +403,40 @@ export default function App() {
               element={
                 <ProtectedRoutesLayout>
                   <AddOrEditTaskTemplatPage />
+                </ProtectedRoutesLayout>
+              }
+            />
+
+            <Route
+              path="/hot-task-list"
+              element={
+                <ProtectedRoutesLayout>
+                  <HotTaskTemplatesTable />
+                </ProtectedRoutesLayout>
+              }
+            />
+
+            <Route
+              path="/manage-hot-task-templates"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditHotTaskTemplate />
+                </ProtectedRoutesLayout>
+              }
+            />
+            <Route
+              path="/manage-hot-task-templates/:id"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditHotTaskTemplate />
+                </ProtectedRoutesLayout>
+              }
+            />
+            <Route
+              path="/hot-task-templates/view/:id"
+              element={
+                <ProtectedRoutesLayout>
+                  <HotViewTaskTemplatPage />
                 </ProtectedRoutesLayout>
               }
             />

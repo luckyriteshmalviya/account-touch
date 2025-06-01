@@ -20,17 +20,28 @@ const navItems: NavItem[] = [
   {
     // icon: <UserCircleIcon />,
     name: "Users",
-    path: "/user-tables",
+    path: "/user-list",
+  },
+  {
+    // icon: <UserCircleIcon />,
+    name: "Tasks",
+    path: "/task-list",
+  },
+];
+
+const navItemsForAdmin: NavItem[] = [
+  {
+    // icon: <UserCircleIcon />,
+    name: "Users",
+    path: "/user-list",
   },
   {
     name: "Master Data",
     // icon: <TableIcon />,
     subItems: [
-      // { name: "Users", path: "/user-tables", pro: false },
       { name: "Categories", path: "/category-list", pro: false },
       { name: "Questions", path: "/questions-list", pro: false },
       { name: "Document Types", path: "/document-type-list", pro: false },
-      // { name: "Task List", path: "/task-list", pro: false },
     ],
   },
   {
@@ -56,6 +67,7 @@ const navItems: NavItem[] = [
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const location = useLocation();
+  const [currentRole, setCurrentRole] = useState<string[]>([]);
 
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main" | "others";
@@ -70,6 +82,16 @@ const AppSidebar: React.FC = () => {
     (path: string) => location.pathname === path,
     [location.pathname]
   );
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("auth") || "").user;
+
+    if (!user.roles) return;
+
+    const roles = user.roles.map((elem: any) => elem.slug);
+
+    setCurrentRole(roles);
+  }, [localStorage]);
 
   useEffect(() => {
     let submenuMatched = false;
@@ -269,7 +291,16 @@ const AppSidebar: React.FC = () => {
           <b className="text-xl font-bold tracking-wide transition-all duration-300">
             <span className="inline lg:hidden">AccountTouch</span>
             <span className="hidden lg:inline">
-              {!isExpanded && !isHovered ? "AT" : "AccountTouch"}
+              {/* {!isExpanded && !isHovered ? "AT" : "AccountTouchh"} */}
+              {!isExpanded && !isHovered ? (
+                "AT"
+              ) : (
+                <img
+                  src="/images/logo/accountouch logo-a.png"
+                  alt="grid"
+                  className="w-[200px]"
+                />
+              )}
             </span>
           </b>
         </Link>
@@ -280,7 +311,7 @@ const AppSidebar: React.FC = () => {
           <div className="flex flex-col gap-4">
             <div>
               <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+                className={`mb-4 text-md uppercase flex leading-[20px] text-gray-400 font-bold ${
                   !isExpanded && !isHovered
                     ? "lg:justify-center"
                     : "justify-start"
@@ -292,9 +323,10 @@ const AppSidebar: React.FC = () => {
                   <HorizontaLDots className="size-6" />
                 )}
               </h2>
-              {renderMenuItems(navItems, "main")}
+              {currentRole.includes("super-admin")
+                ? renderMenuItems(navItemsForAdmin, "main")
+                : renderMenuItems(navItems, "main")}
             </div>
-
             {/* Removed "Others" Section ✅ */}
           </div>
         </nav>
