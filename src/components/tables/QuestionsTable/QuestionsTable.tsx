@@ -14,6 +14,7 @@ import {
   deleteQuestionService,
   getQuestionListService,
 } from "../../../services/restApi/Questions";
+import useIsSuperAdmin from "../../../hooks/useIsSuperAdmin";
 
 interface Question {
   id: number;
@@ -23,6 +24,7 @@ interface Question {
 }
 
 function QuestionsTable() {
+  const isSuperAdmin = useIsSuperAdmin();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -92,17 +94,15 @@ function QuestionsTable() {
             <Table>
               <TableHeader className="border-b border-gray-100">
                 <TableRow>
-                  {["Text", "Type", "Created At", "Actions"].map(
-                    (header) => (
-                      <TableCell
-                        key={header}
-                        isHeader
-                        className="px-4 py-3 font-medium text-gray-500 text-start"
-                      >
-                        {header}
-                      </TableCell>
-                    )
-                  )}
+                  {["Text", "Type", "Created At", "Actions"].map((header) => (
+                    <TableCell
+                      key={header}
+                      isHeader
+                      className="px-4 py-3 font-medium text-gray-500 text-start"
+                    >
+                      {header}
+                    </TableCell>
+                  ))}
                 </TableRow>
               </TableHeader>
               <TableBody className="divide-y divide-gray-100">
@@ -148,10 +148,12 @@ function QuestionsTable() {
                           className="w-5 h-5 text-blue-600 hover:text-blue-800 cursor-pointer"
                           onClick={() => navigate(`/manage-question/${q.id}`)}
                         />
-                        <Trash
-                          className="w-5 h-5 text-red-600 hover:text-red-800 cursor-pointer"
-                          onClick={() => setDeleteId(q.id)}
-                        />
+                        {isSuperAdmin && (
+                          <Trash
+                            className="w-5 h-5 text-red-600 hover:text-red-800 cursor-pointer"
+                            onClick={() => setDeleteId(q.id)}
+                          />
+                        )}
                       </TableCell>
                     </TableRow>
                   ))

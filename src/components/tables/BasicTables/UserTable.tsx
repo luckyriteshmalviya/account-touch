@@ -10,6 +10,7 @@ import {
 import { getUserListService } from "../../../services/restApi/user";
 import { Eye, Trash } from "lucide-react";
 import Swal from "sweetalert2";
+import useIsSuperAdmin from "../../../hooks/useIsSuperAdmin";
 
 interface Order {
   id: number;
@@ -45,6 +46,7 @@ export default function UserTableOne() {
   const [roleFilter, setRoleFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
+  const isSuperAdmin = useIsSuperAdmin();
   const fetchUsers = async () => {
     const params: any = {
       page,
@@ -217,8 +219,11 @@ export default function UserTableOne() {
                       {order.is_active ? "Active" : "Inactive"}
                     </TableCell>
                     <TableCell
-                      className={`px-4 py-4 text-start ${order.assigned_to?.full_name ? "font-bold text-[#417893] underline" : ""
-                        }`}
+                      className={`px-4 py-4 text-start ${
+                        order.assigned_to?.full_name
+                          ? "font-bold text-[#417893] underline"
+                          : ""
+                      }`}
                     >
                       {order.assigned_to?.full_name || "-"}
                     </TableCell>
@@ -227,10 +232,13 @@ export default function UserTableOne() {
                         className="w-5 h-5 text-blue-600 hover:text-blue-800 cursor-pointer"
                         onClick={() => showDetails(order)}
                       />
-                      <Trash
-                        className="w-5 h-5 text-red-600 hover:text-red-800 cursor-pointer"
-                        onClick={() => handleDelete(order.id)}
-                      />
+
+                      {isSuperAdmin && (
+                        <Trash
+                          className="w-5 h-5 text-red-600 hover:text-red-800 cursor-pointer"
+                          onClick={() => handleDelete(order.id)}
+                        />
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -255,8 +263,11 @@ export default function UserTableOne() {
             <button
               key={pg}
               onClick={() => setPage(pg)}
-              className={`px-3 py-1 rounded ${page === pg ? "bg-blue-600 text-white" : "bg-gray-200 hover:bg-gray-300"
-                }`}
+              className={`px-3 py-1 rounded ${
+                page === pg
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 hover:bg-gray-300"
+              }`}
             >
               {pg}
             </button>
@@ -271,7 +282,6 @@ export default function UserTableOne() {
           </button>
         </div>
       )}
-
     </div>
   );
 }

@@ -13,6 +13,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { Edit, Eye, Trash } from "lucide-react";
+import useIsSuperAdmin from "../../../hooks/useIsSuperAdmin";
 
 interface Questionnaires {
   title: number;
@@ -24,6 +25,7 @@ interface Questionnaires {
 }
 
 export default function QuestionnairesTable() {
+  const isSuperAdmin = useIsSuperAdmin();
   const [questionnaires, setQuestionnaires] = useState<Questionnaires[]>([]);
   const [deleteId, setDeleteId] = useState<any | null>(null);
   const [page, setPage] = useState(1);
@@ -157,10 +159,12 @@ export default function QuestionnairesTable() {
                           navigate(`/manage-questionnaires/${ques.id}`)
                         }
                       />
-                      <Trash
-                        className="w-5 h-5 text-red-600 hover:text-red-800 cursor-pointer"
-                        onClick={() => setDeleteId(ques.id)}
-                      />
+                      {isSuperAdmin && (
+                        <Trash
+                          className="w-5 h-5 text-red-600 hover:text-red-800 cursor-pointer"
+                          onClick={() => setDeleteId(ques.id)}
+                        />
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

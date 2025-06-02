@@ -12,11 +12,11 @@ import { store } from "./redux/store.ts";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Provider store={store}>
-    <ThemeProvider>
-      <AppWrapper>
-        <App />
-      </AppWrapper>
-    </ThemeProvider>
+      <ThemeProvider>
+        <AppWrapper>
+          <App />
+        </AppWrapper>
+      </ThemeProvider>
     </Provider>
   </StrictMode>
 );

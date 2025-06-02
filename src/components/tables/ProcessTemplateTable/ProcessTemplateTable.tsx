@@ -13,6 +13,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { Edit, Eye, Trash } from "lucide-react";
+import useIsSuperAdmin from "../../../hooks/useIsSuperAdmin";
 
 interface RequiredDocument {
   id: number;
@@ -32,6 +33,7 @@ interface ProcessTemplat {
 }
 
 export default function ProcessTemplatTable() {
+  const isSuperAdmin = useIsSuperAdmin();
   const [processTemplat, setProcessTemplat] = useState<ProcessTemplat[]>([]);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [page, setPage] = useState(1);
@@ -157,7 +159,7 @@ export default function ProcessTemplatTable() {
                       </TableCell>
                       <TableCell className="px-4 py-4 text-start">
                         {/* {proc.required_documents?.[0]?.is_active ? ( */}
-                          <span className="text-green-600 text-xl">✅</span>
+                        <span className="text-green-600 text-xl">✅</span>
                         {/* ) : (
                           <span className="text-red-600 text-xl">❌</span>
                         )} */}
@@ -193,10 +195,12 @@ export default function ProcessTemplatTable() {
                             navigate(`/manage-process-templates/${proc.id}`)
                           }
                         />
-                        <Trash
-                          className="w-5 h-5 text-red-600 hover:text-red-800 cursor-pointer"
-                          onClick={() => setDeleteId(proc.id)}
-                        />
+                        {isSuperAdmin && (
+                          <Trash
+                            className="w-5 h-5 text-red-600 hover:text-red-800 cursor-pointer"
+                            onClick={() => setDeleteId(proc.id)}
+                          />
+                        )}
                       </TableCell>
                     </TableRow>
                   );

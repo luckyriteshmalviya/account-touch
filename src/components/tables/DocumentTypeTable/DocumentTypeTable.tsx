@@ -13,6 +13,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { Edit, Eye, Trash } from "lucide-react";
+import useIsSuperAdmin from "../../../hooks/useIsSuperAdmin";
 
 interface DocumentType {
   id: number;
@@ -22,6 +23,7 @@ interface DocumentType {
 }
 
 export default function DocumentTypesTable() {
+  const isSuperAdmin = useIsSuperAdmin();
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [page, setPage] = useState(1);
@@ -86,7 +88,7 @@ export default function DocumentTypesTable() {
             <Table>
               <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                 <TableRow>
-                  {[ "Name", "Active", "Description", "Actions"].map(
+                  {["Name", "Active", "Description", "Actions"].map(
                     (header) => (
                       <TableCell
                         key={header}
@@ -135,10 +137,12 @@ export default function DocumentTypesTable() {
                           navigate(`/manage-document-type/${doc.id}`)
                         }
                       />
-                      <Trash
-                        className="w-5 h-5 text-red-600 hover:text-red-800 cursor-pointer"
-                        onClick={() => setDeleteId(doc.id)}
-                      />
+                      {isSuperAdmin && (
+                        <Trash
+                          className="w-5 h-5 text-red-600 hover:text-red-800 cursor-pointer"
+                          onClick={() => setDeleteId(doc.id)}
+                        />
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
