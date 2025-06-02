@@ -67,7 +67,7 @@ export default function AddOrEditQuestionnairesPage() {
       title: questionnaires.title,
       description: questionnaires.description,
       is_active: questionnaires.is_active,
-      questions: selectedQuestions
+      questions: selectedQuestions,
     };
 
     try {
