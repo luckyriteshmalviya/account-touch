@@ -6,17 +6,20 @@ import Questionnaire from "./Questionnaire";
 import Documents from "./Documents";
 import Payment from "./Payment";
 import DocumentPreparation from "./DocumentPreparation";
-
+import useAuth from "../../hooks/useAuth";
 
 export default function TaskStepsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { userProfile } = useAuth();
   const [task, setTask] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+
+  console.log("userProfile in task steps page", userProfile);
 
   // Fetch task details on mount (or when id changes)
   useEffect(() => {
@@ -210,6 +213,20 @@ export default function TaskStepsPage() {
                       process={currentProcess}
                       onComplete={() => handleStepComplete(currentStep)}
                       onPrevious={currentStep > 0 ? handlePreviousStep : undefined}
+                      userRole={userProfile?.user?.roles?.[0]?.slug || ""}
+                      refreshProcess={() => {
+                        if (id) {
+                          setRefreshing(true);
+                          getTaskDetailsService(id)
+                            .then((data) => {
+                              if (data) setTask(data);
+                            })
+                            .catch((err) => {
+                              console.error("Error refreshing task details:", err);
+                            })
+                            .finally(() => setRefreshing(false));
+                        }
+                      }}
                     />
                   );
                 case 'document_preparation':
