@@ -35,10 +35,8 @@ export default function AddOrEditProcessTemplatPage() {
   const [documentList, setDocumentList] = useState<any[]>([]);
   const [selectedDocumentType, setSelectedDocumentType] = useState<any[]>([]);
 
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-
- 
+  const [page] = useState(1);
+  const [search] = useState("");
 
   const { id } = useParams();
   const isEdit = !!id;
