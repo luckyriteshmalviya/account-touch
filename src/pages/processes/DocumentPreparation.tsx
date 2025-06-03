@@ -7,6 +7,7 @@ interface DocumentPreparationProps {
     taskId: string;
     onComplete: () => void;
     onPrevious?: () => void;
+    processes?: any[]; // All processes for payment check
 }
 
 type UploadStatusType = Record<string, { 
@@ -14,14 +15,19 @@ type UploadStatusType = Record<string, {
     message?: string 
 }>;
 
-export default function DocumentPreparation({ process, onComplete, onPrevious }: DocumentPreparationProps) {
+export default function DocumentPreparation({ process, onComplete, onPrevious, processes }: DocumentPreparationProps) {
     const [formData, setFormData] = useState<Record<string, string>>({});
+    // Disable submit if any payment process is not completed
+    const hasPendingPayment = Array.isArray(processes) && processes.some(
+        p => p.process_template_detail?.process_type === "payment" && p.status !== "completed"
+    );
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
     const [uploadStatus, setUploadStatus] = useState<UploadStatusType>({});
     const [allUploaded, setAllUploaded] = useState(false);
     const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
 
     // Check if we have any uploaded documents already
     useEffect(() => {
@@ -333,8 +339,9 @@ export default function DocumentPreparation({ process, onComplete, onPrevious }:
                         )}
                         <button
                             type="submit"
-                            disabled={isSubmitting || !allUploaded}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+                            disabled={isSubmitting || !allUploaded || hasPendingPayment}
+                            title={hasPendingPayment ? "Complete all payment steps before submitting." : undefined}
+                            className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 ${hasPendingPayment ? 'bg-gray-400 cursor-not-allowed hover:bg-gray-400' : ''}`}
                         >
                             {isSubmitting ? "Submitting..." : "Submit"}
                         </button>

@@ -72,11 +72,17 @@ export default function Questionnaire({ process, taskId, onComplete, onPrevious 
             const result = await submitQuestionnaireService(payload);
             
             if (result && !result.error) {
-                setSuccess(true);
                 setIsEditing(false);
-                setTimeout(() => {
+                if (isEditing) {
+                    // If updating, move to next step immediately
                     onComplete();
-                }, 1500);
+                } else {
+                    // If first submission, show summary then move
+                    setSuccess(true);
+                    setTimeout(() => {
+                        onComplete();
+                    }, 1500);
+                }
             } else {
                 // Handle specific error cases
                 if (result?.status === 403) {
