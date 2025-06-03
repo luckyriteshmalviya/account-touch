@@ -1,16 +1,17 @@
 // TaskStepsPage.tsx
-import { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getTaskDetailsService } from "../../services/restApi/task";
 import Questionnaire from "./Questionnaire";
 import Documents from "./Documents";
 import Payment from "./Payment";
 import DocumentPreparation from "./DocumentPreparation";
-
+import useAuth from "../../hooks/useAuth";
 
 export default function TaskStepsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { userProfile } = useAuth();
   const [task, setTask] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,6 +19,9 @@ export default function TaskStepsPage() {
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
+  console.log("userProfile in task steps page", userProfile);
+
+  // Fetch task details on mount (or when id changes)
   useEffect(() => {
     (async () => {
       if (id) {
@@ -30,7 +34,6 @@ export default function TaskStepsPage() {
           const data = await getTaskDetailsService(id);
           if (data) {
             setTask(data);
-            
             // Check for step query parameter
             const urlParams = new URLSearchParams(window.location.search);
             const stepParam = urlParams.get('step');
@@ -40,7 +43,6 @@ export default function TaskStepsPage() {
                 setCurrentStep(stepIndex);
               }
             }
-            
           } else {
             setError("Failed to load task details");
           }
@@ -54,6 +56,23 @@ export default function TaskStepsPage() {
       }
     })();
   }, [id]);
+
+  // Re-fetch task details whenever currentStep changes (to get latest process/questionnaire submission)
+  useEffect(() => {
+    if (!id) return;
+    // Don't re-fetch on first mount (handled by previous effect)
+    if (task && task.processes && task.processes.length > 0) {
+      setRefreshing(true);
+      getTaskDetailsService(id)
+        .then((data) => {
+          if (data) setTask(data);
+        })
+        .catch((err) => {
+          console.error("Error refreshing task details:", err);
+        })
+        .finally(() => setRefreshing(false));
+    }
+  }, [currentStep, id]);
 
   // Function to handle step navigation
   const handleStepClick = (stepIndex: number) => {
@@ -85,10 +104,6 @@ export default function TaskStepsPage() {
     navigate(`/tasks/view/${id}`);
   };
 
-  if (loading) {
-    return <p className="text-gray-500 text-center mt-10">Loading...</p>;
-  }
-
   if (error) {
     return <p className="text-red-500 text-center mt-10">{error}</p>;
   }
@@ -101,7 +116,16 @@ export default function TaskStepsPage() {
   const processes = task.processes ? [...task.processes].sort((a, b) => a.order - b.order) : [];
 
   return (
-    <div className="max-w-5xl mx-auto bg-white dark:bg-gray-900 rounded-lg p-8 shadow">
+    <div className="relative max-w-5xl mx-auto bg-white dark:bg-gray-900 rounded-lg p-8 shadow">
+      {/* Loader overlay */}
+      {(loading || refreshing) && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white/70 dark:bg-gray-900/80 z-20 rounded-lg">
+          <svg className="animate-spin h-10 w-10 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+      )}
       <div className="flex justify-between items-center mb-6">
         <button 
           onClick={handleBackToDetails}
@@ -154,16 +178,7 @@ export default function TaskStepsPage() {
 
       {/* Current Step Content */}
       <div className="mt-8">
-        {refreshing && (
-          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded mb-4 flex items-center">
-            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Refreshing task data...
-          </div>
-        )}
-        
+        {/* Loader overlay now covers the whole layout, so remove the old loader here */}
         {processes.length > 0 && currentStep < processes.length && (
           <div>
             {(() => {
@@ -198,12 +213,27 @@ export default function TaskStepsPage() {
                       process={currentProcess}
                       onComplete={() => handleStepComplete(currentStep)}
                       onPrevious={currentStep > 0 ? handlePreviousStep : undefined}
+                      userRole={userProfile?.user?.roles?.[0]?.slug || ""}
+                      refreshProcess={() => {
+                        if (id) {
+                          setRefreshing(true);
+                          getTaskDetailsService(id)
+                            .then((data) => {
+                              if (data) setTask(data);
+                            })
+                            .catch((err) => {
+                              console.error("Error refreshing task details:", err);
+                            })
+                            .finally(() => setRefreshing(false));
+                        }
+                      }}
                     />
                   );
                 case 'document_preparation':
                   return (
                     <DocumentPreparation
                       process={currentProcess}
+                      processes={processes}
                       taskId={task.id}
                       onComplete={() => handleStepComplete(currentStep)}
                       onPrevious={currentStep > 0 ? handlePreviousStep : undefined}
@@ -219,21 +249,15 @@ export default function TaskStepsPage() {
             })()}
           </div>
         )}
-
-        {completedSteps.length === processes.length && (
-          <div className="bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded">
-            <h3 className="font-semibold text-lg mb-2">All steps completed!</h3>
-            <p>You have successfully completed all the required steps for this task.</p>
-            <div className="mt-4">
-              <button 
-                onClick={handleBackToDetails}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-              >
-                Back to Task Details
-              </button>
-            </div>
+        {/* {currentStep === processes.length - 1 && (
+          <div className="flex justify-end mt-8">
+            <SubmitButton
+              processes={processes}
+              processTypes={["payment"]}
+              onSubmit={handleBackToDetails}
+            />
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );

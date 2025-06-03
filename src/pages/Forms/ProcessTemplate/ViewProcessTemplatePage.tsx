@@ -114,7 +114,7 @@ export default function ViewProcessTemplatPage() {
           </div>
         </div>
       </div>
-
+      
       {/* Questionnaire Section */}
       {processTemplat?.process_type === "questionnaire" &&
         processTemplat?.questionnaire && (
@@ -250,7 +250,7 @@ export default function ViewProcessTemplatPage() {
         )}
 
       {/* Document Preparation Section */}
-      {(processTemplat?.process_type === "documentation" ||
+      {(processTemplat?.process_type === "payment" || processTemplat?.process_type === "documentation" ||
         processTemplat?.process_type === "document_preparation") &&
         processTemplat?.required_documents &&
         processTemplat.required_documents.length > 0 && (

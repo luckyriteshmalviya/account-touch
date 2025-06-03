@@ -38,7 +38,7 @@ export default function AddOrEditProcessTemplatPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
 
-  console.log(setPage, setSearch);
+ 
 
   const { id } = useParams();
   const isEdit = !!id;
@@ -68,7 +68,8 @@ export default function AddOrEditProcessTemplatPage() {
     // Fetch questionnaire list on mount
     if (
       processTemplat.process_type === "documentation" ||
-      processTemplat.process_type === "document_preparation"
+      processTemplat.process_type === "document_preparation" ||
+      processTemplat.process_type === "payment"
     ) {
       async function fetchdocuments() {
         try {
@@ -102,10 +103,13 @@ export default function AddOrEditProcessTemplatPage() {
 
           if (data.process_type === "questionnaire") {
             setSelectedQuestionnaire(data?.questionnaire?.id || "");
-          } else {
+          } else if (
+            data.process_type === "documentation" ||
+            data.process_type === "document_preparation" ||
+            data.process_type === "payment"
+          ) {
             const requiredDocumentIds =
               data?.required_documents.map((item: any) => item.id) || [];
-
             setSelectedDocumentType(requiredDocumentIds);
           }
         } catch (error) {
@@ -169,7 +173,8 @@ export default function AddOrEditProcessTemplatPage() {
 
     if (
       processTemplat.process_type === "documentation" ||
-      processTemplat.process_type === "document_preparation"
+      processTemplat.process_type === "document_preparation" ||
+      processTemplat.process_type === "payment"
     ) {
       payload = {
         title: processTemplat.title,

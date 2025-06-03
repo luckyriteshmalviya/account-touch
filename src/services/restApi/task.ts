@@ -290,3 +290,75 @@ export const submitDocumentPreparationService = async (
     return null;
   }
 };
+
+// Update payment status service
+export const updatePaymentStatusService = async (
+  processId: number,
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED' | 'CANCELLED'
+) => {
+  try {
+    const token = getAccessToken();
+
+    const res = await fetch(
+      `https://api.accountouch.com/api/tasks/processes/${processId}/payment-status/`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status }),
+      }
+    );
+
+    const responseData = await res.json();
+
+    // Check if the response is not successful
+    if (!res.ok) {
+      return {
+        error: responseData.detail || `Error: ${res.status} ${res.statusText}`,
+        status: res.status,
+        data: responseData
+      };
+    }
+
+    return responseData;
+  } catch (error) {
+    console.error("Error updating payment status:", error);
+    return { error: "Network or server error occurred", status: 500 };
+  }
+};
+
+// Request payment service
+export const requestPaymentService = async (processId: number) => {
+  try {
+    const token = getAccessToken();
+
+    const res = await fetch(
+      `https://api.accountouch.com/api/tasks/processes/${processId}/request-payment/`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        }
+      }
+    );
+
+    const responseData = await res.json();
+
+    // Check if the response is not successful
+    if (!res.ok) {
+      return {
+        error: responseData.detail || `Error: ${res.status} ${res.statusText}`,
+        status: res.status,
+        data: responseData
+      };
+    }
+
+    return responseData;
+  } catch (error) {
+    console.error("Error requesting payment:", error);
+    return { error: "Network or server error occurred", status: 500 };
+  }
+};
