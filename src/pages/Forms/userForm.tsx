@@ -341,9 +341,17 @@ export const UserForm = ({
 
         {param.id && (
           <ComponentCard title="Status">
-            <div className="flex gap-4 justify-between">
+            <div className="flex gap-4 justify-between items-center">
               <Switch
-                label="Active"
+                label={
+                  <span
+                    className={`font-medium ${
+                      isActive ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
+                    Active
+                  </span>
+                }
                 checked={isActive}
                 onChange={() => setIsActive(!isActive)}
                 disabled={isDisabled}
@@ -407,7 +415,7 @@ export const UserForm = ({
           </div>
         </ComponentCard>
 
-        {/* {param.id && (
+        {param.id && !editMode && (
           <ComponentCard title="Created By">
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-6">
@@ -428,22 +436,22 @@ export const UserForm = ({
                   disabled={isDisabled}
                 />
               </div>
-            </div> */}
-        {/* {!hideFields && (
-            <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-              <div className="space-y-6">
-                <Label htmlFor="Creator Email">Creator Email</Label>
-                <Input
-                  value={user?.created_by?.email}
-                  type="text"
-                  id="creatorEmail"
-                  disabled={isDisabled}
-                />
-              </div>
             </div>
-          )} */}
-        {/* </ComponentCard>
-        )} */}
+            {/* {!hideFields && (
+              <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                <div className="space-y-6">
+                  <Label htmlFor="Creator Email">Creator Email</Label>
+                  <Input
+                    value={user?.created_by?.email}
+                    type="text"
+                    id="creatorEmail"
+                    disabled={isDisabled}
+                  />
+                </div>
+              </div>
+            )} */}
+          </ComponentCard>
+        )}
 
         {/* Buttons */}
         <div className="mt-6 flex gap-4">

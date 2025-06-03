@@ -16,7 +16,12 @@ interface QuestionFormProps {
   setQuestion: React.Dispatch<React.SetStateAction<Question>>;
   onSubmit?: () => void;
   editMode?: boolean;
-  multipleChoice: { text: string; order: number; question: number }[];
+  multipleChoice: {
+    text: string;
+    order: number;
+    question: number;
+    modified?: boolean;
+  }[];
   setMultipleChoice: React.Dispatch<
     React.SetStateAction<{ text: string; order: number; question: number }[]>
   >;
@@ -102,6 +107,7 @@ const QuestionsForm = ({
                       onChange={(e) => {
                         const newChoices = [...multipleChoice];
                         newChoices[index].text = e.target.value;
+                        newChoices[index].modified = true;
                         setMultipleChoice(newChoices);
                       }}
                       placeholder={`Option ${index + 1}`}

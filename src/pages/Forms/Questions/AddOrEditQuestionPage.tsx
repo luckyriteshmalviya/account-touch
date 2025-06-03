@@ -7,6 +7,7 @@ import {
   addQuestionService,
   updateQuestionService,
   addChoiceService,
+  patchChoiceService,
 } from "../../../services/restApi/Questions";
 
 interface Question {
@@ -24,7 +25,13 @@ export default function AddOrEditQuestionPage() {
   });
 
   const [multipleChoice, setMultipleChoice] = useState<
-    { text: string; order: number; question: number }[]
+    {
+      id?: string;
+      text: string;
+      order: number;
+      question: number;
+      modified?: boolean;
+    }[]
   >([{ text: "", order: 0, question: 0 }]);
 
   const { id } = useParams<{ id?: string }>();
@@ -46,11 +53,15 @@ export default function AddOrEditQuestionPage() {
               question_type: data.question_type?.toLowerCase() || "descriptive",
             });
 
-            //  Set choices if it's a multiple_choice question
             if (data.question_type.toLowerCase() === "multiple_choice") {
               setMultipleChoice(
                 data.choices.length > 0
-                  ? data.choices
+                  ? data.choices.map((choice: any) => ({
+                      id: choice.id,
+                      text: choice.text,
+                      order: choice.order,
+                      question: data.id,
+                    }))
                   : [{ text: "", order: 0, question: data.id }]
               );
             }
@@ -100,16 +111,28 @@ export default function AddOrEditQuestionPage() {
       if (question.question_type === "multiple_choice") {
         const questionId = response.id;
 
-        // ensure order unique before sending
-        const choicesWithUniqueOrder = multipleChoice.map((choice, index) => ({
+        const choicesWithOrder = multipleChoice.map((choice, index) => ({
           ...choice,
           order: index + 1,
           question: questionId,
         }));
 
-        for (const choice of choicesWithUniqueOrder) {
-          await addChoiceService(choice);
-          await delay(300);
+        for (const choice of choicesWithOrder) {
+          if (choice.id) {
+            console.log("choice--", choice);
+            // Existing choice — if modified, patch it
+            if (choice.modified) {
+              await patchChoiceService(choice.id, {
+                text: choice.text,
+                order: choice.order,
+              });
+              await delay(300);
+            }
+          } else {
+            // New choice — add it
+            await addChoiceService(choice);
+            await delay(300);
+          }
         }
       }
 

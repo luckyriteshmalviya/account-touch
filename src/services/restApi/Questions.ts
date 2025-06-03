@@ -102,25 +102,23 @@ export const addQuestionService = async (data: {
 // ----------------------
 // 4. Update Full Resource (PUT)
 // ----------------------
-export const updateQuestionService = async (id: string, formData: FormData) => {
-  try {
-    const res = await fetch(`${API_BASE}/${id}/`, {
-      method: "PUT",
-      headers: getAuthHeaders(),
-      body: formData,
-    });
+export const updateQuestionService = async (id: string, data: any) => {
+  const res = await fetch(`${API_BASE}/${id}/`, {
+    method: "PUT",
+    headers: {
+      ...getAuthHeaders(),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
 
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error("Update Question failed:", errorText);
-      return null;
-    }
-
-    return await res.json();
-  } catch (error) {
-    console.error("Error updating question:", error);
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error("Update Question failed:", errorText);
     return null;
   }
+
+  return await res.json();
 };
 
 // ----------------------
@@ -180,6 +178,7 @@ export const addChoiceService = async (data: {
   order: number;
 }) => {
   try {
+    console.log("Sending choice data:", data);
     const res = await fetch(`${CHOICES_API_BASE}/`, {
       method: "POST",
       headers: {
@@ -199,6 +198,36 @@ export const addChoiceService = async (data: {
     return await res.json();
   } catch (error) {
     console.error("Error adding choice:", error);
+    return null;
+  }
+};
+
+// ----------------------
+// 7. Patch MCQ choices
+// -
+export const patchChoiceService = async (
+  id: string,
+  patchData: Record<string, any>
+) => {
+  try {
+    const res = await fetch(`${CHOICES_API_BASE}/${id}/`, {
+      method: "PATCH",
+      headers: {
+        ...getAuthHeaders(),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(patchData),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Patch Choice failed:", errorText);
+      return null;
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("Error patching choice:", error);
     return null;
   }
 };

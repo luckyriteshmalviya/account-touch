@@ -187,7 +187,7 @@ export default function TasksTable() {
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                 {tasks.map((task) => (
                   <TableRow key={task.id} className="text-center">
-                    <TableCell className="px-4 py-4 text-start">
+                    <TableCell className="px-4 py-4 text-start ">
                       <a
                         href={`/tasks/view/${task.id}`}
                         className="text-blue-600 hover:text-blue-800 hover:underline"
@@ -205,14 +205,14 @@ export default function TasksTable() {
                     <TableCell className="px-4 py-4 text-start capitalize">
                       {task.priority}
                     </TableCell>
-                    <TableCell className="px-4 py-4 text-start">
+                    <TableCell className="px-4 py-4 text-start text-blue-600 ">
                       {" "}
                       <Link to={`/user-details/${task.client?.id}`}>
                         {" "}
                         {task.client?.full_name || "N/A"}
                       </Link>
                     </TableCell>
-                    <TableCell className="px-4 py-4 text-start">
+                    <TableCell className="px-4 py-4 text-start text-blue-600">
                       {" "}
                       <Link to={`/user-details/${task.client?.id}`}>
                         {task.maker?.full_name || "N/A"}{" "}

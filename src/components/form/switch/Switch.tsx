@@ -1,7 +1,7 @@
 import React from "react";
 
 interface SwitchProps {
-  label: string;
+  label: React.ReactNode;
   defaultChecked?: boolean;
   checked?: boolean;
   disabled?: boolean;
@@ -26,9 +26,7 @@ const Switch: React.FC<SwitchProps> = ({
   const switchColors =
     color === "blue"
       ? {
-          background: checked
-            ? "bg-brand-500"
-            : "bg-gray-200 dark:bg-white/10",
+          background: checked ? "bg-brand-500" : "bg-gray-200 dark:bg-white/10",
           knob: checked
             ? "translate-x-full bg-white"
             : "translate-x-0 bg-white",
