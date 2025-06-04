@@ -17,7 +17,7 @@ interface ProcessTemplate {
   title: string;
 }
 
-export default function AddOrEditTaskTemplatPage() {
+export default function AddOrEditTaskTemplatePage() {
   type Priority = "low" | "medium" | "high";
   const [taskTemplat, setTaskTemplat] = useState({
     title: "",
@@ -29,10 +29,7 @@ export default function AddOrEditTaskTemplatPage() {
     order: 0,
     priority: "low" as Priority,
     fees: "",
-    process_templates_list: [] as {
-      process_template_id: string;
-      order: number;
-    }[],
+    process_template_ids: [] as string[], // Changed from process_templates_list
   });
 
   const [selectedProcesses, setSelectedProcesses] = useState<
@@ -86,34 +83,43 @@ export default function AddOrEditTaskTemplatPage() {
       (async () => {
         try {
           const data = await getTaskTemplatDetailsService(id as string);
+
+          // Extract process template IDs from the response
+          let processTemplateIds: string[] = [];
+          let processesForState: {
+            process_template_id: string;
+            order: number;
+          }[] = [];
+
+          if (
+            data?.process_templates &&
+            Array.isArray(data.process_templates)
+          ) {
+            processTemplateIds = data.process_templates.map((pt: any) => pt.id);
+            processesForState = data.process_templates.map(
+              (pt: any, index: number) => ({
+                process_template_id: pt.id,
+                order: index,
+              })
+            );
+          }
+
           // Transform the data to match the form structure
           setTaskTemplat({
             title: data?.title || "",
             description: data?.description || "",
-            image: data?.image || "", // Store the image URL as string for display
+            image: data?.image || "",
             category_id: data?.category?.id || 0,
             is_active: data?.is_active ?? true,
             is_ready: data?.is_ready ?? true,
             order: data?.order || 0,
             priority: (data?.priority as Priority) || "low",
             fees: data?.fees || "",
-            process_templates_list: Array.isArray(data?.process_templates)
-              ? data.process_templates
-              : typeof data?.process_templates === "string" &&
-                data.process_templates
-              ? JSON.parse(data.process_templates)
-              : [],
+            process_template_ids: processTemplateIds, // Changed field name
           });
 
-          if (data.process_templates.length > 0) {
-            const processTemplaes = data.process_templates.map(
-              (elem: any, index: number) => ({
-                process_template_id: elem.id,
-                order: index,
-              })
-            );
-
-            setSelectedProcesses(processTemplaes);
+          if (processesForState.length > 0) {
+            setSelectedProcesses(processesForState);
           }
         } catch (error) {
           console.error("Error loading template details:", error);
@@ -126,9 +132,14 @@ export default function AddOrEditTaskTemplatPage() {
   const handleCreateTaskTemplate = async (formData: FormData) => {
     try {
       let response;
+
+      // Extract process template IDs from selectedProcesses (only non-empty ones)
+      const processTemplateIds = selectedProcesses
+        .filter((process) => process.process_template_id.trim() !== "")
+        .map((process) => process.process_template_id);
+
       // For edit mode
       if (isEdit) {
-        // Create a new object without the image field
         const editPayload = {
           title: taskTemplat.title,
           description: taskTemplat.description,
@@ -137,7 +148,7 @@ export default function AddOrEditTaskTemplatPage() {
           is_ready: taskTemplat.is_ready,
           order: taskTemplat.order,
           priority: taskTemplat.priority,
-          process_templates_list: taskTemplat.process_templates_list,
+          process_template_ids: processTemplateIds, // Send as array of IDs
           fees: taskTemplat.fees,
         };
 
@@ -148,8 +159,13 @@ export default function AddOrEditTaskTemplatPage() {
 
           // Add all fields to FormData
           Object.entries(editPayload).forEach(([key, value]) => {
-            if (key === "process_templates_list") {
-              editFormData.append(key, JSON.stringify(value));
+            if (key === "process_template_ids") {
+              // Add each ID separately for FormData array handling
+              if (Array.isArray(value)) {
+                value.forEach((id) => {
+                  editFormData.append(key, id);
+                });
+              }
             } else {
               editFormData.append(key, String(value));
             }
@@ -164,25 +180,23 @@ export default function AddOrEditTaskTemplatPage() {
           response = await updateTaskTemplatService(id as string, editPayload);
         }
       } else {
-        // For add mode, use the FormData directly
-        response = await addTaskTemplatService(formData);
+        // For add mode, we need to modify the FormData to use the correct field name
+        const newFormData = new FormData();
 
-        console.log(response, "response 9988");
-
-        if (response?.id) {
-          updateTaskTemplatService(response.id, {
-            // ...response, 
-            category_id: taskTemplat.category_id,
-            process_templates_list: selectedProcesses.map(
-              (process: any, index) =>{ 
-                console.log(process, "process");
-                return ({
-                process_template_id: process.process_template_id,
-                order: index,
-              })}
-            ),
-          });
+        // Copy all fields from original FormData except process_template_ids
+        for (const [key, value] of formData.entries()) {
+          if (key !== "process_template_ids") {
+            newFormData.append(key, value);
+          }
         }
+
+        // Add each process template ID separately (FormData array handling)
+        processTemplateIds.forEach((id) => {
+          newFormData.append("process_template_ids", id);
+        });
+
+        response = await addTaskTemplatService(newFormData);
+        console.log(response, "response 9988");
       }
 
       if (response?.id) {

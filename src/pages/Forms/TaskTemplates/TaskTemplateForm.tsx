@@ -29,7 +29,7 @@ interface TaskTemplatFormProps {
     order: number;
     priority: Priority;
     fees: string;
-    process_templates_list: { process_template_id: string; order: number }[];
+    process_template_ids: string[]; // Changed from process_templates_list
   };
   setTaskTemplat: React.Dispatch<React.SetStateAction<any>>;
   onSubmit: (formData: FormData) => void;
@@ -56,15 +56,23 @@ const TaskTemplatForm = ({
 
   const navigate = useNavigate();
   const { id } = useParams();
+
   useEffect(() => {
-    // Initialize selectedProcesses from taskTemplat.process_templates_list if available
+    // Initialize selectedProcesses from taskTemplat.process_template_ids if available
     if (
-      taskTemplat.process_templates_list &&
-      Array.isArray(taskTemplat.process_templates_list) &&
-      taskTemplat.process_templates_list.length > 0
+      taskTemplat.process_template_ids &&
+      Array.isArray(taskTemplat.process_template_ids) &&
+      taskTemplat.process_template_ids.length > 0
     ) {
+      // Convert IDs to the format expected by selectedProcesses
+      const initialProcesses = taskTemplat.process_template_ids.map(
+        (id, index) => ({
+          process_template_id: id,
+          order: index,
+        })
+      );
+
       // Make sure we have at least 4 items
-      const initialProcesses = [...taskTemplat.process_templates_list];
       while (initialProcesses.length < 4) {
         initialProcesses.push({
           process_template_id: "",
@@ -74,9 +82,13 @@ const TaskTemplatForm = ({
       setSelectedProcesses(initialProcesses);
     } else {
       // Update taskTemplat with default selectedProcesses
+      const processIds = selectedProcesses
+        .filter((process) => process.process_template_id.trim() !== "")
+        .map((process) => process.process_template_id);
+
       setTaskTemplat((prev: any) => ({
         ...prev,
-        process_templates_list: selectedProcesses,
+        process_template_ids: processIds,
       }));
     }
   }, []);
@@ -128,13 +140,29 @@ const TaskTemplatForm = ({
     formData.append("priority", taskTemplat.priority);
     formData.append("fees", taskTemplat.fees);
 
-    // Add process_templates_list - even if not fully validated
-    formData.append(
-      "process_templates_list",
-      JSON.stringify(selectedProcesses)
-    );
+    // Extract process template IDs (only non-empty ones)
+    const processTemplateIds = selectedProcesses
+      .filter((process) => process.process_template_id.trim() !== "")
+      .map((process) => process.process_template_id);
+
+    // Add process_template_ids - this will be handled in the parent component
+    formData.append("process_template_ids", JSON.stringify(processTemplateIds));
 
     onSubmit(formData);
+  };
+
+  // Update the parent state when selectedProcesses changes
+  const updateProcessTemplateIds = (
+    updatedProcesses: { process_template_id: string; order: number }[]
+  ) => {
+    const processIds = updatedProcesses
+      .filter((process) => process.process_template_id.trim() !== "")
+      .map((process) => process.process_template_id);
+
+    setTaskTemplat((prev: any) => ({
+      ...prev,
+      process_template_ids: processIds,
+    }));
   };
 
   return (
@@ -370,10 +398,7 @@ const TaskTemplatForm = ({
                         const updated = [...selectedProcesses];
                         updated[index].process_template_id = e.target.value;
                         setSelectedProcesses(updated);
-                        setTaskTemplat((prev: any) => ({
-                          ...prev,
-                          process_templates_list: updated,
-                        }));
+                        updateProcessTemplateIds(updated);
                       }}
                     >
                       <option value="">-- Select Process Template --</option>
@@ -394,10 +419,7 @@ const TaskTemplatForm = ({
                           const updated = [...selectedProcesses];
                           updated[index].order = value;
                           setSelectedProcesses(updated);
-                          setTaskTemplat((prev: any) => ({
-                            ...prev,
-                            process_templates_list: updated,
-                          }));
+                          updateProcessTemplateIds(updated);
                         }
                       }}
                     />
@@ -418,10 +440,7 @@ const TaskTemplatForm = ({
                   };
                   const updated = [...selectedProcesses, newProcess];
                   setSelectedProcesses(updated);
-                  setTaskTemplat((prev: any) => ({
-                    ...prev,
-                    process_templates_list: updated,
-                  }));
+                  updateProcessTemplateIds(updated);
                 }}
               >
                 <span className="text-lg font-bold mr-1">+</span> Add Process
