@@ -279,7 +279,12 @@ export default function Payment({
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-      <h2 className="text-xl font-semibold mb-4">Payment</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold mb-4">Payment</h2>
+        <p className="text-gray-600 dark:text-gray-300 ">
+          Payment Status: <span className="font-medium">{paymentStatus}</span>
+        </p>
+      </div>
 
       <div className="mb-6">
         <label className="text-gray-600 dark:text-gray-300">
@@ -292,9 +297,6 @@ export default function Payment({
             min={minimumFees}
           />
         </label>
-        <p className="text-gray-600 dark:text-gray-300 mt-2">
-          Payment Status: <span className="font-medium">{paymentStatus}</span>
-        </p>
       </div>
 
       {requiredDocuments.length > 0 && (
