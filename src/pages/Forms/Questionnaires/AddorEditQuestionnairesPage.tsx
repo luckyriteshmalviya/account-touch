@@ -16,7 +16,7 @@ export default function AddOrEditQuestionnairesPage() {
     is_active: true,
   });
 
-  const [questions, setQuestions] = useState<any[]>([]); // Assuming questions is an array of objects
+  const [questions, setQuestions] = useState<any[]>([]);
 
   const [selectedQuestions, setSelectedQuestions] = useState<any[]>([
     {
@@ -40,6 +40,16 @@ export default function AddOrEditQuestionnairesPage() {
             description: data.description || "",
             is_active: data.is_active ?? true,
           });
+
+          // FIXED: Load existing questions if in edit mode
+          if (data.questions && data.questions.length > 0) {
+            const existingQuestions = data.questions.map((q: any) => ({
+              value: q.id,
+              label: q.text,
+              type: q.question_type || q.type,
+            }));
+            setSelectedQuestions(existingQuestions);
+          }
         } catch (error) {
           console.error("Error fetching questionnaire details:", error);
           await Swal.fire({
@@ -62,13 +72,20 @@ export default function AddOrEditQuestionnairesPage() {
       return;
     }
 
-    // Simple JSON payload, no FormData
+    // FIXED: Extract only question IDs and filter out empty ones
+    const questionIds = selectedQuestions
+      .filter((q) => q.value && q.value !== "") // Remove empty questions
+      .map((q) => q.value); // Extract only the IDs
+
+    // FIXED: Use question_ids instead of questions
     const payload = {
       title: questionnaires.title,
       description: questionnaires.description,
       is_active: questionnaires.is_active,
-      questions: selectedQuestions,
+      question_ids: questionIds, // Changed from 'questions' to 'question_ids'
     };
+
+    console.log("Payload being sent:", payload);
 
     try {
       const result = isEdit
@@ -99,9 +116,7 @@ export default function AddOrEditQuestionnairesPage() {
 
   useEffect(() => {
     try {
-      // Fetching questions from the API or any other source
       const fetchQuestions = async () => {
-        // Simulating an API call
         const response = await getQuestionListService({});
         setQuestions(response.results || []);
       };
@@ -116,6 +131,8 @@ export default function AddOrEditQuestionnairesPage() {
       });
     }
   }, []);
+
+  console.log("selectedQuestions", selectedQuestions);
 
   return (
     <QuestionnairesForm

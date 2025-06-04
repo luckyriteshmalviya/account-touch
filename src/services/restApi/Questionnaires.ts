@@ -1,9 +1,8 @@
-
 import { getAccessToken } from "./user";
 
 export const getQuestionnairesListService = async (params: {
   page?: Number;
-  search?: string
+  search?: string;
 }) => {
   try {
     const token = getAccessToken();
@@ -12,15 +11,20 @@ export const getQuestionnairesListService = async (params: {
 
     if (params.page) queryParams.append("page", params.page.toString());
     if (params.search) queryParams.append("search", params.search);
-    const res = await fetch(`https://api.accountouch.com/api/tasks/questionnaires?${queryParams.toString()}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const res = await fetch(
+      `https://api.accountouch.com/api/tasks/questionnaires?${queryParams.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
     if (!res.ok) {
-      console.error(`Error fetching Questionnaires list: ${res.status} ${res.statusText}`);
+      console.error(
+        `Error fetching Questionnaires list: ${res.status} ${res.statusText}`
+      );
       return null;
     }
 
@@ -35,12 +39,15 @@ export const getQuestionnairesListService = async (params: {
 export const getQuestionnairesDetailsService = async (id: string) => {
   try {
     const token = getAccessToken();
-    const res = await fetch(`https://api.accountouch.com/api/tasks/questionnaires/${id}/`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const res = await fetch(
+      `https://api.accountouch.com/api/tasks/questionnaires/${id}/`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return await res.json();
   } catch (e) {
     console.error("Error in getQuestionnairesDetailsService:", e);
@@ -52,18 +59,22 @@ export const addQuestionnairesService = async (payload: {
   title: string;
   description: string;
   is_active: boolean;
+  question_ids?: string[]; // Added this field
 }) => {
   try {
     const token = getAccessToken();
 
-    const res = await fetch(`https://api.accountouch.com/api/tasks/questionnaires/`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+    const res = await fetch(
+      `https://api.accountouch.com/api/tasks/questionnaires/`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
 
     return await res.json();
   } catch (e) {
@@ -78,19 +89,23 @@ export const updateQuestionnairesService = async (
     title: string;
     description: string;
     is_active: boolean;
+    question_ids?: string[];
   }
 ) => {
   try {
     const token = getAccessToken();
 
-    const res = await fetch(`https://api.accountouch.com/api/tasks/questionnaires/${id}/`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+    const res = await fetch(
+      `https://api.accountouch.com/api/tasks/questionnaires/${id}/`,
+      {
+        method: "PATCH", // Changed from PUT to PATCH as per API docs
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
 
     return await res.json();
   } catch (e) {
@@ -101,14 +116,16 @@ export const updateQuestionnairesService = async (
 
 export const deleteQuestionnairesService = async (questionnairesId: number) => {
   try {
-
     const token = getAccessToken();
-    const res = await fetch(`https://api.accountouch.com/api/tasks/questionnaires/${questionnairesId}/`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const res = await fetch(
+      `https://api.accountouch.com/api/tasks/questionnaires/${questionnairesId}/`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     if (res.ok) {
       return true; // ✅ Return success flag
     } else {
@@ -119,4 +136,3 @@ export const deleteQuestionnairesService = async (questionnairesId: number) => {
     return false;
   }
 };
-
