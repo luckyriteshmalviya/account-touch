@@ -231,3 +231,20 @@ export const patchChoiceService = async (
     return null;
   }
 };
+
+// ----------------------
+// 8.Delete a Choice
+// ----------------------
+export const deleteChoiceService = async (id: any | number) => {
+  try {
+    const res = await fetch(`${CHOICES_API_BASE}/${id}/`, {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    });
+
+    return res.ok;
+  } catch (error) {
+    console.error("Error deleting choice:", error);
+    return false;
+  }
+};

@@ -8,6 +8,7 @@ import {
   updateQuestionService,
   addChoiceService,
   patchChoiceService,
+  deleteChoiceService,
 } from "../../../services/restApi/Questions";
 
 interface Question {
@@ -148,6 +149,28 @@ export default function AddOrEditQuestionPage() {
     }
   };
 
+  const handleRemoveChoice = async (index: number) => {
+    const choiceToRemove = multipleChoice[index];
+
+    if (choiceToRemove.id) {
+      try {
+        await deleteChoiceService(choiceToRemove.id);
+        await delay(300);
+      } catch (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Failed",
+          text: "Failed to delete choice.",
+        });
+        return;
+      }
+    }
+
+    // Remove from state
+    const updatedChoices = multipleChoice.filter((_, i) => i !== index);
+    setMultipleChoice(updatedChoices);
+  };
+
   if (loading) return <div>Loading...</div>;
 
   return (
@@ -160,6 +183,7 @@ export default function AddOrEditQuestionPage() {
         editMode={isEdit}
         multipleChoice={multipleChoice}
         setMultipleChoice={setMultipleChoice}
+        onRemoveChoice={handleRemoveChoice}
       />
     </div>
   );

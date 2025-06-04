@@ -25,6 +25,7 @@ interface QuestionFormProps {
   setMultipleChoice: React.Dispatch<
     React.SetStateAction<{ text: string; order: number; question: number }[]>
   >;
+  onRemoveChoice: (index: number) => void;
 }
 
 const QuestionsForm = ({
@@ -34,6 +35,7 @@ const QuestionsForm = ({
   editMode = false,
   multipleChoice,
   setMultipleChoice,
+  onRemoveChoice,
 }: QuestionFormProps) => {
   const [errors, setErrors] = useState<{ text?: string; description?: string }>(
     {}
@@ -115,12 +117,7 @@ const QuestionsForm = ({
                     />
                     <button
                       type="button"
-                      onClick={() => {
-                        const newChoices = multipleChoice.filter(
-                          (_, i) => i !== index
-                        );
-                        setMultipleChoice(newChoices);
-                      }}
+                      onClick={() => onRemoveChoice(index)}
                       className="text-red-500 hover:text-red-700"
                     >
                       Remove
