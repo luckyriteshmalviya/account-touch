@@ -117,12 +117,15 @@ export const AddUserForm = () => {
 
     // Remove assigned_to_id for roles that don't need it
     if (
-      selectedRoles?.value === "maker" ||
+      selectedRoles?.value === "super admin" ||
       selectedRoles?.value === "checker"
     ) {
-      if (selectedRoles.value !== "maker") {
-        delete payload.assigned_to_id;
-      }
+      // if (selectedRoles.value !== "maker") {
+      delete payload.assigned_to_id;
+      // }
+    }
+    if (selectedRoles?.value !== "maker") {
+      delete payload.assigned_to_id;
     }
 
     // For Maker/Checker adding client, remove assigned_to_id
@@ -134,7 +137,7 @@ export const AddUserForm = () => {
     }
 
     try {
-      console.log("api call");
+      console.log("api call", { selectedRoles, payload });
 
       const res = await addUserService(payload);
       if (res && res.id) {
