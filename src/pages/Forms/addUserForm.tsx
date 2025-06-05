@@ -7,29 +7,29 @@ import {
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router";
 
-interface User {
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone_number: string;
-  date_of_birth: string;
-  profile_picture: string;
-  bio: string;
-  country: string;
-  password: string;
-  pan_card: string;
-  name_as_per_pan_card: string;
-  aadhar_card: string;
-  gst_number: string;
-  gst_site_login: string;
-  gst_site_password: string;
-  is_active: boolean;
-  created_by: {
-    first_name: string;
-    last_name: string;
-    email: string;
-  };
-}
+// interface User {
+//   first_name: string;
+//   last_name: string;
+//   email: string;
+//   phone_number: string;
+//   date_of_birth: string;
+//   profile_picture: string;
+//   bio: string;
+//   country: string;
+//   password: string;
+//   pan_card: string;
+//   name_as_per_pan_card: string;
+//   aadhar_card: string;
+//   gst_number: string;
+//   gst_site_login: string;
+//   gst_site_password: string;
+//   is_active: boolean;
+//   created_by: {
+//     first_name: string;
+//     last_name: string;
+//     email: string;
+//   };
+// }
 
 interface RoleOption {
   value: string;
@@ -134,8 +134,9 @@ export const AddUserForm = () => {
     }
 
     try {
-      const res = await addUserService(payload);
+      console.log("api call");
 
+      const res = await addUserService(payload);
       if (res && res.id) {
         Swal.fire({
           icon: "success",
@@ -245,7 +246,7 @@ export const AddUserForm = () => {
     ) {
       setAssignedToOptions([]);
     }
-  }, [selectedRoles, currentUserRole, currentUser]);
+  }, [selectedRoles, currentUserRole]);
 
   return (
     <UserForm

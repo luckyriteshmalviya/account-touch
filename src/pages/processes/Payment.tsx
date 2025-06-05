@@ -64,10 +64,10 @@ export default function Payment({
   const paymentStatus = process.status || "PENDING";
 
   // Check if user is admin or checker
-  const isAdminOrChecker =
-    userRole === "super-admin" ||
-    userRole === "admin" ||
-    userRole === "checker";
+  // const isAdminOrChecker =
+  //   userRole === "super-admin" ||
+  //   userRole === "admin" ||
+  //   userRole === "checker";
 
   console.log("User Role:", userRole);
 
