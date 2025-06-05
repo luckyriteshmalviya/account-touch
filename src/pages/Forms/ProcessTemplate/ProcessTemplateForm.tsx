@@ -215,9 +215,9 @@ const ProcessTemplatForm = ({
           )} */}
 
           {/* Document Preparation Dropdown - Multi select */}
-          {(processTemplat.process_type === "document_preparation" ||
-            processTemplat.process_type === "documentation" ||
-            processTemplat.process_type === "payment") ? (
+          {processTemplat.process_type === "document_preparation" ||
+          processTemplat.process_type === "documentation" ||
+          processTemplat.process_type === "payment" ? (
             <div className="space-y-2 col-span-2">
               <Label htmlFor="documentation_id">
                 {processTemplat.process_type === "documentation"
@@ -240,6 +240,7 @@ const ProcessTemplatForm = ({
                   const selectedIds = selectedOptions.map(
                     (option) => option.value
                   );
+                  console.log("Document List", documentList);
                   setSelectedDocumentType(selectedIds);
                 }}
                 className="basic-multi-select"

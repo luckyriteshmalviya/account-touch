@@ -174,23 +174,26 @@ export default function AddOrEditProcessTemplatPage() {
       processTemplat.process_type === "document_preparation" ||
       processTemplat.process_type === "payment"
     ) {
+      if (!selectedDocumentType.length) {
+        await Swal.fire({
+          icon: "error",
+          title: "Validation Error",
+          text: "Select at least one document type.",
+        });
+        return;
+      }
+
       payload = {
         title: processTemplat.title,
         description: processTemplat.description || "",
-        process_type: processTemplat.process_type, // dynamic now
-        required_document_ids: selectedDocumentType || "", // Assuming selectedDocumentType is an array
-        created_by_id: parsedProfile?.user?.id,
-      };
-    } else {
-      payload = {
-        title: processTemplat.title,
-        description: processTemplat.description || "",
-        process_type: processTemplat.process_type, // dynamic now
-        questionnaire_id: selectedQuestionnaire || "", // Assuming selectedQuestionnaire is an array
+        process_type: processTemplat.process_type,
+        required_document_ids: selectedDocumentType, // should be array of UUID strings
         created_by_id: parsedProfile?.user?.id,
       };
     }
-
+    console.log("Final Payload:", JSON.stringify(payload, null, 2));
+    console.log("Payload being sent:", payload);
+    console.log("Selected Document Types:", selectedDocumentType);
     try {
       const result = isEdit
         ? await updateProcessTemplatService(id as string, payload)

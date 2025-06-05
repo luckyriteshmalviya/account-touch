@@ -45,10 +45,6 @@ export default function Payment({
     process?.fees ||
     process?.amount ||
     0.0;
-  console.log("tk", task);
-  console.log("Process object:", process);
-  console.log("Process template detail:", process?.process_template_detail);
-  console.log("Minimum fees value:", minimumFees);
 
   const [fees, setFees] = useState(minimumFees);
   const [uploadStatus, setUploadStatus] = useState<UploadStatusType>({});
@@ -63,7 +59,8 @@ export default function Payment({
     text: string;
   } | null>(null);
 
-  const requiredDocuments = process.required_documents || [];
+  const requiredDocuments =
+    process.process_template_detail.required_documents || [];
   const paymentStatus = process.status || "PENDING";
 
   // Check if user is admin or checker
@@ -71,11 +68,28 @@ export default function Payment({
     userRole === "super-admin" ||
     userRole === "admin" ||
     userRole === "checker";
-  console.log("fees", fees);
-  console.log("userRole in payment", userRole);
 
-  console.log("requiredDocuments in payment", requiredDocuments);
-  console.log("process in payment", process);
+  console.log("User Role:", userRole);
+
+  // Check if all required documents are uploaded
+  const areAllRequiredDocumentsUploaded = () => {
+    if (requiredDocuments.length === 0) return true;
+
+    return requiredDocuments.every((reqDoc: any) => {
+      const docSlug = reqDoc.slug;
+      // Check if document exists in uploaded_documents or has success status
+      const isUploaded = process.uploaded_documents?.some(
+        (uploadedDoc: any) =>
+          uploadedDoc.document_type?.slug === docSlug ||
+          uploadedDoc.document_type?.id === reqDoc.id
+      );
+      const hasSuccessStatus = uploadStatus[docSlug]?.status === "success";
+
+      return isUploaded || hasSuccessStatus;
+    });
+  };
+
+  const allDocumentsUploaded = areAllRequiredDocumentsUploaded();
 
   useEffect(() => {
     if (process.uploaded_documents && process.uploaded_documents.length > 0) {
@@ -132,6 +146,9 @@ export default function Payment({
         documentTypeIdentifier,
         file
       );
+      console.log("process.id", process.id);
+      console.log("documentTypeIdentifier", documentTypeIdentifier),
+        console.log("file", file);
 
       if (result && !result.error) {
         setUploadStatus((prev) => ({
@@ -142,7 +159,9 @@ export default function Payment({
         setTimeout(() => setSuccess(false), 1200);
 
         // Refresh the process data to show the newly uploaded document
-        // In a real implementation, you would want to update the process state with the new document
+        if (refreshProcess) {
+          refreshProcess();
+        }
       } else {
         setUploadStatus((prev) => ({
           ...prev,
@@ -282,7 +301,20 @@ export default function Payment({
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold mb-4">Payment</h2>
         <p className="text-gray-600 dark:text-gray-300 ">
-          Payment Status: <span className="font-medium">{paymentStatus}</span>
+          Payment Status:{" "}
+          <span
+            className={`font-medium ${
+              paymentStatus === "completed"
+                ? "text-green-600"
+                : paymentStatus === "rejected"
+                ? "text-red-600"
+                : paymentStatus === "cancelled"
+                ? "text-gray-500"
+                : ""
+            }`}
+          >
+            {paymentStatus}
+          </span>
         </p>
       </div>
 
@@ -298,6 +330,38 @@ export default function Payment({
           />
         </label>
       </div>
+
+      {/* Document Upload Validation Message */}
+      {requiredDocuments.length > 0 && !allDocumentsUploaded && (
+        <div className="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-md">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg
+                className="h-5 w-5 text-yellow-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                Required Documents Missing
+              </h3>
+              <div className="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                <p>
+                  Please upload all required documents before proceeding to the
+                  next step.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {requiredDocuments.length > 0 && (
         <div className="mb-8">
@@ -489,7 +553,17 @@ export default function Payment({
 
         <button
           onClick={onComplete}
-          className="px-4 py-2 rounded-md ml-auto focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 bg-blue-600 hover:bg-blue-700 text-white"
+          disabled={!allDocumentsUploaded}
+          className={`px-4 py-2 rounded-md ml-auto focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+            allDocumentsUploaded
+              ? "bg-blue-600 hover:bg-blue-700 text-white"
+              : "bg-gray-400 cursor-not-allowed text-gray-600"
+          }`}
+          title={
+            !allDocumentsUploaded
+              ? "Please upload all required documents to proceed"
+              : ""
+          }
         >
           Next Step
         </button>

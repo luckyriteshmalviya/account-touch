@@ -263,7 +263,7 @@ const TaskTemplatForm = ({
           </div>
 
           {/* Order */}
-          <div>
+          {/* <div>
             <Label htmlFor="order">Order</Label>
             <Input
               id="order"
@@ -281,7 +281,7 @@ const TaskTemplatForm = ({
             {errors.order && (
               <p className="text-red-500 text-sm">{errors.order}</p>
             )}
-          </div>
+          </div> */}
 
           {/* Priority */}
           <div>
