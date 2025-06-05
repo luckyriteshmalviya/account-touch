@@ -6,6 +6,9 @@ import {
   getQuestionDetailsService,
   addQuestionService,
   updateQuestionService,
+  addChoiceService,
+  patchChoiceService,
+  deleteChoiceService,
 } from "../../../services/restApi/Questions";
 
 interface Question {
@@ -23,7 +26,13 @@ export default function AddOrEditQuestionPage() {
   });
 
   const [multipleChoice, setMultipleChoice] = useState<
-    { text: string; order: number; question: number }[]
+    {
+      id?: string;
+      text: string;
+      order: number;
+      question: number;
+      modified?: boolean;
+    }[]
   >([{ text: "", order: 0, question: 0 }]);
 
   const { id } = useParams<{ id?: string }>();
@@ -44,6 +53,19 @@ export default function AddOrEditQuestionPage() {
               description: data.description || "",
               question_type: data.question_type?.toLowerCase() || "descriptive",
             });
+
+            if (data.question_type.toLowerCase() === "multiple_choice") {
+              setMultipleChoice(
+                data.choices.length > 0
+                  ? data.choices.map((choice: any) => ({
+                      id: choice.id,
+                      text: choice.text,
+                      order: choice.order,
+                      question: data.id,
+                    }))
+                  : [{ text: "", order: 0, question: data.id }]
+              );
+            }
           } else {
             setError("Failed to load question.");
           }
@@ -63,47 +85,59 @@ export default function AddOrEditQuestionPage() {
     });
     navigate("/questions-list");
   };
+  const delay = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
 
   const handleSubmit = async () => {
-    const formData = new FormData();
-    formData.append("text", question.text);
-    formData.append("description", question.description || "");
-    formData.append("question_type", question.question_type);
+    const data: any = {
+      text: question.text,
+      description: question.description || "",
+      question_type: question.question_type,
+    };
 
-    if (question.question_type === "multiple_choice") {
-      formData.append(
-        "choices",
-        multipleChoice.map((choice) => JSON.stringify(choice)).join(",")
-      );
-    }
-
-    // let formData:any = {
-    //   text: question.text,
-    //   description: question.description || "",
-    //   question_type: question.question_type,
-    // };
-    // if(question.question_type === "multiple_choice") {
-    //   formData["choices"] = multipleChoice.map((choice) => ({
-    //     text: choice.text,
-    //     order: choice.order,
-    //     question: question.id || 0, // Assuming question.id is available
-    //   }));
-    // }
     setLoading(true);
     let response = null;
 
     try {
       if (isEdit && question.id) {
-        response = await updateQuestionService(question.id, formData);
+        response = await updateQuestionService(question.id, data);
       } else {
-        response = await addQuestionService(formData);
+        response = await addQuestionService(data);
       }
 
-      if (response) {
-        handleSuccess();
-      } else {
-        throw new Error("API returned null response");
+      if (!response || !response.id) {
+        throw new Error("Question create/update failed.");
       }
+
+      if (question.question_type === "multiple_choice") {
+        const questionId = response.id;
+
+        const choicesWithOrder = multipleChoice.map((choice, index) => ({
+          ...choice,
+          order: index + 1,
+          question: questionId,
+        }));
+
+        for (const choice of choicesWithOrder) {
+          if (choice.id) {
+            console.log("choice--", choice);
+            // Existing choice — if modified, patch it
+            if (choice.modified) {
+              await patchChoiceService(choice.id, {
+                text: choice.text,
+                order: choice.order,
+              });
+              await delay(300);
+            }
+          } else {
+            // New choice — add it
+            await addChoiceService(choice);
+            await delay(300);
+          }
+        }
+      }
+
+      await handleSuccess();
     } catch (err) {
       Swal.fire({
         icon: "error",
@@ -113,6 +147,28 @@ export default function AddOrEditQuestionPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRemoveChoice = async (index: number) => {
+    const choiceToRemove = multipleChoice[index];
+
+    if (choiceToRemove.id) {
+      try {
+        await deleteChoiceService(choiceToRemove.id);
+        await delay(300);
+      } catch (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Failed",
+          text: "Failed to delete choice.",
+        });
+        return;
+      }
+    }
+
+    // Remove from state
+    const updatedChoices = multipleChoice.filter((_, i) => i !== index);
+    setMultipleChoice(updatedChoices);
   };
 
   if (loading) return <div>Loading...</div>;
@@ -127,6 +183,7 @@ export default function AddOrEditQuestionPage() {
         editMode={isEdit}
         multipleChoice={multipleChoice}
         setMultipleChoice={setMultipleChoice}
+        onRemoveChoice={handleRemoveChoice}
       />
     </div>
   );

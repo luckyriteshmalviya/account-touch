@@ -16,10 +16,16 @@ interface QuestionFormProps {
   setQuestion: React.Dispatch<React.SetStateAction<Question>>;
   onSubmit?: () => void;
   editMode?: boolean;
-  multipleChoice: { text: string; order: number; question: number }[];
+  multipleChoice: {
+    text: string;
+    order: number;
+    question: number;
+    modified?: boolean;
+  }[];
   setMultipleChoice: React.Dispatch<
     React.SetStateAction<{ text: string; order: number; question: number }[]>
   >;
+  onRemoveChoice: (index: number) => void;
 }
 
 const QuestionsForm = ({
@@ -29,6 +35,7 @@ const QuestionsForm = ({
   editMode = false,
   multipleChoice,
   setMultipleChoice,
+  onRemoveChoice,
 }: QuestionFormProps) => {
   const [errors, setErrors] = useState<{ text?: string; description?: string }>(
     {}
@@ -102,6 +109,7 @@ const QuestionsForm = ({
                       onChange={(e) => {
                         const newChoices = [...multipleChoice];
                         newChoices[index].text = e.target.value;
+                        newChoices[index].modified = true;
                         setMultipleChoice(newChoices);
                       }}
                       placeholder={`Option ${index + 1}`}
@@ -109,12 +117,7 @@ const QuestionsForm = ({
                     />
                     <button
                       type="button"
-                      onClick={() => {
-                        const newChoices = multipleChoice.filter(
-                          (_, i) => i !== index
-                        );
-                        setMultipleChoice(newChoices);
-                      }}
+                      onClick={() => onRemoveChoice(index)}
                       className="text-red-500 hover:text-red-700"
                     >
                       Remove

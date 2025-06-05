@@ -11,8 +11,9 @@ import {
   deleteCategoryService,
 } from "../../../services/restApi/category";
 import { useNavigate } from "react-router-dom";
-import Swal from 'sweetalert2';
+import Swal from "sweetalert2";
 import { Edit, Eye, Trash } from "lucide-react";
+import useIsSuperAdmin from "../../../hooks/useIsSuperAdmin";
 
 interface Category {
   id: number;
@@ -22,6 +23,7 @@ interface Category {
 }
 
 export default function CategoriesTable() {
+  const isSuperAdmin = useIsSuperAdmin();
   const [categories, setCategories] = useState<Category[]>([]);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [page, setPage] = useState(1);
@@ -45,23 +47,22 @@ export default function CategoriesTable() {
     if (deleteId !== null) {
       const success = await deleteCategoryService(deleteId);
       if (success) {
-        setCategories(prev => prev.filter(cat => cat.id !== deleteId));
+        setCategories((prev) => prev.filter((cat) => cat.id !== deleteId));
         Swal.fire({
-          icon: 'success',
-          title: 'Deleted!',
-          text: 'Deleted Successfully!',
+          icon: "success",
+          title: "Deleted!",
+          text: "Deleted Successfully!",
         });
       } else {
         Swal.fire({
-          icon: 'error',
-          title: 'Deleted!',
-          text: 'Somthing Wrong!',
+          icon: "error",
+          title: "Deleted!",
+          text: "Somthing Wrong!",
         });
       }
       setDeleteId(null);
     }
   };
-
 
   return (
     <>
@@ -86,25 +87,27 @@ export default function CategoriesTable() {
             <Table>
               <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                 <TableRow>
-                  {[ "Name", "Description", "Image", "Actions"].map(
-                    (header) => (
-                      <TableCell
-                        key={header}
-                        isHeader
-                        className="px-4 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                      >
-                        {header}
-                      </TableCell>
-                    )
-                  )}
+                  {["Name", "Description", "Image", "Actions"].map((header) => (
+                    <TableCell
+                      key={header}
+                      isHeader
+                      className="px-4 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      {header}
+                    </TableCell>
+                  ))}
                 </TableRow>
               </TableHeader>
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                 {categories.map((cat) => (
                   <TableRow key={cat.id} className="text-center">
                     {/* <TableCell className="px-4 py-4 text-start">{cat.id}</TableCell> */}
-                    <TableCell className="px-4 py-4 text-start">{cat.name}</TableCell>
-                    <TableCell className="px-4 py-4 text-start">{cat.description || "-"}</TableCell>
+                    <TableCell className="px-4 py-4 text-start">
+                      {cat.name}
+                    </TableCell>
+                    <TableCell className="px-4 py-4 text-start">
+                      {cat.description || "-"}
+                    </TableCell>
                     <TableCell className="px-4 py-4 text-start">
                       {cat.image ? (
                         <img
@@ -125,10 +128,12 @@ export default function CategoriesTable() {
                         className="w-5 h-5 text-blue-600 hover:text-blue-800 cursor-pointer"
                         onClick={() => navigate(`/manage-category/${cat.id}`)}
                       />
-                      <Trash
-                        className="w-5 h-5 text-red-600 hover:text-red-800 cursor-pointer"
-                        onClick={() => setDeleteId(cat.id)}
-                      />
+                      {isSuperAdmin && (
+                        <Trash
+                          className="w-5 h-5 text-red-600 hover:text-red-800 cursor-pointer"
+                          onClick={() => setDeleteId(cat.id)}
+                        />
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -147,7 +152,9 @@ export default function CategoriesTable() {
         >
           Prev
         </button>
-        <span className="px-4 py-2">{page} / {totalPages}</span>
+        <span className="px-4 py-2">
+          {page} / {totalPages}
+        </span>
         <button
           disabled={page === totalPages}
           className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"

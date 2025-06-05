@@ -35,10 +35,8 @@ export default function AddOrEditProcessTemplatPage() {
   const [documentList, setDocumentList] = useState<any[]>([]);
   const [selectedDocumentType, setSelectedDocumentType] = useState<any[]>([]);
 
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-
- 
+  const [page] = useState(1);
+  const [search] = useState("");
 
   const { id } = useParams();
   const isEdit = !!id;
@@ -75,19 +73,28 @@ export default function AddOrEditProcessTemplatPage() {
         try {
           const data = await getDocumentTypeListService({ page, search });
           setDocumentList(data.results || []);
+
+          // 👇 if payment type, select "Payment Receipt"
+          if (processTemplat.process_type === "payment") {
+            const paymentReceiptDoc = data.results.find(
+              (doc: any) => doc.name.toLowerCase() === "payment receipt" // ya jo bhi actual name API me aaye
+            );
+            if (paymentReceiptDoc) {
+              setSelectedDocumentType([paymentReceiptDoc.id]);
+            }
+          }
         } catch (error) {
-          console.error("Error fetching questionnaires:", error);
+          console.error("Error fetching documents:", error);
           Swal.fire({
             icon: "error",
             title: "Error",
-            text: "Failed to fetch questionnaire list.",
+            text: "Failed to fetch document list.",
           });
         }
       }
       fetchdocuments();
     }
   }, [processTemplat.process_type]);
-
   useEffect(() => {
     if (isEdit) {
       (async () => {
@@ -176,23 +183,26 @@ export default function AddOrEditProcessTemplatPage() {
       processTemplat.process_type === "document_preparation" ||
       processTemplat.process_type === "payment"
     ) {
+      if (!selectedDocumentType.length) {
+        await Swal.fire({
+          icon: "error",
+          title: "Validation Error",
+          text: "Select at least one document type.",
+        });
+        return;
+      }
+
       payload = {
         title: processTemplat.title,
         description: processTemplat.description || "",
-        process_type: processTemplat.process_type, // dynamic now
-        required_document_ids: selectedDocumentType || "", // Assuming selectedDocumentType is an array
-        created_by_id: parsedProfile?.user?.id,
-      };
-    } else {
-      payload = {
-        title: processTemplat.title,
-        description: processTemplat.description || "",
-        process_type: processTemplat.process_type, // dynamic now
-        questionnaire_id: selectedQuestionnaire || "", // Assuming selectedQuestionnaire is an array
+        process_type: processTemplat.process_type,
+        required_document_ids: selectedDocumentType, // should be array of UUID strings
         created_by_id: parsedProfile?.user?.id,
       };
     }
-
+    console.log("Final Payload:", JSON.stringify(payload, null, 2));
+    console.log("Payload being sent:", payload);
+    console.log("Selected Document Types:", selectedDocumentType);
     try {
       const result = isEdit
         ? await updateProcessTemplatService(id as string, payload)

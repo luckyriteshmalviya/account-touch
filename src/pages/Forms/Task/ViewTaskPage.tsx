@@ -132,14 +132,14 @@ export default function ViewTaskPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
                 <h3 className="text-sm uppercase text-gray-500 dark:text-gray-400 font-medium mb-1">
-                  Priority & Order
+                  Priority & Status
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
                     Priority: {task.priority || "-"}
                   </span>
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                    Order: {task.order || "-"}
+                    Status: {task.status || "-"}
                   </span>
                 </div>
               </div>

@@ -1,20 +1,22 @@
-
 import { getAccessToken } from "./user";
 
-export const getTaskTemplatCategory = async()=>{
-    try {
-        const token = getAccessToken();
-        const res = await fetch(`https://api.accountouch.com/api/tasks/categories/`, {
+export const getTaskTemplatCategory = async () => {
+  try {
+    const token = getAccessToken();
+    const res = await fetch(
+      `https://api.accountouch.com/api/tasks/categories/`,
+      {
         method: "GET",
         headers: {
-            Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
-        });
-        return await res.json();
-    } catch (e) {
-        console.error("Error in getTaskTemplatCategory:", e);
-        return null;
-    }
+      }
+    );
+    return await res.json();
+  } catch (e) {
+    console.error("Error in getTaskTemplatCategory:", e);
+    return null;
+  }
 };
 
 export const getTaskTemplatListService = async (params: {
@@ -32,11 +34,16 @@ export const getTaskTemplatListService = async (params: {
     const queryParams = new URLSearchParams();
 
     // Append params if present
-    if (params.isActive !== undefined) queryParams.append("is_active", params.isActive.toString());
-    if (params.isReady !== undefined) queryParams.append("is_ready", params.isReady.toString());
-    if (params.selectedCategory !== undefined) queryParams.append("category", params.selectedCategory.toString());
-    if (params.page !== undefined) queryParams.append("page", params.page.toString());
-    if (params.page_size !== undefined) queryParams.append("page_size", params.page_size.toString());
+    if (params.isActive !== undefined)
+      queryParams.append("is_active", params.isActive.toString());
+    if (params.isReady !== undefined)
+      queryParams.append("is_ready", params.isReady.toString());
+    if (params.selectedCategory !== undefined)
+      queryParams.append("category", params.selectedCategory.toString());
+    if (params.page !== undefined)
+      queryParams.append("page", params.page.toString());
+    if (params.page_size !== undefined)
+      queryParams.append("page_size", params.page_size.toString());
     if (params.search) queryParams.append("search", params.search);
     if (params.ordering) {
       queryParams.append("ordering", params.ordering);
@@ -55,7 +62,9 @@ export const getTaskTemplatListService = async (params: {
     });
 
     if (!res.ok) {
-      console.error(`Error fetching task templates: ${res.status} ${res.statusText}`);
+      console.error(
+        `Error fetching task templates: ${res.status} ${res.statusText}`
+      );
       return null;
     }
 
@@ -70,12 +79,15 @@ export const getTaskTemplatListService = async (params: {
 export const getTaskTemplatDetailsService = async (id: string) => {
   try {
     const token = getAccessToken();
-    const res = await fetch(`https://api.accountouch.com/api/tasks/task-templates/${id}/`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const res = await fetch(
+      `https://api.accountouch.com/api/tasks/task-templates/${id}/`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return await res.json();
   } catch (e) {
     console.error("Error in getTaskTemplatDetailsService:", e);
@@ -84,40 +96,77 @@ export const getTaskTemplatDetailsService = async (id: string) => {
 };
 
 export const addTaskTemplatService = async (payload: FormData) => {
-  const token = getAccessToken();
-  const res = await fetch("https://api.accountouch.com/api/tasks/task-templates/", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      // "Content-Type": "application/json",
-    },
-    body: payload,
-  });
-  return res.json();
+  try {
+    const token = getAccessToken();
+    const res = await fetch(
+      "https://api.accountouch.com/api/tasks/task-templates/",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: payload,
+      }
+    );
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      console.error("API Error:", errorData);
+      throw new Error(`HTTP ${res.status}: ${JSON.stringify(errorData)}`);
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("Error in addTaskTemplatService:", error);
+    throw error;
+  }
 };
 
 export const updateTaskTemplatService = async (id: string, payload: any) => {
-  const token = getAccessToken();
-  const res = await fetch(`https://api.accountouch.com/api/tasks/task-templates/${id}/`, {
-    method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-  return res.json();
+  try {
+    const token = getAccessToken();
+
+    // Check if payload is FormData or regular object
+    const isFormData = payload instanceof FormData;
+
+    const res = await fetch(
+      `https://api.accountouch.com/api/tasks/task-templates/${id}/`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // Only set Content-Type for JSON, not FormData
+          ...(!isFormData && { "Content-Type": "application/json" }),
+        },
+        body: isFormData ? payload : JSON.stringify(payload),
+      }
+    );
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      console.error("API Error:", errorData);
+      throw new Error(`HTTP ${res.status}: ${JSON.stringify(errorData)}`);
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("Error in updateTaskTemplatService:", error);
+    throw error;
+  }
 };
 
 export const deleteTaskTemplatService = async (taskTemplatId: number) => {
   try {
     const token = getAccessToken();
-    const res = await fetch(`https://api.accountouch.com/api/tasks/task-templates/${taskTemplatId}/`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const res = await fetch(
+      `https://api.accountouch.com/api/tasks/task-templates/${taskTemplatId}/`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     if (res.ok) {
       return true; // ✅ Return success flag
     } else {
@@ -128,4 +177,3 @@ export const deleteTaskTemplatService = async (taskTemplatId: number) => {
     return false;
   }
 };
-

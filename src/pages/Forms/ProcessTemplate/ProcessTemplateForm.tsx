@@ -215,9 +215,9 @@ const ProcessTemplatForm = ({
           )} */}
 
           {/* Document Preparation Dropdown - Multi select */}
-          {(processTemplat.process_type === "document_preparation" ||
-            processTemplat.process_type === "documentation" ||
-            processTemplat.process_type === "payment") ? (
+          {processTemplat.process_type === "document_preparation" ||
+          processTemplat.process_type === "documentation" ||
+          processTemplat.process_type === "payment" ? (
             <div className="space-y-2 col-span-2">
               <Label htmlFor="documentation_id">
                 {processTemplat.process_type === "documentation"
@@ -237,14 +237,30 @@ const ProcessTemplatForm = ({
                   .filter((doc) => selectedDocumentType.includes(doc.id))
                   .map((doc) => ({ value: doc.id, label: doc.name }))}
                 onChange={(selectedOptions) => {
-                  const selectedIds = selectedOptions.map(
+                  let selectedIds = selectedOptions.map(
                     (option) => option.value
                   );
+
+                  // Find Payment Receipt doc id
+                  const paymentReceiptDoc = documentList.find(
+                    (doc) => doc.name === "Payment Receipt"
+                  );
+
+                  // If process_type is payment — always include it
+                  if (
+                    processTemplat.process_type === "payment" &&
+                    paymentReceiptDoc &&
+                    !selectedIds.includes(paymentReceiptDoc.id)
+                  ) {
+                    selectedIds = [...selectedIds, paymentReceiptDoc.id];
+                  }
+
                   setSelectedDocumentType(selectedIds);
                 }}
                 className="basic-multi-select"
                 classNamePrefix="select"
               />
+
               {/* Show selected documents preparation*/}
               <div className="flex flex-col flex-wrap gap-2 mt-2">
                 {documentList
@@ -254,21 +270,26 @@ const ProcessTemplatForm = ({
                   ?.map((doc: any) => (
                     <div
                       key={doc.id}
-                      className="flex jusitfy-between bg-blue-100 text-blue-800 px-3 py-1 rounded-full flex items-center"
+                      className="flex justify-between bg-blue-100 text-blue-800 px-3 py-1 rounded-full items-center"
                     >
-                      <div className="w-full border border-2">{doc.name}</div>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setSelectedDocumentType((prev: string[]) =>
-                            prev.filter((id) => id !== doc.id)
-                          )
-                        }
-                        className="ml-2 text-red-500 hover:text-red-700"
-                        aria-label={`Remove ${doc.name}`}
-                      >
-                        ❌
-                      </button>
+                      <div>{doc.name}</div>
+                      {!(
+                        processTemplat.process_type === "payment" &&
+                        doc.name === "Payment Receipt"
+                      ) && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setSelectedDocumentType((prev: string[]) =>
+                              prev.filter((id) => id !== doc.id)
+                            )
+                          }
+                          className="ml-2 text-red-500 hover:text-red-700"
+                          aria-label={`Remove ${doc.name}`}
+                        >
+                          ❌
+                        </button>
+                      )}
                     </div>
                   ))}
               </div>

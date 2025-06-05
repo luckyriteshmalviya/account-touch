@@ -5,6 +5,7 @@ import { getAccessToken } from "./user";
 // ----------------------
 
 const API_BASE = "https://api.accountouch.com/api/tasks/questions";
+const CHOICES_API_BASE = "https://api.accountouch.com/api/tasks/choices";
 
 // Common headers
 const getAuthHeaders = () => ({
@@ -67,12 +68,22 @@ export const getQuestionDetailsService = async (id: string) => {
 // ----------------------
 // 3. Create a Question (POST)
 // ----------------------
-export const addQuestionService = async (formData: FormData) => {
+export const addQuestionService = async (data: {
+  text: string;
+  description: string;
+  question_type: string;
+  is_required: boolean;
+  order: number;
+}) => {
   try {
     const res = await fetch(`${API_BASE}/`, {
       method: "POST",
-      headers: getAuthHeaders(),
-      body: formData,
+      headers: {
+        ...getAuthHeaders(),
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(data),
     });
 
     if (!res.ok) {
@@ -91,31 +102,32 @@ export const addQuestionService = async (formData: FormData) => {
 // ----------------------
 // 4. Update Full Resource (PUT)
 // ----------------------
-export const updateQuestionService = async (id: string, formData: FormData) => {
-  try {
-    const res = await fetch(`${API_BASE}/${id}/`, {
-      method: "PUT",
-      headers: getAuthHeaders(),
-      body: formData,
-    });
+export const updateQuestionService = async (id: string, data: any) => {
+  const res = await fetch(`${API_BASE}/${id}/`, {
+    method: "PUT",
+    headers: {
+      ...getAuthHeaders(),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
 
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error("Update Question failed:", errorText);
-      return null;
-    }
-
-    return await res.json();
-  } catch (error) {
-    console.error("Error updating question:", error);
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error("Update Question failed:", errorText);
     return null;
   }
+
+  return await res.json();
 };
 
 // ----------------------
 // 5. Partial Update (PATCH)
 // ----------------------
-export const patchQuestionService = async (id: string, patchData: Record<string, any>) => {
+export const patchQuestionService = async (
+  id: string,
+  patchData: Record<string, any>
+) => {
   try {
     const res = await fetch(`${API_BASE}/${id}/`, {
       method: "PATCH",
@@ -152,6 +164,87 @@ export const deleteQuestionService = async (id: any | number) => {
     return res.ok;
   } catch (error) {
     console.error("Error deleting question:", error);
+    return false;
+  }
+};
+
+// ----------------------
+// 7. MCQ choices
+// ----------------------
+
+export const addChoiceService = async (data: {
+  question: number;
+  text: string;
+  order: number;
+}) => {
+  try {
+    console.log("Sending choice data:", data);
+    const res = await fetch(`${CHOICES_API_BASE}/`, {
+      method: "POST",
+      headers: {
+        ...getAuthHeaders(),
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Add Choice failed:", errorText);
+      return null;
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("Error adding choice:", error);
+    return null;
+  }
+};
+
+// ----------------------
+// 7. Patch MCQ choices
+// -
+export const patchChoiceService = async (
+  id: string,
+  patchData: Record<string, any>
+) => {
+  try {
+    const res = await fetch(`${CHOICES_API_BASE}/${id}/`, {
+      method: "PATCH",
+      headers: {
+        ...getAuthHeaders(),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(patchData),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Patch Choice failed:", errorText);
+      return null;
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("Error patching choice:", error);
+    return null;
+  }
+};
+
+// ----------------------
+// 8.Delete a Choice
+// ----------------------
+export const deleteChoiceService = async (id: any | number) => {
+  try {
+    const res = await fetch(`${CHOICES_API_BASE}/${id}/`, {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    });
+
+    return res.ok;
+  } catch (error) {
+    console.error("Error deleting choice:", error);
     return false;
   }
 };
