@@ -7,16 +7,60 @@ import { rolesOptions } from "../../constants/arrays";
 import Select from "react-select";
 import { useNavigate, useParams } from "react-router";
 
+interface User {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string;
+  date_of_birth: string;
+  profile_picture: string;
+  bio: string;
+  country: string;
+  password: string;
+  pan_card: string;
+  name_as_per_pan_card: string;
+  aadhar_card: string;
+  gst_number: string;
+  gst_site_login: string;
+  gst_site_password: string;
+  is_active: boolean;
+  created_by?: {
+    first_name: string;
+    last_name: string;
+    email: string;
+  };
+}
+
+interface RoleOption {
+  value: string;
+  label: string;
+}
+
+interface AssignedToOption {
+  value: string;
+  label: string;
+}
+
 interface UserFormProps {
   id?: string | undefined;
-  user: any;
-  setUser: React.Dispatch<React.SetStateAction<any>>;
-  selectedRoles: { value: string; label: string } | null;
-  setSelectedRoles: any;
-  assignedTo?: any;
-  setAssignedTo: React.Dispatch<React.SetStateAction<string[]>>;
+  user: User;
+  setUser: React.Dispatch<React.SetStateAction<User>>;
+  selectedRoles: RoleOption | null;
+  setSelectedRoles: React.Dispatch<React.SetStateAction<RoleOption | null>>;
+  assignedTo?: AssignedToOption | null;
+  setAssignedTo: React.Dispatch<React.SetStateAction<AssignedToOption | null>>;
   submitForm?: () => void;
   assignedToOptions?: any[];
+  currentUserRole?: string;
+  currentUser?: any;
+}
+
+interface FormErrors {
+  first_name?: string;
+  email?: string;
+  phone_number?: string;
+  roles?: string;
+  assigned_to?: string;
 }
 
 export const UserForm = ({
@@ -29,14 +73,15 @@ export const UserForm = ({
   setAssignedTo,
   submitForm,
   assignedToOptions,
+  currentUserRole,
+  currentUser,
 }: UserFormProps) => {
   const [editMode, setEditMode] = React.useState(false);
-
   const param = useParams<{ id: string }>();
-
   const navigate = useNavigate();
+
   const transformedAssignedToOptions = assignedToOptions
-    ? assignedToOptions?.map((user) => ({
+    ? assignedToOptions.map((user) => ({
         label: user.full_name || user.first_name || user.email,
         value: user.id,
       }))
@@ -44,19 +89,103 @@ export const UserForm = ({
 
   // Compute disabled logic once
   const isDisabled = !!id && !editMode;
+
   // Local state for switches
   const [isActive, setIsActive] = useState(user.is_active);
 
   // Error state for validation
-  const [errors, setErrors] = useState<any>({});
+  const [errors, setErrors] = useState<FormErrors>({});
 
   useEffect(() => {
     setIsActive(user.is_active);
   }, [user.is_active]);
 
+  // Filter roles based on current user's role
+  const getFilteredRolesOptions = (): RoleOption[] => {
+    if (currentUserRole === "super-admin" || currentUserRole === "admin") {
+      return rolesOptions; // Admin can assign all roles
+    }
+    // Non-admin users can only add Clients
+    return rolesOptions.filter((role) => role.value === "client");
+  };
+
+  // Check if assigned to should be shown
+  const shouldShowAssignedTo = (): boolean => {
+    if (!selectedRoles?.value) return false;
+
+    // Show for maker role (existing logic)
+    if (selectedRoles.value === "maker") return true;
+
+    // Show for client role only if current user is Franchise
+    if (selectedRoles.value === "client" && currentUserRole === "franchise") {
+      return true;
+    }
+
+    // Hide for Maker/Checker adding client
+    if (
+      selectedRoles.value === "client" &&
+      (currentUserRole === "maker" || currentUserRole === "checker")
+    ) {
+      return false;
+    }
+
+    // Show for super-admin and admin
+    if (currentUserRole === "super-admin" || currentUserRole === "admin") {
+      return (
+        selectedRoles.value === "client" || selectedRoles.value === "maker"
+      );
+    }
+
+    return false;
+  };
+
+  // Check if assigned to should be editable
+  const isAssignedToEditable = (): boolean => {
+    // If Franchise user is adding a Client, assigned to should be self (non-editable)
+    if (selectedRoles?.value === "client" && currentUserRole === "franchise") {
+      return false;
+    }
+    // Super admin and admin can always edit
+    if (currentUserRole === "super-admin" || currentUserRole === "admin") {
+      return true;
+    }
+    return true;
+  };
+
+  // Get assigned to value based on role logic
+  const getAssignedToValue = (): AssignedToOption | null => {
+    if (selectedRoles?.value === "client" && currentUserRole === "franchise") {
+      // Auto-assign to current user (franchise)
+      return {
+        label:
+          currentUser?.full_name ||
+          currentUser?.first_name ||
+          currentUser?.email,
+        value: currentUser?.id,
+      };
+    }
+    return assignedTo || null;
+  };
+
+  // Effect to handle auto-assignment for franchise users
+  useEffect(() => {
+    if (
+      selectedRoles?.value === "client" &&
+      currentUserRole === "franchise" &&
+      currentUser
+    ) {
+      const autoAssignValue: AssignedToOption = {
+        label:
+          currentUser.full_name || currentUser.first_name || currentUser.email,
+        value: currentUser.id,
+      };
+      setAssignedTo(autoAssignValue);
+    }
+  }, [selectedRoles, currentUserRole, currentUser, setAssignedTo]);
+
   // Validation function
-  const validateForm = () => {
-    const newErrors: any = {};
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
 
     // Validate required fields
     if (!user.first_name) newErrors.first_name = "First Name is required";
@@ -81,9 +210,21 @@ export const UserForm = ({
     }
 
     // If 'Maker' role is selected, ensure at least one user is assigned
-    if (selectedRoles?.value === "maker" && assignedTo.length === 0) {
+    if (
+      selectedRoles?.value === "maker" &&
+      (!assignedTo || !assignedTo.value)
+    ) {
       newErrors.assigned_to =
         "Please assign at least one user to the 'Assigned To' field when selecting 'Maker' as a role.";
+    }
+
+    // If 'Client' role is selected and franchise user, ensure assignment
+    if (
+      selectedRoles?.value === "client" &&
+      currentUserRole === "franchise" &&
+      (!assignedTo || !assignedTo.value)
+    ) {
+      newErrors.assigned_to = "Assignment is required for client role.";
     }
 
     setErrors(newErrors);
@@ -100,6 +241,13 @@ export const UserForm = ({
     return Object.keys(newErrors).length === 0; // Return true if no errors
   };
 
+  const handleInputChange = (field: keyof User, value: string | boolean) => {
+    setUser((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
   return (
     <div>
       <form
@@ -114,7 +262,7 @@ export const UserForm = ({
         <ComponentCard title="Personal Details">
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-6">
-              <Label htmlFor="First Name">
+              <Label htmlFor="firstName">
                 First Name <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -122,10 +270,7 @@ export const UserForm = ({
                 type="text"
                 id="firstName"
                 onChange={(e) =>
-                  setUser((prev: any) => ({
-                    ...prev,
-                    first_name: e.target.value,
-                  }))
+                  handleInputChange("first_name", e.target.value)
                 }
                 disabled={isDisabled}
               />
@@ -137,17 +282,12 @@ export const UserForm = ({
             </div>
 
             <div className="space-y-6">
-              <Label htmlFor="Last Name">Last Name</Label>
+              <Label htmlFor="lastName">Last Name</Label>
               <Input
                 value={user.last_name}
                 type="text"
                 id="lastName"
-                onChange={(e) =>
-                  setUser((prev: any) => ({
-                    ...prev,
-                    last_name: e.target.value,
-                  }))
-                }
+                onChange={(e) => handleInputChange("last_name", e.target.value)}
                 disabled={isDisabled}
               />
             </div>
@@ -155,16 +295,14 @@ export const UserForm = ({
 
           <div className="grid grid-cols-2 gap-6 ">
             <div className="space-y-6">
-              <Label htmlFor="Email">
+              <Label htmlFor="email">
                 Email <span className="text-red-500">*</span>
               </Label>
               <Input
                 value={user.email}
                 type="text"
                 id="email"
-                onChange={(e) =>
-                  setUser((prev: any) => ({ ...prev, email: e.target.value }))
-                }
+                onChange={(e) => handleInputChange("email", e.target.value)}
                 disabled={isDisabled}
               />
               {errors.email && (
@@ -175,29 +313,16 @@ export const UserForm = ({
             </div>
 
             <div className="space-y-6">
-              <Label htmlFor="Phone Number">
-                {" "}
+              <Label htmlFor="phoneNumber">
                 Phone Number <span className="text-red-500">*</span>
               </Label>
               <Input
                 value={user.phone_number}
                 type="text"
                 id="phoneNumber"
-                onChange={(e) => {
-                  // console.log("Phone number input:",e.target.value, Number(e.target.value));
-                  // if (Number(e.target.value)) {
-                  //   setErrors((prev: any) => ({
-                  //     ...prev,
-                  //     phone_number: "Phone number must be numerical",
-                  //   }));
-                  //   return;
-                  // }
-
-                  setUser((prev: any) => ({
-                    ...prev,
-                    phone_number: e.target.value,
-                  }));
-                }}
+                onChange={(e) =>
+                  handleInputChange("phone_number", e.target.value)
+                }
                 disabled={isDisabled}
               />
               {errors.phone_number && (
@@ -208,83 +333,18 @@ export const UserForm = ({
             </div>
 
             <div className="space-y-6">
-              <Label htmlFor="Date of Birth">Date of Birth</Label>
+              <Label htmlFor="dateOfBirth">Date of Birth</Label>
               <Input
                 value={user.date_of_birth}
                 type="date"
                 id="dateOfBirth"
                 onChange={(e) =>
-                  setUser((prev: any) => ({
-                    ...prev,
-                    date_of_birth: e.target.value,
-                  }))
+                  handleInputChange("date_of_birth", e.target.value)
                 }
                 disabled={isDisabled}
               />
             </div>
           </div>
-          {/* {!hideFields && (
-            <div className="space-y-6">
-              <Label htmlFor="Bio">Bio</Label>
-              <Input
-                value={user.bio}
-                type="text"
-                id="bio"
-                onChange={(e) =>
-                  setUser((prev: any) => ({
-                    ...prev,
-                    bio: e.target.value,
-                  }))
-                }
-                disabled={isDisabled}
-              />
-            </div>
-          )} */}
-          {/* {!hideFields && (
-            <div className="space-y-6">
-              <Label htmlFor="Country">Country</Label>
-              <select
-                id="country"
-                value={user.country}
-                onChange={(e) =>
-                  setUser((prev: any) => ({
-                    ...prev,
-                    country: e.target.value,
-                  }))
-                }
-                disabled={isDisabled}
-                className="border p-2 w-full rounded"
-              >
-                <option value="">Select Country</option>
-                <option value="india">india</option>
-                <option value="united states">united states</option>
-                <option value="united kingdom">united kingdom</option>
-                <option value="canada">canada</option>
-                <option value="australia">australia</option>
-                <option value="germany">germany</option>
-                <option value="france">france</option>
-                <option value="italy">italy</option>
-                <option value="spain">spain</option>
-                <option value="japan">japan</option>
-                <option value="china">china</option>
-                <option value="russia">russia</option>
-                <option value="brazil">brazil</option>
-                <option value="mexico">mexico</option>
-                <option value="singapore">singapore</option>
-                <option value="malaysia">malaysia</option>
-                <option value="indonesia">indonesia</option>
-                <option value="thailand">thailand</option>
-                <option value="vietnam">vietnam</option>
-                <option value="philippines">philippines</option>
-                <option value="south korea">south korea</option>
-                <option value="new zealand">new zealand</option>
-                <option value="united arab emirates">
-                  united arab emirates
-                </option>
-                <option value="saudi arabia">saudi arabia</option>
-              </select>
-            </div>
-          )} */}
         </ComponentCard>
 
         <ComponentCard title="Roles and Responsibilities">
@@ -295,38 +355,56 @@ export const UserForm = ({
                 id="roles"
                 name="roles"
                 value={selectedRoles}
-                options={rolesOptions}
-                onChange={(values: any) => setSelectedRoles(values)}
+                options={getFilteredRolesOptions()}
+                onChange={(values: RoleOption | null) => {
+                  setSelectedRoles(values);
+                  // Clear assigned to when role changes
+                  if (
+                    values?.value !== "client" ||
+                    currentUserRole !== "franchise"
+                  ) {
+                    setAssignedTo(null);
+                  }
+                }}
                 closeMenuOnSelect={true}
                 isSearchable
+                isDisabled={isDisabled}
               />
 
               {errors.roles && (
-                <p className="text-red-500 text-sm" id="first_name">
+                <p className="text-red-500 text-sm" id="roles">
                   {errors.roles}
                 </p>
               )}
             </div>
-            {(selectedRoles?.value === "client" ||
-              selectedRoles?.value === "maker") && (
+
+            {shouldShowAssignedTo() && (
               <div className="space-y-6">
-                <Label htmlFor="Assigned To">
+                <Label htmlFor="assignedTo">
                   Assigned To <span className="text-red-500">*</span>
+                  {!isAssignedToEditable() && (
+                    <span className="text-sm text-gray-500 ml-2">
+                      (Auto-assigned)
+                    </span>
+                  )}
                 </Label>
                 <Select
                   id="assignedTo"
-                  // value={transformedAssignedToOptions.filter((option: any) =>
-                  //   assignedTo.includes(option.value)
-                  // )}
-                  value={assignedTo}
+                  value={getAssignedToValue()}
                   name="Assigned To"
                   options={transformedAssignedToOptions}
-                  onChange={(values: any) => {
-                    setErrors({});
-                    setAssignedTo(values);
+                  onChange={(values: AssignedToOption | null) => {
+                    if (isAssignedToEditable()) {
+                      setErrors((prev) => ({
+                        ...prev,
+                        assigned_to: undefined,
+                      }));
+                      setAssignedTo(values);
+                    }
                   }}
                   closeMenuOnSelect={true}
                   isSearchable
+                  isDisabled={isDisabled || !isAssignedToEditable()}
                 />
 
                 {errors.assigned_to && (
@@ -363,51 +441,50 @@ export const UserForm = ({
         <ComponentCard title="PAN Details">
           <div className="grid grid-cols-2 gap-6">
             {[
-              { label: "PAN Card Number", field: "pan_card" },
-              // { label: "Password", field: "password" },
-              { label: "Name as per PAN Card", field: "name_as_per_pan_card" },
-              { label: "Aadhar Card Number", field: "aadhar_card" },
-            ]
-              .filter(({ field }) => !(field === "password"))
-              .map(({ label, field }) => (
-                <div className="space-y-6" key={field}>
-                  <Label htmlFor={field}>{label}</Label>
-                  <Input
-                    value={user[field]}
-                    type="text"
-                    id={field}
-                    onChange={(e) =>
-                      setUser((prev: any) => ({
-                        ...prev,
-                        [field]: e.target.value,
-                      }))
-                    }
-                    disabled={isDisabled}
-                  />
-                </div>
-              ))}
+              { label: "PAN Card Number", field: "pan_card" as keyof User },
+              {
+                label: "Name as per PAN Card",
+                field: "name_as_per_pan_card" as keyof User,
+              },
+              {
+                label: "Aadhar Card Number",
+                field: "aadhar_card" as keyof User,
+              },
+            ].map(({ label, field }) => (
+              <div className="space-y-6" key={field}>
+                <Label htmlFor={field}>{label}</Label>
+                <Input
+                  value={user[field] as string}
+                  type="text"
+                  id={field}
+                  onChange={(e) => handleInputChange(field, e.target.value)}
+                  disabled={isDisabled}
+                />
+              </div>
+            ))}
           </div>
         </ComponentCard>
 
         <ComponentCard title="GST Details">
           <div className="grid grid-cols-2 gap-6 ">
             {[
-              { label: "GST Number", field: "gst_number" },
-              { label: "GST Portal Login", field: "gst_site_login" },
-              { label: "GST Portal Password", field: "gst_site_password" },
+              { label: "GST Number", field: "gst_number" as keyof User },
+              {
+                label: "GST Portal Login",
+                field: "gst_site_login" as keyof User,
+              },
+              {
+                label: "GST Portal Password",
+                field: "gst_site_password" as keyof User,
+              },
             ].map(({ label, field }) => (
               <div className="space-y-6" key={field}>
                 <Label htmlFor={field}>{label}</Label>
                 <Input
-                  value={user[field]}
+                  value={user[field] as string}
                   type="text"
                   id={field}
-                  onChange={(e) =>
-                    setUser((prev: any) => ({
-                      ...prev,
-                      [field]: e.target.value,
-                    }))
-                  }
+                  onChange={(e) => handleInputChange(field, e.target.value)}
                   disabled={isDisabled}
                 />
               </div>
@@ -419,37 +496,24 @@ export const UserForm = ({
           <ComponentCard title="Created By">
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-6">
-                <Label htmlFor="Creator First Name">Creator First Name</Label>
+                <Label htmlFor="creatorFirstName">Creator First Name</Label>
                 <Input
-                  value={user.created_by?.first_name}
+                  value={user.created_by?.first_name || ""}
                   type="text"
                   disabled={isDisabled}
                   id="creatorFirstName"
                 />
               </div>
               <div className="space-y-6">
-                <Label htmlFor="Creator Last Name">Creator Last Name</Label>
+                <Label htmlFor="creatorLastName">Creator Last Name</Label>
                 <Input
-                  value={user.created_by?.last_name}
+                  value={user.created_by?.last_name || ""}
                   type="text"
                   id="creatorLastName"
                   disabled={isDisabled}
                 />
               </div>
             </div>
-            {/* {!hideFields && (
-              <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-                <div className="space-y-6">
-                  <Label htmlFor="Creator Email">Creator Email</Label>
-                  <Input
-                    value={user?.created_by?.email}
-                    type="text"
-                    id="creatorEmail"
-                    disabled={isDisabled}
-                  />
-                </div>
-              </div>
-            )} */}
           </ComponentCard>
         )}
 
@@ -476,7 +540,6 @@ export const UserForm = ({
             <div className="flex gap-4">
               <button
                 type="submit"
-                onClick={() => setEditMode(true)}
                 className="px-8 p-2 border border-1 border-green-600 bg-green-500 text-white rounded-lg"
               >
                 Save Changes
@@ -486,7 +549,6 @@ export const UserForm = ({
                 type="button"
                 onClick={() => {
                   setEditMode(false);
-
                   navigate("/user-list");
                 }}
                 className="px-8 p-2 border border-1 border-zinc-400 hover:bg-blue-400 rounded-lg"

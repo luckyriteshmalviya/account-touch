@@ -73,19 +73,28 @@ export default function AddOrEditProcessTemplatPage() {
         try {
           const data = await getDocumentTypeListService({ page, search });
           setDocumentList(data.results || []);
+
+          // 👇 if payment type, select "Payment Receipt"
+          if (processTemplat.process_type === "payment") {
+            const paymentReceiptDoc = data.results.find(
+              (doc: any) => doc.name.toLowerCase() === "payment receipt" // ya jo bhi actual name API me aaye
+            );
+            if (paymentReceiptDoc) {
+              setSelectedDocumentType([paymentReceiptDoc.id]);
+            }
+          }
         } catch (error) {
-          console.error("Error fetching questionnaires:", error);
+          console.error("Error fetching documents:", error);
           Swal.fire({
             icon: "error",
             title: "Error",
-            text: "Failed to fetch questionnaire list.",
+            text: "Failed to fetch document list.",
           });
         }
       }
       fetchdocuments();
     }
   }, [processTemplat.process_type]);
-
   useEffect(() => {
     if (isEdit) {
       (async () => {

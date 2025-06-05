@@ -498,45 +498,61 @@ export default function Payment({
 
       {/* Payment action buttons */}
       <div className="flex justify-end gap-2 mt-6 mb-4">
-        {/* Request Payment button - visible to all users */}
-        <button
-          onClick={handleRequestPayment}
-          disabled={isLoading}
-          className="px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isLoading ? "Processing..." : "Request Payment"}
-        </button>
-
-        {/* Completed button - only visible to Admin and Checker */}
-        {isAdminOrChecker && (
-          <button
-            onClick={() => handleStatusUpdate("COMPLETED")}
-            disabled={isLoading}
-            className="px-4 py-2 rounded-md text-sm font-medium bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? "Processing..." : "Completed"}
-          </button>
+        {/* PENDING / REJECTED */}
+        {["pending", "rejected"].includes(process.status) && (
+          <>
+            <button
+              onClick={handleRequestPayment}
+              disabled={isLoading}
+              className="px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? "Processing..." : "Request Payment"}
+            </button>
+            <button
+              onClick={() => handleStatusUpdate("CANCELLED")}
+              disabled={isLoading}
+              className="px-4 py-2 rounded-md text-sm font-medium bg-gray-600 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? "Processing..." : "Cancel"}
+            </button>
+          </>
         )}
 
-        {/* Rejected button - only visible to Admin and Checker */}
-        {isAdminOrChecker && (
-          <button
-            onClick={() => handleStatusUpdate("REJECTED")}
-            disabled={isLoading}
-            className="px-4 py-2 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? "Processing..." : "Rejected"}
-          </button>
+        {/* IN_PROGRESS */}
+        {process.status === "in_progress" && (
+          <>
+            <button
+              onClick={() => handleStatusUpdate("COMPLETED")}
+              disabled={isLoading}
+              className="px-4 py-2 rounded-md text-sm font-medium bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? "Processing..." : "Completed"}
+            </button>
+            <button
+              onClick={() => handleStatusUpdate("REJECTED")}
+              disabled={isLoading}
+              className="px-4 py-2 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? "Processing..." : "Reject"}
+            </button>
+            <button
+              onClick={() => handleStatusUpdate("CANCELLED")}
+              disabled={isLoading}
+              className="px-4 py-2 rounded-md text-sm font-medium bg-gray-600 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? "Processing..." : "Cancel"}
+            </button>
+          </>
         )}
 
-        {/* Cancelled button - only visible to Admin and Checker */}
-        {isAdminOrChecker && (
+        {/* CANCELLED */}
+        {process.status === "cancelled" && (
           <button
-            onClick={() => handleStatusUpdate("CANCELLED")}
+            onClick={() => handleStatusUpdate("PENDING")}
             disabled={isLoading}
-            className="px-4 py-2 rounded-md text-sm font-medium bg-gray-600 text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 rounded-md text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? "Processing..." : "Cancelled"}
+            {isLoading ? "Processing..." : "Activate"}
           </button>
         )}
       </div>
