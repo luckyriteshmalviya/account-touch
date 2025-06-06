@@ -178,7 +178,15 @@ export default function AddOrEditProcessTemplatPage() {
     const parsedProfile = JSON.parse(localStorageProfile || "{}");
     let payload;
 
-    if (
+    if (processTemplat.process_type === "questionnaire") {
+      payload = {
+        title: processTemplat.title,
+        description: processTemplat.description || "",
+        process_type: processTemplat.process_type,
+        questionnaire_id: selectedQuestionnaire,
+        created_by_id: parsedProfile?.user?.id,
+      };
+    } else if (
       processTemplat.process_type === "documentation" ||
       processTemplat.process_type === "document_preparation" ||
       processTemplat.process_type === "payment"
@@ -196,13 +204,11 @@ export default function AddOrEditProcessTemplatPage() {
         title: processTemplat.title,
         description: processTemplat.description || "",
         process_type: processTemplat.process_type,
-        required_document_ids: selectedDocumentType, // should be array of UUID strings
+        required_document_ids: selectedDocumentType,
         created_by_id: parsedProfile?.user?.id,
       };
     }
     console.log("Final Payload:", JSON.stringify(payload, null, 2));
-    console.log("Payload being sent:", payload);
-    console.log("Selected Document Types:", selectedDocumentType);
     try {
       const result = isEdit
         ? await updateProcessTemplatService(id as string, payload)
@@ -218,7 +224,7 @@ export default function AddOrEditProcessTemplatPage() {
           timer: 2000,
           showConfirmButton: false,
         });
-        navigate("/process-templates-list"); // or wherever
+        navigate("/process-templates-list");
       } else {
         throw new Error("Invalid response");
       }

@@ -1,10 +1,14 @@
 import { useState, useRef, useEffect } from "react";
-import { submitDocumentPreparationService } from "../../services/restApi/task";
+import {
+  getTaskDetailsService,
+  submitDocumentPreparationService,
+} from "../../services/restApi/task";
 import { uploadDocumentService } from "../../services/restApi/task";
 
 interface DocumentPreparationProps {
   process: any;
-  taskId: string;
+  task: any;
+  setTask: any;
   onComplete: () => void;
   onPrevious?: () => void;
   processes?: any[]; // All processes for payment check
@@ -21,6 +25,8 @@ type UploadStatusType = Record<
 export default function DocumentPreparation({
   process,
   onComplete,
+  task,
+  setTask,
   onPrevious,
   processes,
 }: DocumentPreparationProps) {
@@ -34,6 +40,9 @@ export default function DocumentPreparation({
         p.process_template_detail?.process_type === "payment" &&
         p.status !== "completed"
     );
+
+  const hasPendingAnyProcess =
+    Array.isArray(processes) && processes.some((p) => p.status !== "completed");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -112,10 +121,7 @@ export default function DocumentPreparation({
     setError(null);
 
     try {
-      const result = await submitDocumentPreparationService(
-        process.id,
-        formData
-      );
+      const result = await submitDocumentPreparationService(task.id);
 
       if (result && !result.error) {
         setSuccess(true);
@@ -201,6 +207,14 @@ export default function DocumentPreparation({
 
           return updatedStatus;
         });
+
+        getTaskDetailsService(task.id)
+          .then((data) => {
+            if (data) setTask(data);
+          })
+          .catch((err) => {
+            console.error("Error refreshing task details:", err);
+          });
       } else {
         const errorMessage = result?.error || "Failed to upload document";
         console.error("Document upload failed:", {
@@ -411,10 +425,19 @@ export default function DocumentPreparation({
               </button>
             )}
 
-            {isLastStep && (
+            {task.status === "completed" && (
+              <b className="text-green-600">Task Already Submitted</b>
+            )}
+
+            {task.status !== "completed" && isLastStep && (
               <button
                 type="submit"
-                disabled={isSubmitting || !allUploaded || hasPendingPayment}
+                disabled={
+                  isSubmitting ||
+                  !allUploaded ||
+                  hasPendingPayment ||
+                  hasPendingAnyProcess
+                }
                 title={
                   hasPendingPayment
                     ? "Complete all payment steps before submitting."

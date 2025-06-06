@@ -226,7 +226,9 @@ const ProcessTemplatForm = ({
                 <span className="text-red-500">*</span>
               </Label>
               <Select
-                isMulti
+                isMulti={
+                  processTemplat.process_type === "payment" ? false : true
+                }
                 id="documentation_id"
                 name="documents"
                 options={documentList.map((doc) => ({
@@ -236,9 +238,9 @@ const ProcessTemplatForm = ({
                 value={documentList
                   .filter((doc) => selectedDocumentType.includes(doc.id))
                   .map((doc) => ({ value: doc.id, label: doc.name }))}
-                onChange={(selectedOptions) => {
-                  let selectedIds = selectedOptions.map(
-                    (option) => option.value
+                onChange={(selectedOptions: any) => {
+                  let selectedIds = selectedOptions?.map(
+                    (option: any) => option?.value
                   );
 
                   // Find Payment Receipt doc id

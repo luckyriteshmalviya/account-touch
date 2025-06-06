@@ -201,20 +201,22 @@ export default function ViewTaskPage() {
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Process Steps</h2>
-            <button
-              onClick={handleStartWorkflow}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              {processes.some(
-                (process) =>
-                  process.status === "completed" ||
-                  process.questionnaire_submission ||
-                  (process.uploaded_documents &&
-                    process.uploaded_documents.length > 0)
-              )
-                ? "Complete the Task"
-                : "Start Task Workflow"}
-            </button>
+            {task.status !== "completed" && (
+              <button
+                onClick={handleStartWorkflow}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                {processes.some(
+                  (process) =>
+                    process.status === "completed" ||
+                    process.questionnaire_submission ||
+                    (process.uploaded_documents &&
+                      process.uploaded_documents.length > 0)
+                )
+                  ? "Complete the Task"
+                  : "Start Task Workflow"}
+              </button>
+            )}
           </div>
 
           <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">

@@ -46,7 +46,7 @@ interface UserFormProps {
   user: User;
   setUser: React.Dispatch<React.SetStateAction<User>>;
   selectedRoles: RoleOption | null;
-  setSelectedRoles: React.Dispatch<React.SetStateAction<RoleOption | null>>;
+  setSelectedRoles: React.Dispatch<React.SetStateAction<RoleOption | any>>;
   assignedTo?: AssignedToOption | null;
   setAssignedTo: React.Dispatch<React.SetStateAction<AssignedToOption | null>>;
   submitForm?: () => void;

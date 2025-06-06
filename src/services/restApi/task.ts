@@ -288,21 +288,48 @@ export const processPaymentService = async (
 
 // Document preparation service
 export const submitDocumentPreparationService = async (
-  processId: number,
-  data: any
+  taskId: number | String
 ) => {
   try {
     const token = getAccessToken();
 
     const res = await fetch(
-      `https://api.accountouch.com/api/tasks/processes/${processId}/document-preparation/`,
+      `https://api.accountouch.com/api/tasks/tasks/${taskId}`,
       {
-        method: "POST",
+        method: "PATCH",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          status: "completed",
+        }),
+      }
+    );
+
+    return await res.json();
+  } catch (error) {
+    console.error("Error submitting document preparation:", error);
+    return null;
+  }
+};
+
+export const updateTaskDetails = async (
+  taskId: number | String,
+  details: any
+) => {
+  try {
+    const token = getAccessToken();
+
+    const res = await fetch(
+      `https://api.accountouch.com/api/tasks/tasks/${taskId}`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(details),
       }
     );
 

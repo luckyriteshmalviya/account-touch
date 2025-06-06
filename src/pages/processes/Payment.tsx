@@ -3,6 +3,7 @@ import {
   uploadDocumentService,
   updatePaymentStatusService,
   requestPaymentService,
+  updateTaskDetails,
 } from "../../services/restApi/task";
 
 interface PaymentProps {
@@ -10,7 +11,6 @@ interface PaymentProps {
   process: any;
   onComplete: () => void;
   onPrevious?: () => void;
-  userRole?: string;
   refreshProcess?: () => void;
 }
 
@@ -26,7 +26,6 @@ export default function Payment({
   process,
   onComplete,
   onPrevious,
-  userRole,
   refreshProcess,
   task,
 }: PaymentProps) {
@@ -39,14 +38,15 @@ export default function Payment({
   }
 
   // Check different possible paths for fees in the process object
-  const minimumFees = task.fees;
-  process?.process_template_detail?.fees ||
-    process?.template?.fees ||
-    process?.fees ||
-    process?.amount ||
-    0.0;
+  // const minimumFees = task.fees;
+  // process?.process_template_detail?.fees ||
+  //   process?.template?.fees ||
+  //   process?.fees ||
+  //   process?.amount ||
+  //   0.0;
 
-  const [fees, setFees] = useState(minimumFees);
+  const [fees, setFees] = useState(task.fees);
+  const [feesError, setFeesError] = useState("");
   const [uploadStatus, setUploadStatus] = useState<UploadStatusType>({});
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [, setError] = useState<string | null>(null);
@@ -64,12 +64,18 @@ export default function Payment({
   const paymentStatus = process.status || "PENDING";
 
   // Check if user is admin or checker
-  const isAdminOrChecker =
-    userRole === "super-admin" ||
-    userRole === "admin" ||
-    userRole === "checker";
+  // const isAdminOrChecker =
+  //   userRole === "super-admin" ||
+  //   userRole === "admin" ||
+  //   userRole === "checker";
 
-  console.log("User Role:", userRole);
+  const checkFees = () => {
+    if (Number(fees) < Number(task.fees)) {
+      setFeesError(`The fees should be more than ${task.fees}`);
+      return false;
+    }
+    return true;
+  };
 
   // Check if all required documents are uploaded
   const areAllRequiredDocumentsUploaded = () => {
@@ -105,13 +111,6 @@ export default function Payment({
       setUploadStatus(statusMap);
     }
   }, [process]);
-
-  const handleFeesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = parseFloat(e.target.value);
-    if (!isNaN(newValue) && newValue >= minimumFees) {
-      setFees(newValue);
-    }
-  };
 
   const handleFileChange = async (
     documentType: any,
@@ -182,6 +181,9 @@ export default function Payment({
   };
 
   const handleUploadClick = (documentId: string) => {
+    const fees = checkFees();
+    if (!fees) return;
+
     if (fileInputRefs.current[documentId]) {
       fileInputRefs.current[documentId]?.click();
     }
@@ -264,6 +266,9 @@ export default function Payment({
 
   // Handle payment request
   const handleRequestPayment = async () => {
+    const fees = checkFees();
+    if (!fees) return;
+
     setIsLoading(true);
     setStatusUpdateMessage(null);
 
@@ -320,15 +325,19 @@ export default function Payment({
 
       <div className="mb-6">
         <label className="text-gray-600 dark:text-gray-300">
-          Minimum Fees:{" "}
+          Fees:{" "}
           <input
             className="font-medium border rounded px-2 py-1 w-32"
             type="number"
             value={fees}
-            onChange={handleFeesChange}
-            min={minimumFees}
+            onChange={(e) => {
+              setFeesError("");
+              setFees(e.target.value);
+            }}
+            min={fees}
           />
         </label>
+        {feesError && <div className="text-red-600">{feesError}</div>}
       </div>
 
       {/* Document Upload Validation Message */}
@@ -568,7 +577,15 @@ export default function Payment({
         )}
 
         <button
-          onClick={onComplete}
+          onClick={() => {
+            const res = checkFees();
+            if (!res) return;
+            onComplete();
+
+            updateTaskDetails(task.id, {
+              fees: fees,
+            });
+          }}
           disabled={!allDocumentsUploaded}
           className={`px-4 py-2 rounded-md ml-auto focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
             allDocumentsUploaded
