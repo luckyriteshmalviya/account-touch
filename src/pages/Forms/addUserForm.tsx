@@ -109,6 +109,19 @@ export const AddUserForm = () => {
       return;
     }
 
+    if (
+      selectedRoles?.value === "client" &&
+      currentUserRole === "super admin" &&
+      (!assignedTo || !assignedTo.value)
+    ) {
+      Swal.fire({
+        icon: "error",
+        title: "Validation Error",
+        text: "Assignment is required when adding a Client.",
+      });
+      return;
+    }
+
     const payload: any = {
       ...user,
       role_names: selectedRoles?.value,
@@ -137,8 +150,6 @@ export const AddUserForm = () => {
     }
 
     try {
-      console.log("api call", { selectedRoles, payload });
-
       const res = await addUserService(payload);
       if (res && res.id) {
         Swal.fire({

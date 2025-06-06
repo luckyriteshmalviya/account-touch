@@ -109,7 +109,6 @@ export default function AddOrEditProcessTemplatPage() {
           });
 
           if (data.process_type === "questionnaire") {
-            console.log(data);
             setSelectedQuestionnaire(data?.questionnaire?.id || "");
           } else if (
             data.process_type === "documentation" ||
@@ -141,7 +140,6 @@ export default function AddOrEditProcessTemplatPage() {
       });
       return;
     }
-
     if (
       selectedQuestionnaire.length === 0 &&
       processTemplat.process_type === "questionnaire"
@@ -178,7 +176,6 @@ export default function AddOrEditProcessTemplatPage() {
 
     const localStorageProfile = localStorage.getItem("auth");
     const parsedProfile = JSON.parse(localStorageProfile || "{}");
-
     let payload;
 
     if (processTemplat.process_type === "questionnaire") {
@@ -211,9 +208,7 @@ export default function AddOrEditProcessTemplatPage() {
         created_by_id: parsedProfile?.user?.id,
       };
     }
-
     console.log("Final Payload:", JSON.stringify(payload, null, 2));
-
     try {
       const result = isEdit
         ? await updateProcessTemplatService(id as string, payload)

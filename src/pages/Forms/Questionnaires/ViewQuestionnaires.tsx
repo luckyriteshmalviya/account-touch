@@ -94,12 +94,12 @@ export default function ViewQuestionnairesPage() {
               >
                 {is_active ? "Active" : "Inactive"}
               </span>
-              {submissions_count !== undefined && (
+              {/* {submissions_count !== undefined && (
                 <span className="ml-3 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                   {submissions_count}{" "}
                   {submissions_count === 1 ? "Submission" : "Submissions"}
                 </span>
-              )}
+              )} */}
             </div>
           </div>
         </div>
@@ -111,28 +111,6 @@ export default function ViewQuestionnairesPage() {
           <p className="text-gray-800 dark:text-gray-300">
             {description || "No description provided"}
           </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {created_by && (
-            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-              <h3 className="text-sm uppercase text-gray-500 dark:text-gray-400 font-medium mb-1">
-                Created By
-              </h3>
-              <p className="text-gray-900 dark:text-white font-medium">
-                {created_by?.full_name || "-"}
-              </p>
-            </div>
-          )}
-
-          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-            <h3 className="text-sm uppercase text-gray-500 dark:text-gray-400 font-medium mb-1">
-              Created At
-            </h3>
-            <p className="text-gray-800 dark:text-gray-300">
-              {formatDate(created_by?.created_at || created_at)}
-            </p>
-          </div>
         </div>
       </div>
 
@@ -170,7 +148,7 @@ export default function ViewQuestionnairesPage() {
                   )}
 
                   <div className="mt-3 flex flex-wrap gap-2 items-center">
-                    <span
+                    {/* <span
                       className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         question.is_required
                           ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
@@ -178,7 +156,7 @@ export default function ViewQuestionnairesPage() {
                       }`}
                     >
                       {question.is_required ? "Required" : "Optional"}
-                    </span>
+                    </span> */}
                     <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 capitalize">
                       {question.question_type}
                     </span>
@@ -216,7 +194,7 @@ export default function ViewQuestionnairesPage() {
                     </div>
                   )}
 
-                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400">
+                  {/* <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400">
                     {question.created_by ? (
                       <p>Created by: {question.created_by.full_name || "-"}</p>
                     ) : null}
@@ -232,11 +210,33 @@ export default function ViewQuestionnairesPage() {
                         question.created_by?.updated_at || question.updated_at
                       )}
                     </p>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {created_by && (
+          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+            <h3 className="text-sm uppercase text-gray-500 dark:text-gray-400 font-medium mb-1">
+              Created By
+            </h3>
+            <p className="text-gray-900 dark:text-white font-medium">
+              {created_by?.full_name || "-"}
+            </p>
+          </div>
+        )}
+
+        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+          <h3 className="text-sm uppercase text-gray-500 dark:text-gray-400 font-medium mb-1">
+            Created At
+          </h3>
+          <p className="text-gray-800 dark:text-gray-300">
+            {formatDate(created_by?.created_at || created_at)}
+          </p>
         </div>
       </div>
 
