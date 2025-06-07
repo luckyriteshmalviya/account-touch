@@ -85,16 +85,8 @@ export default function Documents({
     // Make sure we're using the slug as the document type identifier
     const documentTypeIdentifier = documentType.slug;
 
-    console.log("Uploading document:", {
-      processId: process.id,
-      documentTypeIdentifier,
-      documentType,
-      processType: process.process_template_detail?.process_type,
-    });
-
     // Validate that we have a valid document type identifier
     if (!documentTypeIdentifier) {
-      console.error("Missing document type slug", documentType);
       setUploadStatus((prev) => ({
         ...prev,
         [documentType.name]: {
@@ -118,7 +110,6 @@ export default function Documents({
         file
       );
 
-      console.log("Upload result:", result);
 
       // FIXED CODE:
       if (result && !result.error) {
@@ -147,11 +138,6 @@ export default function Documents({
         }
       } else {
         const errorMessage = result?.error || "Failed to upload document";
-        console.error("Document upload failed:", {
-          error: errorMessage,
-          status: result?.status,
-          data: result?.data,
-        });
 
         setUploadStatus((prev) => ({
           ...prev,
@@ -162,7 +148,6 @@ export default function Documents({
         }));
       }
     } catch (error) {
-      console.error("Error uploading document:", error);
       setUploadStatus((prev) => ({
         ...prev,
         [documentTypeIdentifier]: {
@@ -205,6 +190,11 @@ export default function Documents({
   const getPreviewIframeSrc = (url: string) => {
     const extension = url.split(".").pop()?.split("?")[0]?.toLowerCase();
 
+    // Handle image files
+    if (["png", "jpg", "jpeg", "gif", "bmp", "webp"].includes(extension || "")) {
+      return url;
+    }
+
     if (extension === "docx" || extension === "doc") {
       return `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(
         url
@@ -232,6 +222,7 @@ export default function Documents({
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
+            stroke="currentColor"
           >
             <circle
               className="opacity-25"
@@ -388,7 +379,7 @@ export default function Documents({
             </div>
 
             {/* Modal Container - Stretches to right edge and full height */}
-            <div className="inline-block align-bottom bg-white text-left overflow-hidden shadow-xl transform transition-all h-screen flex flex-col relative left-8 w-[calc(100%-2rem)]">
+            <div className="inline-block align-bottom bg-white text-left overflow-hidden shadow-xl transform transition-all h-screen flex flex-col relative left-0 w-full sm:left-64 sm:w-[calc(100%-16rem)]">
               {/* Header */}
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 border-b border-gray-200">
                 <div className="flex items-center justify-between">
@@ -440,17 +431,21 @@ export default function Documents({
               <div className="flex-1 overflow-auto bg-gray-50 p-4">
                 {(() => {
                   const iframeSrc = getPreviewIframeSrc(previewUrl);
-                  const isImage = previewUrl.match(
+                  const isImage = previewUrl?.match(
                     /\.(jpeg|jpg|png|gif|webp)$/i
                   );
 
-                  if (isImage) {
+                  if (isImage && previewUrl) {
                     return (
                       <div className="flex items-center justify-center h-full">
                         <img
                           src={previewUrl}
                           alt="Document Preview"
                           className="max-w-full max-h-[70vh] object-contain shadow-lg rounded bg-white p-4"
+                          onError={(e) => {
+                            console.error('Error loading image:', e);
+                            console.error('Image URL that failed to load:', previewUrl);
+                          }}
                         />
                       </div>
                     );
