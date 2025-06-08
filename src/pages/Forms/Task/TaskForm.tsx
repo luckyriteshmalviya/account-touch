@@ -4,6 +4,7 @@ import Label from "../../../components/form/Label";
 import Input from "../../../components/form/input/InputField";
 import { priorityToOptions } from "../../../constants/arrays";
 import Select from "../../../components/form/Select";
+import SelectWithSearch from "../../../components/form/SelectWithSearch";
 import TextArea from "../../../components/form/input/TextArea";
 import { useNavigate, useParams } from "react-router";
 
@@ -25,10 +26,13 @@ interface Template {
 }
 
 interface User {
+  phone_number: any;
   id: number;
   full_name: string;
   is_active: boolean;
   assigned_to?: number;
+  email?: string;
+  phone?: string;
 }
 
 interface TaskFormProps {
@@ -146,39 +150,37 @@ const TaskForm = ({
   }, [task.category_id]);
 
   // Fetch clients
-  useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        // Get the auth token from localStorage
-        const auth = JSON.parse(localStorage.getItem("auth") || "{}");
-        const accessToken = auth?.access;
+  const fetchClients = async (search?: string) => {
+    try {
+      const auth = JSON.parse(localStorage.getItem("auth") || "{}");
+      const accessToken = auth?.access;
 
-        // Use the token in the request
-        const response = await fetch(
-          "https://api.accountouch.com/api/users/users/?roles__name=Client",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+      const searchParam = search ? `&search=${search}` : "";
+      const response = await fetch(
+        `https://api.accountouch.com/api/users/users/?roles__name=Client${searchParam}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
         }
+      );
 
-        const data = await response.json();
-        // Filter only active clients (is_active) from the results array
-        setClients(
-          (data.results || []).filter((client: User) => client.is_active)
-        );
-      } catch (error) {
-        console.error("Error fetching clients:", error);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
-    };
 
+      const data = await response.json();
+      setClients(
+        (data.results || []).filter((client: User) => client.is_active)
+      );
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+    }
+  };
+
+  useEffect(() => {
     fetchClients();
   }, []);
 
@@ -230,21 +232,21 @@ const TaskForm = ({
         <div className="grid grid-cols-2 gap-6 xl:grid-cols-2">
           <div className="space-y-6">
             <Label htmlFor="client_id">Client</Label>
-            {/* <div className="text-xs text-gray-500 mb-1">
-              Current client_id: {task.client_id}, Clients loaded: {clients.length}
-            </div> */}
-            <Select
-              options={[
-                ...clients.map((client) => ({
-                  value: client.id.toString(),
-                  label: client.full_name,
-                })),
-              ]}
+            <SelectWithSearch
+              options={clients.map((client) => ({
+                value: client.id.toString(),
+                label: client.full_name,
+                email: client.email,
+                phone: client.phone_number,
+              }))}
+              placeholder="Search client..."
+              value={task.client_id}
               onChange={(value) =>
                 setTask((prev: any) => ({ ...prev, client_id: value }))
               }
-              value={task.client_id}
-              className="w-full"
+              onSearch={fetchClients}
+              showDetails={true}
+              className="w-full mt-2"
             />
           </div>
 
@@ -269,7 +271,7 @@ const TaskForm = ({
                 }));
               }}
               value={task.maker_id}
-              className="w-full"
+              className="w-full mt-2"
             />
           </div>
 
@@ -283,6 +285,7 @@ const TaskForm = ({
                 setTask((prev: any) => ({ ...prev, title: e.target.value }))
               }
               required
+              className="w-full mt-2"
             />
           </div>
 
@@ -292,10 +295,10 @@ const TaskForm = ({
               rows={6}
               value={task.description}
               error
-              // onChange={(value) => setMessageTwo(value)}
               onChange={(value) =>
                 setTask((prev: any) => ({ ...prev, description: value }))
               }
+              className="w-full mt-2"
             />
           </div>
 
@@ -317,7 +320,7 @@ const TaskForm = ({
                 }));
               }}
               value={task.category_id}
-              className="w-full"
+              className="w-full mt-2"
               placeholder="Select Category"
             />
           </div>
@@ -336,7 +339,7 @@ const TaskForm = ({
               }
               value={task.template_id}
               disabled={!task.category_id}
-              className="w-full"
+              className="w-full mt-2"
             />
           </div>
 
@@ -353,7 +356,7 @@ const TaskForm = ({
                 return setTask((prev: any) => ({ ...prev, priority: value }));
               }}
               value={task.priority}
-              className="w-full !mt-4"
+              className="w-full mt-2"
             />
           </div>
 
@@ -367,6 +370,7 @@ const TaskForm = ({
                 setTask((prev: any) => ({ ...prev, due_date: e.target.value }))
               }
               required
+              className="w-full mt-2"
             />
           </div>
           <div className="space-y-6">
@@ -374,7 +378,6 @@ const TaskForm = ({
             <Input
               value={formatDateForInput(task.due_date)}
               type="datetime-local"
-              // className="w-3/6"
               id="due_date"
               onChange={(e) =>
                 setTask((prev: any) => ({
@@ -383,6 +386,7 @@ const TaskForm = ({
                 }))
               }
               required
+              className="w-full mt-2"
             />
           </div>
 
@@ -390,10 +394,9 @@ const TaskForm = ({
             <Label htmlFor="due_date">Frequency Span</Label>
             <Select
               options={frequencyOptions}
-              // value={selectedOption}
               onChange={() => {}}
               placeholder="Choose frequency..."
-              className="w-full !mt-4"
+              className="w-full mt-2"
             />
           </div>
         </div>
