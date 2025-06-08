@@ -121,19 +121,20 @@ export const UserForm = ({
       return true;
     }
 
+    // Show for admin/super-admin adding client (but not mandatory)
+    if (
+      selectedRoles.value === "client" &&
+      (currentUserRole === "super-admin" || currentUserRole === "admin")
+    ) {
+      return true;
+    }
+
     // Hide for Maker/Checker adding client
     if (
       selectedRoles.value === "client" &&
       (currentUserRole === "maker" || currentUserRole === "checker")
     ) {
       return false;
-    }
-
-    // Show for super-admin and admin
-    if (currentUserRole === "super-admin" || currentUserRole === "admin") {
-      return (
-        selectedRoles.value === "client" || selectedRoles.value === "maker"
-      );
     }
 
     return false;
@@ -150,6 +151,30 @@ export const UserForm = ({
       return true;
     }
     return true;
+  };
+
+  // Check if assigned to is mandatory
+  const isAssignedToMandatory = (): boolean => {
+    // Mandatory for maker role
+    if (selectedRoles?.value === "maker") return true;
+
+    // Mandatory for franchise adding client
+    if (selectedRoles?.value === "client" && currentUserRole === "franchise") {
+      return true;
+    }
+
+    // NOT mandatory for admin/super-admin/maker/checker adding client
+    if (
+      selectedRoles?.value === "client" &&
+      (currentUserRole === "super-admin" ||
+        currentUserRole === "admin" ||
+        currentUserRole === "maker" ||
+        currentUserRole === "checker")
+    ) {
+      return false;
+    }
+
+    return false;
   };
 
   // Get assigned to value based on role logic
@@ -209,22 +234,17 @@ export const UserForm = ({
       newErrors.roles = "Please select a role.";
     }
 
-    // If 'Maker' role is selected, ensure at least one user is assigned
-    if (
-      selectedRoles?.value === "maker" &&
-      (!assignedTo || !assignedTo.value)
-    ) {
-      newErrors.assigned_to =
-        "Please assign at least one user to the 'Assigned To' field when selecting 'Maker' as a role.";
-    }
-
-    // If 'Client' role is selected and franchise user, ensure assignment
-    if (
-      selectedRoles?.value === "client" &&
-      currentUserRole === "franchise" &&
-      (!assignedTo || !assignedTo.value)
-    ) {
-      newErrors.assigned_to = "Assignment is required for client role.";
+    // Assigned to validation - only if mandatory
+    if (isAssignedToMandatory() && (!assignedTo || !assignedTo.value)) {
+      if (selectedRoles?.value === "maker") {
+        newErrors.assigned_to =
+          "Please assign at least one user to the 'Assigned To' field when selecting 'Maker' as a role.";
+      } else if (
+        selectedRoles?.value === "client" &&
+        currentUserRole === "franchise"
+      ) {
+        newErrors.assigned_to = "Assignment is required for client role.";
+      }
     }
 
     setErrors(newErrors);
@@ -381,7 +401,10 @@ export const UserForm = ({
             {shouldShowAssignedTo() && (
               <div className="space-y-6">
                 <Label htmlFor="assignedTo">
-                  Assigned To <span className="text-red-500">*</span>
+                  Assigned To
+                  {isAssignedToMandatory() && (
+                    <span className="text-red-500"> *</span>
+                  )}
                   {!isAssignedToEditable() && (
                     <span className="text-sm text-gray-500 ml-2">
                       (Auto-assigned)

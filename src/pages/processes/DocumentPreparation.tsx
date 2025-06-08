@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import {
   getTaskDetailsService,
-  submitDocumentPreparationService,
+  // submitDocumentPreparationService,
 } from "../../services/restApi/task";
 import { uploadDocumentService } from "../../services/restApi/task";
 
@@ -30,7 +30,7 @@ export default function DocumentPreparation({
   onPrevious,
   processes,
 }: DocumentPreparationProps) {
-  const [formData, setFormData] = useState<Record<string, string>>({});
+  // const [, setFormData] = useState<Record<string, string>>({});
 
   // Disable submit if any payment process is not completed
   const hasPendingPayment =
@@ -44,15 +44,15 @@ export default function DocumentPreparation({
   const hasPendingAnyProcess =
     Array.isArray(processes) && processes.some((p) => p.status !== "completed");
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [isSubmitting] = useState(false);
+  // const [, setError] = useState<string | null>(null);
+  // const [, setSuccess] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<UploadStatusType>({});
   const [allUploaded, setAllUploaded] = useState(false);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+  const [refreshing] = useState(false);
   // Check if we have any uploaded documents already
   useEffect(() => {
     if (process?.uploaded_documents && process.uploaded_documents.length > 0) {
@@ -106,40 +106,39 @@ export default function DocumentPreparation({
     );
   }
 
-  const requiredFields = process.process_template_detail.required_fields || [];
   const requiredDocuments =
     process.process_template_detail.required_documents || [];
 
-  const handleInputChange = (fieldId: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [fieldId]: value,
-    }));
-  };
+  // const handleInputChange = (fieldId: string, value: string) => {
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     [fieldId]: value,
+  //   }));
+  // };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setIsSubmitting(true);
+  //   setError(null);
 
-    try {
-      const result = await submitDocumentPreparationService(task.id);
+  //   try {
+  //     const result = await submitDocumentPreparationService(task.id);
 
-      if (result && !result.error) {
-        setSuccess(true);
-        setTimeout(() => {
-          onComplete();
-        }, 1500);
-      } else {
-        setError(result?.error || "Failed to submit document preparation");
-      }
-    } catch (err) {
-      setError("An error occurred while submitting document preparation");
-      console.error("Submit error:", err);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  //     if (result && !result.error) {
+  //       setSuccess(true);
+  //       setTimeout(() => {
+  //         onComplete();
+  //       }, 1500);
+  //     } else {
+  //       setError(result?.error || "Failed to submit document preparation");
+  //     }
+  //   } catch (err) {
+  //     setError("An error occurred while submitting document preparation");
+  //     console.error("Submit error:", err);
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
 
   const handleFileChange = async (
     documentType: any,
@@ -270,7 +269,9 @@ export default function DocumentPreparation({
     const extension = url.split(".").pop()?.split("?")[0]?.toLowerCase();
 
     // Handle image files
-    if (["png", "jpg", "jpeg", "gif", "bmp", "webp"].includes(extension || "")) {
+    if (
+      ["png", "jpg", "jpeg", "gif", "bmp", "webp"].includes(extension || "")
+    ) {
       return url;
     }
 
@@ -392,22 +393,23 @@ export default function DocumentPreparation({
                     type="button"
                     onClick={() => handleUploadClick(documentId)}
                     disabled={status === "uploading"}
-                    className={`px-4 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 ${status === "success"
+                    className={`px-4 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                      status === "success"
                         ? "bg-green-500 text-white hover:bg-green-600 focus:ring-green-500"
                         : status === "error"
-                          ? "bg-red-100 text-red-700 hover:bg-red-200 focus:ring-red-500"
-                          : "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"
-                      } disabled:opacity-50`}
+                        ? "bg-red-100 text-red-700 hover:bg-red-200 focus:ring-red-500"
+                        : "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"
+                    } disabled:opacity-50`}
                   >
                     {status === "uploading"
                       ? "Uploading..."
                       : status === "success"
-                        ? uploadedDoc
-                          ? "Replace"
-                          : "Uploaded ✓"
-                        : status === "error"
-                          ? "Try Again"
-                          : "Upload File"}
+                      ? uploadedDoc
+                        ? "Replace"
+                        : "Uploaded ✓"
+                      : status === "error"
+                      ? "Try Again"
+                      : "Upload File"}
                   </button>
                 </div>
               </div>
@@ -450,13 +452,14 @@ export default function DocumentPreparation({
               hasPendingPayment
                 ? "Complete all payment steps before submitting."
                 : !allUploaded
-                  ? "Please upload all required documents."
-                  : undefined
+                ? "Please upload all required documents."
+                : undefined
             }
-            className={`px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${hasPendingPayment
+            className={`px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+              hasPendingPayment
                 ? "bg-gray-400 text-white"
                 : "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"
-              }`}
+            }`}
           >
             {isSubmitting ? "Submitting..." : "Submit"}
           </button>

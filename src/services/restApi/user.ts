@@ -63,7 +63,7 @@ export const addUserService = async (payload: UserPayload) => {
   }
 };
 
-export const fetchAssignedToList = async (role:string = "Checker") => {
+export const fetchAssignedToList = async (role: string = "Checker") => {
   try {
     const auth = JSON.parse(localStorage.getItem("auth") || "{}");
     const accessToken = auth?.access;
