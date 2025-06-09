@@ -1,4 +1,5 @@
 import ReactSelect from "react-select";
+import { useCallback } from "react";
 
 interface Option {
   value: string;
@@ -60,21 +61,52 @@ const SelectWithSearch: React.FC<SelectWithSearchProps> = ({
     onChange(selected?.value || "");
   };
 
+  // Debounce the search with 300ms delay
+  const debouncedSearch = useCallback(
+    (() => {
+      let timeoutId: NodeJS.Timeout;
+      return (value: string) => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+        timeoutId = setTimeout(() => {
+          if (onSearch) {
+            onSearch(value);
+          }
+        }, 600);
+      };
+    })(),
+    [onSearch]
+  );
+
   const handleInputChange = (inputValue: string, { action }: { action: string }) => {
-    if (action === "input-change" && onSearch) {
-      onSearch(inputValue);
+    if (action === "input-change") {
+      // If input is empty or cleared, fetch full list immediately
+      if (!inputValue.trim()) {
+        onSearch && onSearch("");
+        return;
+      }
+      // Otherwise use debounced search
+      debouncedSearch(inputValue);
     }
   };
 
   const defaultStyles = {
+    container: (base: any) => ({
+      ...base,
+      marginTop: '30px !important',
+      padding: 0
+    }),
     control: (base: any, state: any) => ({
       ...base,
-      minHeight: '44px', // Exact height of other inputs (h-11 = 2.75rem = 44px)
+      minHeight: '44px',
       height: '44px',
-      padding: '0',
+      margin: 0,
+      padding: 0,
       backgroundColor: 'transparent',
+      borderRadius: '0.5rem',
       borderColor: state.isFocused ? 'var(--brand-300, #A5B4FC)' : 'var(--border-color, #E5E7EB)',
-      boxShadow: state.isFocused ? '0 0 0 1px var(--brand-300, #A5B4FC)' : 'none',
+      boxShadow: state.isFocused ? '0 0 0 4px rgba(99, 102, 241, 0.1)' : 'none',
       '&:hover': {
         borderColor: 'var(--border-hover-color, #D1D5DB)'
       },
@@ -86,18 +118,23 @@ const SelectWithSearch: React.FC<SelectWithSearchProps> = ({
     }),
     valueContainer: (base: any) => ({
       ...base,
-      padding: '0 1rem',
-      height: '42px', // Account for borders
-      position: 'relative'
+      padding: '0.625rem 1rem',
+      height: '44px',
+      margin: 0,
+      position: 'relative',
+      display: 'flex',
+      alignItems: 'center'
     }),
     input: (base: any) => ({
       ...base,
       color: 'var(--text-color, #111827)',
       margin: 0,
       padding: 0,
-      height: '42px',
+      fontSize: '0.875rem',
       position: 'absolute',
-      left: '1rem'
+      left: '1rem',
+      top: '50%',
+      transform: 'translateY(-50%)'
     }),
     menu: (base: any) => ({
       ...base,
@@ -124,12 +161,14 @@ const SelectWithSearch: React.FC<SelectWithSearchProps> = ({
       ...base,
       color: 'var(--text-color, #111827)',
       margin: 0,
-      padding: 0
+      padding: 0,
+      fontSize: '0.875rem'
     }),
     placeholder: (base: any) => ({
       ...base,
       color: 'var(--placeholder-color, #9CA3AF)',
-      margin: 0
+      margin: 0,
+      fontSize: '0.875rem'
     }),
     indicatorsContainer: (base: any) => ({
       ...base,
@@ -137,13 +176,17 @@ const SelectWithSearch: React.FC<SelectWithSearchProps> = ({
     })
   };
 
+  function setError(arg0: null) {
+    throw new Error("Function not implemented.");
+  }
+
   return (
     <ReactSelect
       className={`${className}`}
       classNamePrefix="react-select"
       options={options}
       value={selectedOption}
-      onChange={(selected) => handleChange(selected?.values || "")}
+      onChange={handleChange}
       onInputChange={handleInputChange}
       isDisabled={disabled}
       placeholder={placeholder}
@@ -151,6 +194,14 @@ const SelectWithSearch: React.FC<SelectWithSearchProps> = ({
       isMulti={isMulti}
       isClearable={isClearable}
       styles={{ ...defaultStyles, ...customStyles }}
+      filterOption={(option, inputValue) => {
+        const optionData = option.data;
+        const searchValue = inputValue?.toLowerCase() || '';
+        return !inputValue || 
+          optionData.label?.toLowerCase().includes(searchValue) ||
+          optionData.email?.toLowerCase().includes(searchValue) ||
+          optionData.phone?.toString().toLowerCase().includes(searchValue);
+      }}
       theme={(theme) => ({
         ...theme,
         colors: {
