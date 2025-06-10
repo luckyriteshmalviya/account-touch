@@ -20,14 +20,15 @@ export default function EcommerceMetrics() {
       try {
         setLoading(true);
 
+        const params: any = {
+          role: "client",
+        };
+
         // Fetch users and tasks in parallel
         const [userData, taskData] = await Promise.all([
-          getUserListService(),
+          getUserListService(params),
           getTaskListService({ page_size: 1 }), // only need the count
         ]);
-
-        console.log("User Data:", userData);
-        console.log("Task Data:", taskData);
 
         setUserCount(userData.count || 0);
         setTaskCount(taskData.count || 0);
