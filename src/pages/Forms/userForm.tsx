@@ -398,48 +398,56 @@ export const UserForm = ({
               )}
             </div>
 
-            {shouldShowAssignedTo() && (
-              <div className="space-y-6">
-                <Label htmlFor="assignedTo">
-                  Assigned To
-                  {isAssignedToMandatory() && (
-                    <span className="text-red-500"> *</span>
-                  )}
-                  {!isAssignedToEditable() && (
-                    <span className="text-sm text-gray-500 ml-2">
-                      (Auto-assigned)
-                    </span>
-                  )}
-                </Label>
-                <Select
-                  id="assignedTo"
-                  value={getAssignedToValue()}
-                  name="Assigned To"
-                  options={transformedAssignedToOptions}
-                  onChange={(values: AssignedToOption | null) => {
-                    if (isAssignedToEditable()) {
-                      setErrors((prev) => ({
-                        ...prev,
-                        assigned_to: undefined,
-                      }));
-                      setAssignedTo(values);
-                    }
-                  }}
-                  closeMenuOnSelect={true}
-                  isSearchable
-                  isDisabled={isDisabled || !isAssignedToEditable()}
-                />
+            {/* Show Assigned To field based on conditions */}
+            {
+              // Show in edit/add mode if shouldShowAssignedTo returns true
+              ((!isDisabled && shouldShowAssignedTo()) ||
+                // Show in view mode only if there's an assigned value and label
+                (isDisabled &&
+                  assignedTo &&
+                  assignedTo.value &&
+                  assignedTo.label)) && (
+                <div className="space-y-6">
+                  <Label htmlFor="assignedTo">
+                    Assigned To
+                    {!isDisabled && isAssignedToMandatory() && (
+                      <span className="text-red-500"> *</span>
+                    )}
+                    {!isAssignedToEditable() && (
+                      <span className="text-sm text-gray-500 ml-2">
+                        (Auto-assigned)
+                      </span>
+                    )}
+                  </Label>
+                  <Select
+                    id="assignedTo"
+                    value={getAssignedToValue()}
+                    name="Assigned To"
+                    options={transformedAssignedToOptions}
+                    onChange={(values: AssignedToOption | null) => {
+                      if (isAssignedToEditable()) {
+                        setErrors((prev) => ({
+                          ...prev,
+                          assigned_to: undefined,
+                        }));
+                        setAssignedTo(values);
+                      }
+                    }}
+                    closeMenuOnSelect={true}
+                    isSearchable
+                    isDisabled={isDisabled || !isAssignedToEditable()}
+                  />
 
-                {errors.assigned_to && (
-                  <p className="text-red-500 text-sm" id="assigned_to">
-                    {errors.assigned_to}
-                  </p>
-                )}
-              </div>
-            )}
+                  {errors.assigned_to && (
+                    <p className="text-red-500 text-sm" id="assigned_to">
+                      {errors.assigned_to}
+                    </p>
+                  )}
+                </div>
+              )
+            }
           </div>
         </ComponentCard>
-
         {param.id && (
           <ComponentCard title="Status">
             <div className="flex gap-4 justify-between items-center">
@@ -460,7 +468,6 @@ export const UserForm = ({
             </div>
           </ComponentCard>
         )}
-
         <ComponentCard title="PAN Details">
           <div className="grid grid-cols-2 gap-6">
             {[
@@ -487,7 +494,6 @@ export const UserForm = ({
             ))}
           </div>
         </ComponentCard>
-
         <ComponentCard title="GST Details">
           <div className="grid grid-cols-2 gap-6 ">
             {[
@@ -514,7 +520,6 @@ export const UserForm = ({
             ))}
           </div>
         </ComponentCard>
-
         {param.id && !editMode && (
           <ComponentCard title="Created By">
             <div className="grid grid-cols-2 gap-6">
@@ -539,7 +544,6 @@ export const UserForm = ({
             </div>
           </ComponentCard>
         )}
-
         {/* Buttons */}
         <div className="mt-6 flex gap-4">
           {!id && (
