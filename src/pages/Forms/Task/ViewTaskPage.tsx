@@ -64,6 +64,13 @@ export default function ViewTaskPage() {
     ? [...task.processes].sort((a, b) => a.order - b.order)
     : [];
 
+  //  Derive task status based on step completion
+  const derivedTaskStatus =
+    task.status === "pending" &&
+    processes.some((process) => process.status === "completed")
+      ? "in_progress"
+      : task.status;
+
   return (
     <div className="max-w-5xl mx-auto bg-white dark:bg-gray-900 rounded-lg p-8 shadow">
       <h1 className="text-2xl font-semibold mb-6 text-center">Task Details</h1>
@@ -138,8 +145,18 @@ export default function ViewTaskPage() {
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
                     Priority: {task.priority || "-"}
                   </span>
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                    Status: {task.status || "-"}
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      derivedTaskStatus === "completed"
+                        ? "bg-green-100 text-green-800"
+                        : derivedTaskStatus === "pending"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : derivedTaskStatus === "in_progress"
+                        ? "bg-blue-100 text-blue-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    Status: {derivedTaskStatus || "-"}
                   </span>
                 </div>
               </div>
