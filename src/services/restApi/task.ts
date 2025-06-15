@@ -120,7 +120,6 @@ export const getTaskListService = async (params: {
         },
       }
     );
-    console.log(res, "res");
 
     if (!res.ok) {
       throw new Error(`Request failed with status ${res.status}`);
@@ -134,8 +133,6 @@ export const getTaskListService = async (params: {
 };
 
 export const deleteTaskService = async (taskId: number) => {
-  console.log(taskId, "taskId");
-
   try {
     const token = getAccessToken();
 
@@ -213,15 +210,6 @@ export const uploadDocumentService = async (
     formData.append("file", file);
     formData.append("process", processId.toString());
 
-    // Log the request details for debugging
-    console.log("Document upload request:", {
-      url: `https://api.accountouch.com/api/tasks/processes/${processId}/documents/`,
-      processId,
-      documentTypeIdentifier,
-      fileName: file.name,
-      fileSize: file.size,
-    });
-
     const res = await fetch(
       `https://api.accountouch.com/api/tasks/processes/${processId}/documents/`,
       {
@@ -233,15 +221,7 @@ export const uploadDocumentService = async (
       }
     );
 
-    // Log the response status and headers
-    console.log("Document upload response:", {
-      status: res.status,
-      statusText: res.statusText,
-      headers: Object.fromEntries([...res.headers.entries()]),
-    });
-
     const responseData = await res.json();
-    console.log("Document upload response data:", responseData);
 
     // Check if the response is not successful
     if (!res.ok) {

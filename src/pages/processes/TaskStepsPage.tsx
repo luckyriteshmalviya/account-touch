@@ -115,7 +115,7 @@ export default function TaskStepsPage() {
   const processes = task.processes
     ? [...task.processes].sort((a, b) => a.order - b.order)
     : [];
-  console.log("task--", task);
+
   return (
     <div className="relative max-w-5xl mx-auto bg-white dark:bg-gray-900 rounded-lg p-8 shadow">
       {/* Loader overlay */}

@@ -208,7 +208,7 @@ export default function AddOrEditProcessTemplatPage() {
         created_by_id: parsedProfile?.user?.id,
       };
     }
-    console.log("Final Payload:", JSON.stringify(payload, null, 2));
+    // console.log("Final Payload:", JSON.stringify(payload, null, 2));
     try {
       const result = isEdit
         ? await updateProcessTemplatService(id as string, payload)

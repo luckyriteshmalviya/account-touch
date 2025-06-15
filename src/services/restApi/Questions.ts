@@ -178,7 +178,6 @@ export const addChoiceService = async (data: {
   order: number;
 }) => {
   try {
-    console.log("Sending choice data:", data);
     const res = await fetch(`${CHOICES_API_BASE}/`, {
       method: "POST",
       headers: {

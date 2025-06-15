@@ -48,8 +48,10 @@ export default function SignInForm() {
     try {
       const response = await verifyOtp(payload);
 
-      if (response &&
-        response?.user?.roles?.length === 1 && response.user.roles?.[0]?.slug === "client"
+      if (
+        response &&
+        response?.user?.roles?.length === 1 &&
+        response.user.roles?.[0]?.slug === "client"
       ) {
         setState({
           country: "india",
@@ -57,7 +59,7 @@ export default function SignInForm() {
           email: "",
           auth_type: "phone",
         });
-        setShowOtp(false)
+        setShowOtp(false);
         return Swal.fire({
           icon: "error",
           title: "Login!",
@@ -148,7 +150,6 @@ export default function SignInForm() {
 
     try {
       const response = await sendOtp(payload);
-      console.log(response, "response");
 
       if (response?.message === "OTP sent successfully") {
         setShowOtp(true);

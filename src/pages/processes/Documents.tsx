@@ -22,12 +22,10 @@ export default function Documents({
 }: DocumentsProps) {
   const [uploadStatus, setUploadStatus] = useState<UploadStatusType>({});
   const [allUploaded, setAllUploaded] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+  const [refreshing] = useState(false);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  console.log("setRefreshing", setRefreshing);
 
   // Check if there are already uploaded documents
   useEffect(() => {
@@ -110,7 +108,6 @@ export default function Documents({
         file
       );
 
-
       // FIXED CODE:
       if (result && !result.error) {
         // Create the updated status object first
@@ -191,7 +188,9 @@ export default function Documents({
     const extension = url.split(".").pop()?.split("?")[0]?.toLowerCase();
 
     // Handle image files
-    if (["png", "jpg", "jpeg", "gif", "bmp", "webp"].includes(extension || "")) {
+    if (
+      ["png", "jpg", "jpeg", "gif", "bmp", "webp"].includes(extension || "")
+    ) {
       return url;
     }
 
@@ -443,8 +442,11 @@ export default function Documents({
                           alt="Document Preview"
                           className="max-w-full max-h-[70vh] object-contain shadow-lg rounded bg-white p-4"
                           onError={(e) => {
-                            console.error('Error loading image:', e);
-                            console.error('Image URL that failed to load:', previewUrl);
+                            console.error("Error loading image:", e);
+                            console.error(
+                              "Image URL that failed to load:",
+                              previewUrl
+                            );
                           }}
                         />
                       </div>

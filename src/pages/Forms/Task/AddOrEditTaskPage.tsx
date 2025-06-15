@@ -33,12 +33,17 @@ export default function AddOrEditTaskPage() {
           setTask({
             title: data.title || "",
             description: data.description || "",
-            category_id: data.category.id || "",
-            template_id: data.template.id || "",
+            category_id: data.category?.id?.toString() || "",
+            template_id: data.template?.id?.toString() || "",
             priority: data.priority || "medium",
-            client_id: data?.client?.id || "",
-            maker_id: data?.maker?.id || "",
-            checker_id: data?.checker?.id || "",
+            // Try different possible structures for client_id
+            client_id: (data?.client?.id || data?.client_id || "").toString(),
+            maker_id: (data?.maker?.id || data?.maker_id || "").toString(),
+            checker_id: (
+              data?.checker?.id ||
+              data?.checker_id ||
+              ""
+            ).toString(),
             due_date: data.due_date || "",
           });
         }
@@ -68,8 +73,8 @@ export default function AddOrEditTaskPage() {
     formData.append("priority", task.priority);
     formData.append("client_id", task.client_id.toString());
     formData.append("maker_id", task.maker_id.toString());
-    if(task?.checker_id){
-    formData.append("checker_id", task.checker_id.toString());
+    if (task?.checker_id) {
+      formData.append("checker_id", task.checker_id.toString());
     }
     formData.append("due_date", task.due_date);
 
@@ -78,7 +83,11 @@ export default function AddOrEditTaskPage() {
       : await addTaskService(formData);
 
     if (result?.id) {
-      Swal.fire("Success", `Task ${isEdit ? "updated" : "added"} successfully!`, "success");
+      Swal.fire(
+        "Success",
+        `Task ${isEdit ? "updated" : "added"} successfully!`,
+        "success"
+      );
       navigate("/task-list");
     } else {
       Swal.fire("Error", "Something went wrong.", "error");

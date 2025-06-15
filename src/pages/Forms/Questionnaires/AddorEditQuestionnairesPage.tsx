@@ -85,8 +85,6 @@ export default function AddOrEditQuestionnairesPage() {
       question_ids: questionIds, // Changed from 'questions' to 'question_ids'
     };
 
-    console.log("Payload being sent:", payload);
-
     try {
       const result = isEdit
         ? await updateQuestionnairesService(id as string, payload)
@@ -131,8 +129,6 @@ export default function AddOrEditQuestionnairesPage() {
       });
     }
   }, []);
-
-  console.log("selectedQuestions", selectedQuestions);
 
   return (
     <QuestionnairesForm

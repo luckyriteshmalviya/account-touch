@@ -49,8 +49,6 @@ export default function AddOrEditTaskTemplatePage() {
     []
   );
 
-  console.log(setPage, setSearch, setprocesstype);
-
   useEffect(() => {
     async function fetchCategories() {
       try {
@@ -196,7 +194,6 @@ export default function AddOrEditTaskTemplatePage() {
         });
 
         response = await addTaskTemplatService(newFormData);
-        console.log(response, "response 9988");
       }
 
       if (response?.id) {
