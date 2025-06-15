@@ -42,9 +42,9 @@ export default function AddOrEditTaskTemplatePage() {
   const { id } = useParams();
   const isEdit = !!id;
   const navigate = useNavigate();
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [processtype, setprocesstype] = useState("");
+  const [page] = useState(1);
+  const [search] = useState("");
+  const [processtype] = useState("");
   const [processTemplates, setProcessTemplates] = useState<ProcessTemplate[]>(
     []
   );
