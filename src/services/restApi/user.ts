@@ -170,3 +170,28 @@ export const updateUserService = async (
     return null;
   }
 };
+
+export const getMakerListService = async () => {
+  try {
+    const auth = JSON.parse(localStorage.getItem("auth") || "{}");
+    const accessToken = auth?.access;
+
+    const response = await fetch(
+      `https://api.accountouch.com/api/users/users/?roles__name=maker`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+    console.log(data);
+    return data.results;
+  } catch (e) {
+    console.error("Error in getMakerListService:", e);
+    return [];
+  }
+};
