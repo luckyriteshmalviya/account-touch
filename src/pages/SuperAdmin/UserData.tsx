@@ -1,81 +1,15 @@
-import { useEffect, useState } from "react";
+import { useDashboard } from "../../context/DashboardContext";
 import { GroupIcon } from "../../icons";
-import { getUserListService } from "../../services/restApi/user";
 
 export default function UserData() {
-  const [counts, setCounts] = useState({
-    clients: 0,
-    franchises: 0,
-    checkers: 0,
-    makers: 0,
-  });
-  const [loading, setLoading] = useState(true);
-  const [, setError] = useState("");
+  const { dashboardData, loading } = useDashboard();
 
-  useEffect(() => {
-    const fetchAllPages = async (url?: string, allResults: any[] = []) => {
-      const params = url ? {} : { page_size: 100 }; // pehle page pe page_size de do
-      const data = url
-        ? await fetch(url, {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${
-                JSON.parse(localStorage.getItem("auth") || "{}")?.access
-              }`,
-            },
-          }).then((res) => res.json())
-        : await getUserListService(params);
-
-      const combinedResults = [...allResults, ...(data.results || [])];
-
-      if (data.next) {
-        // next page call karo
-        return await fetchAllPages(data.next, combinedResults);
-      } else {
-        // sab pages aagaye
-        return combinedResults;
-      }
-    };
-
-    const fetchCounts = async () => {
-      try {
-        setLoading(true);
-
-        const users = await fetchAllPages();
-
-        // Count based on roles inside each user
-        const clients = users.filter((user: any) =>
-          user.roles.includes("Client")
-        ).length;
-
-        const franchises = users.filter((user: any) =>
-          user.roles.includes("Franchise")
-        ).length;
-
-        const checkers = users.filter((user: any) =>
-          user.roles.includes("Checker")
-        ).length;
-
-        const makers = users.filter((user: any) =>
-          user.roles.includes("Maker")
-        ).length;
-
-        setCounts({
-          clients,
-          franchises,
-          checkers,
-          makers,
-        });
-      } catch (err: any) {
-        setError(err.message);
-        console.error("Error fetching user counts:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCounts();
-  }, []);
+  const counts = {
+    clients: dashboardData?.user_role_counts?.client || 0,
+    franchises: dashboardData?.user_role_counts?.franchise || 0,
+    checkers: dashboardData?.user_role_counts?.checker || 0,
+    makers: dashboardData?.user_role_counts?.maker || 0,
+  };
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-4 md:gap-6">

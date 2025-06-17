@@ -4,7 +4,7 @@ import DashboardStats from "./FinancialYear";
 import TasksByStatus from "./TasksByStatus";
 
 import UserData from "./UserData";
-import TaskCategoryList from "../TaskCategorylist/TaskCateroryList";
+import TaskCategoryList from "../taskCategorylist/TaskCateroryList";
 
 export default function SuperAdmin() {
   return (

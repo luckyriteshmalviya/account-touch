@@ -4,7 +4,7 @@ import { getDashboardDataService } from "../../services/restApi/dashboard";
 
 export default function DashboardStats() {
   const [tasksCreated, setTasksCreated] = useState(0);
-  const [totalRevenue] = useState(0);
+  const [totalRevenue] = useState(0); // reserved for future use
   const [overdueTasks, setOverdueTasks] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -16,8 +16,8 @@ export default function DashboardStats() {
         const data = await getDashboardDataService();
 
         setTasksCreated(data.total_tasks || 0);
-        setOverdueTasks(data.tasks_due_next_week || 0);
-        // setTotalRevenue(data.total_revenue || 0); // future use
+        setOverdueTasks(data.tasks_due_next_week.length || 0);
+        // setTotalRevenue(data.total_revenue || 0); // reserved for future use
       } catch (err: any) {
         console.error("Error fetching dashboard data:", err);
         setError(err.message || "Something went wrong");

@@ -2,7 +2,7 @@ import { useDashboard } from "../../context/DashboardContext";
 
 export default function TasksDueInWeek() {
   const { dashboardData, loading } = useDashboard();
-  const dueNextWeek = dashboardData?.tasks_due_next_week ?? 0;
+  const dueNextWeekCount = dashboardData?.tasks_due_next_week?.length ?? 0;
 
   return (
     <div className="p-4 bg-white border border-gray-200 rounded-2xl">
@@ -14,7 +14,7 @@ export default function TasksDueInWeek() {
         <p className="text-gray-500">Loading...</p>
       ) : (
         <p className="text-gray-700 text-xl font-bold">
-          {dueNextWeek} task{dueNextWeek !== 1 ? "s" : ""} due
+          {dueNextWeekCount} task{dueNextWeekCount !== 1 ? "s" : ""} due
         </p>
       )}
     </div>
