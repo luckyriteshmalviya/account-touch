@@ -71,12 +71,14 @@ export const getTaskListService = async (params: {
   client?: string;
   completed_after?: string;
   completed_before?: string;
+  created_after?: string;
+  created_before?: string;
   due_after?: string;
   due_before?: string;
   maker?: string;
-  ordering?: string;
+  ordering?: string; 
   page?: number;
-  page_size?: number;
+  page_size?: number; 
   priority?: "low" | "medium" | "high" | "urgent";
   search?: string;
   started_after?: string;
@@ -95,6 +97,10 @@ export const getTaskListService = async (params: {
       queryParams.append("completed_after", params.completed_after);
     if (params.completed_before)
       queryParams.append("completed_before", params.completed_before);
+    if (params.created_after)
+      queryParams.append("created_after", params.created_after);
+    if (params.created_before)
+      queryParams.append("created_before", params.created_before);
     if (params.due_after) queryParams.append("due_after", params.due_after);
     if (params.due_before) queryParams.append("due_before", params.due_before);
     if (params.maker) queryParams.append("maker", params.maker);
