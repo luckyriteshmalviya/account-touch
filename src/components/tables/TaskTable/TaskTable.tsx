@@ -77,7 +77,7 @@ interface Franchise {
 }
 
 type PriorityType = "low" | "medium" | "high" | "urgent";
-type StatusType = "pending" | "started" | "completed";
+type StatusType = "pending" | "started" | "completed" | "rejected";
 type DateRangeType = "created" | "due" | "completed";
 
 export default function TasksTable() {
@@ -363,6 +363,7 @@ export default function TasksTable() {
               <option value="pending">Pending</option>
               <option value="started">Started</option>
               <option value="completed">Completed</option>
+              <option value="completed">Rejected</option>
             </select>
           </div>
         </div>
