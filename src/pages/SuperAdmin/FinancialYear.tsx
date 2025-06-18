@@ -21,7 +21,7 @@ export default function DashboardStats() {
           <div className="w-10 h-10 flex items-center justify-center rounded-full bg-indigo-100">
             <ListIcon className="text-indigo-600 w-5 h-5" />
           </div>
-          <div onClick={() => navigate("/task-list")}>
+          <div onClick={() => navigate("/task-list")} className="cursor-pointer">
             <p className="text-xs text-gray-500">Tasks Created</p>
             <h3 className="text-lg font-semibold text-gray-900">
               {loading ? "..." : tasksCreated}
@@ -47,7 +47,7 @@ export default function DashboardStats() {
           <div className="w-10 h-10 flex items-center justify-center rounded-full bg-red-100">
             <ListIcon className="text-red-600 w-5 h-5" />
           </div>
-          <div>
+          <div className="cursor-pointer">
             <p className="text-xs text-gray-500">Overdue This Week</p>
             <h3 className="text-lg font-semibold text-gray-900">
               {loading ? "..." : overdueTasks}
