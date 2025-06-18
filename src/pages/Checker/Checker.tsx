@@ -109,12 +109,6 @@ export default function Checker() {
                 {loading ? "..." : overdueTasks.length}
               </span>
             </li>
-            <li className="flex justify-between items-center">
-              Tasks Due Next Week
-              <span className="bg-blue-100 text-blue-600 text-sm font-medium px-3 py-1 rounded-full">
-                {loading ? "..." : dueNextWeek.length}
-              </span>
-            </li>
           </ul>
         </div>
       </div>

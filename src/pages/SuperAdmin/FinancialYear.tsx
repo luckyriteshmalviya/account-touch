@@ -6,7 +6,7 @@ export default function DashboardStats() {
   const { dashboardData, loading } = useDashboard();
   const navigate = useNavigate();
   const tasksCreated = dashboardData?.total_tasks || 0;
-  const overdueTasks = dashboardData?.tasks_due_next_week?.length || 0;
+  const overdueTasks = dashboardData?.overdue_tasks?.length || 0;
   const totalRevenue = 0; // placeholder for future
 
   return (
