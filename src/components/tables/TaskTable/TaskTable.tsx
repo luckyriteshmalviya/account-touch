@@ -37,14 +37,21 @@ interface Task {
   maker: {
     id: number;
     full_name: string;
+    phone_number: string;
   };
   checker: {
     id: number;
     full_name: string;
+    phone_number: string;
   };
   created_by: {
     id: number;
     full_name: string;
+  };
+  // Added franchise field to Task interface
+  franchise: {
+    id: number;
+    name: string;
   };
   created_at: string;
   updated_at: string;
@@ -53,6 +60,20 @@ interface Task {
   completed_at: string | null;
   maker_notes: string;
   checker_notes: string;
+}
+
+// Updated user interface to include phone_number
+interface User {
+  id: number;
+  full_name: string;
+  phone_number: string;
+}
+
+// Added Franchise interface
+interface Franchise {
+  id: number;
+  full_name: string;
+  phone_number: string;
 }
 
 type PriorityType = "low" | "medium" | "high" | "urgent";
@@ -79,21 +100,21 @@ export default function TasksTable() {
   const [dateRangeStart, setDateRangeStart] = useState<string>("");
   const [dateRangeEnd, setDateRangeEnd] = useState<string>("");
 
-  // User filters
+  // User filters - now storing phone numbers for API calls
   const [maker, setMaker] = useState<string>("");
   const [checker, setChecker] = useState<string>("");
   const [client, setClient] = useState<string>("");
 
-  // User lists for dropdowns
-  const [makerList, setMakerList] = useState<
-    { id: number; full_name: string }[]
-  >([]);
-  const [checkerList, setCheckerList] = useState<
-    { id: number; full_name: string }[]
-  >([]);
-  const [clientList, setClientList] = useState<
-    { id: number; full_name: string }[]
-  >([]);
+  // Added franchise filter
+  const [franchise, setFranchise] = useState<string>("");
+
+  // User lists for dropdowns - updated interface
+  const [makerList, setMakerList] = useState<User[]>([]);
+  const [checkerList, setCheckerList] = useState<User[]>([]);
+  const [clientList, setClientList] = useState<User[]>([]);
+
+  // Added franchise list
+  const [franchiseList, setFranchiseList] = useState<Franchise[]>([]);
 
   const navigate = useNavigate();
 
@@ -110,6 +131,7 @@ export default function TasksTable() {
     maker,
     checker,
     client,
+    franchise,
   ]);
 
   // Fetch user lists for dropdowns
@@ -144,6 +166,16 @@ export default function TasksTable() {
       });
       if (clientResponse?.results) {
         setClientList(clientResponse.results);
+      }
+
+      // Fetch franchises - Updated to use proper API call
+      const franchiseResponse = await getUserListService({
+        role: "Franchise", // Changed from "franchises" to "Franchise" for consistency
+        page: 1,
+        page_size: 100,
+      });
+      if (franchiseResponse?.results) {
+        setFranchiseList(franchiseResponse.results);
       }
     };
 
@@ -180,18 +212,24 @@ export default function TasksTable() {
       }
     }
 
-    // User filters - convert IDs to strings
+    // User filters - now using phone numbers for API calls
     if (maker) {
-      params.maker = maker.toString();
-      console.log("Maker ID:", maker, typeof maker);
+      params.maker = maker;
+      console.log("Maker Phone:", maker);
     }
     if (checker) {
-      params.checker = checker.toString();
-      console.log("Checker ID:", checker, typeof checker);
+      params.checker = checker;
+      console.log("Checker Phone:", checker);
     }
     if (client) {
-      params.client = client.toString();
-      console.log("Client ID:", client, typeof client);
+      params.client = client;
+      console.log("Client Phone:", client);
+    }
+
+    // Added franchise filter
+    if (franchise) {
+      params.franchise = franchise; // Assuming API expects franchise_id
+      console.log("Franchise ID:", franchise);
     }
 
     // For debugging
@@ -206,7 +244,7 @@ export default function TasksTable() {
     }
   };
 
-  // Clear all filters
+  // Clear all filters - updated to include franchise
   const clearFilters = () => {
     setSearch("");
     setPriority("");
@@ -217,6 +255,7 @@ export default function TasksTable() {
     setMaker("");
     setChecker("");
     setClient("");
+    setFranchise(""); // Added franchise reset
     setPage(1);
   };
 
@@ -256,54 +295,10 @@ export default function TasksTable() {
 
   return (
     <>
-      {/* Filters Section */}
+      {/* Filters Section - Updated Layout */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6 border border-gray-100 dark:border-gray-700">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-medium text-gray-800 dark:text-white">
-            Task Filters
-          </h2>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setShowMoreFilters(!showMoreFilters)}
-              className="px-4 py-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-800 dark:hover:bg-blue-700 text-blue-700 dark:text-blue-200 rounded-md flex items-center gap-2 transition-colors duration-200"
-            >
-              {showMoreFilters ? (
-                <>
-                  <ChevronUp className="h-4 w-4" />
-                  Hide Filters
-                </>
-              ) : (
-                <>
-                  <ChevronDown className="h-4 w-4" />
-                  More Filters
-                </>
-              )}
-            </button>
-            <button
-              onClick={clearFilters}
-              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-white rounded-md flex items-center gap-2 transition-colors duration-200"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-              Clear Filters
-            </button>
-          </div>
-        </div>
-
-        {/* Basic Filters - Always Visible */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        {/* Basic Filters - Always Visible (Search, Priority, Status) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
           <div className="space-y-2">
             <label
               htmlFor="search"
@@ -372,144 +367,204 @@ export default function TasksTable() {
           </div>
         </div>
 
-        {/* Advanced Filters - Toggle Visibility */}
+        {/* More Filters and Clear Filters buttons */}
+        <div className="flex justify-end gap-2 mb-4">
+          <button
+            onClick={() => setShowMoreFilters(!showMoreFilters)}
+            className="px-4 py-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-800 dark:hover:bg-blue-700 text-blue-700 dark:text-blue-200 rounded-md flex items-center gap-2 transition-colors duration-200"
+          >
+            {showMoreFilters ? (
+              <>
+                <ChevronUp className="h-4 w-4" />
+                Hide Filters
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-4 w-4" />
+                More Filters
+              </>
+            )}
+          </button>
+          <button
+            onClick={clearFilters}
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-white rounded-md flex items-center gap-2 transition-colors duration-200"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+            Clear Filters
+          </button>
+        </div>
+
+        {/* Advanced Filters - Toggle Visibility (Maker, Checker, Client, Franchise, Date Filters) */}
         {showMoreFilters && (
           <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Date Range Filter */}
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Date Filter Type
-                  </label>
-                  <select
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    value={dateRangeType}
-                    onChange={(e) => {
-                      setDateRangeType(e.target.value as DateRangeType);
-                      // Clear existing date values when changing type
-                      setDateRangeStart("");
-                      setDateRangeEnd("");
-                      setPage(1);
-                    }}
-                  >
-                    <option value="created">Created Date</option>
-                    <option value="due">Due Date</option>
-                    <option value="completed">Completion Date</option>
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {getDateRangeLabel()}
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="date"
-                      className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white cursor-pointer"
-                      value={dateRangeStart}
-                      onClick={(e) =>
-                        (e.target as HTMLInputElement).showPicker()
-                      }
-                      onChange={(e) => {
-                        setDateRangeStart(e.target.value);
-                        setPage(1);
-                      }}
-                    />
-                    <span className="text-gray-500 dark:text-gray-400">to</span>
-                    <input
-                      type="date"
-                      className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white cursor-pointer"
-                      value={dateRangeEnd}
-                      onClick={(e) =>
-                        (e.target as HTMLInputElement).showPicker()
-                      }
-                      onChange={(e) => {
-                        setDateRangeEnd(e.target.value);
-                        setPage(1);
-                      }}
-                    />
-                  </div>
-                </div>
+            {/* User Filters Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div className="space-y-2">
+                <label
+                  htmlFor="maker"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Maker
+                </label>
+                <select
+                  id="maker"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  value={maker}
+                  onChange={(e) => {
+                    setMaker(e.target.value); // This will be the phone number
+                    setPage(1);
+                  }}
+                >
+                  <option value="">All Makers</option>
+                  {makerList.map((user) => (
+                    <option key={user.id} value={user.phone_number}>
+                      {user.full_name} ({user.phone_number})
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              {/* User Filters */}
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label
-                    htmlFor="maker"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Maker
-                  </label>
-                  <select
-                    id="maker"
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    value={maker}
-                    onChange={(e) => {
-                      setMaker(e.target.value);
-                      setPage(1);
-                    }}
-                  >
-                    <option value="">All Makers</option>
-                    {makerList.map((user) => (
-                      <option key={user.id} value={user.full_name}>
-                        {user.full_name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label
-                    htmlFor="checker"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Checker
-                  </label>
-                  <select
-                    id="checker"
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    value={checker}
-                    onChange={(e) => {
-                      setChecker(e.target.value);
-                      setPage(1);
-                    }}
-                  >
-                    <option value="">All Checkers</option>
-                    {checkerList.map((user) => (
-                      <option key={user.id} value={user.full_name}>
-                        {user.full_name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div className="space-y-2">
+                <label
+                  htmlFor="checker"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Checker
+                </label>
+                <select
+                  id="checker"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  value={checker}
+                  onChange={(e) => {
+                    setChecker(e.target.value); // This will be the phone number
+                    setPage(1);
+                  }}
+                >
+                  <option value="">All Checkers</option>
+                  {checkerList.map((user) => (
+                    <option key={user.id} value={user.phone_number}>
+                      {user.full_name} ({user.phone_number})
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label
-                    htmlFor="client"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Client
-                  </label>
-                  <select
-                    id="client"
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    value={client}
+              <div className="space-y-2">
+                <label
+                  htmlFor="client"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Client
+                </label>
+                <select
+                  id="client"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  value={client}
+                  onChange={(e) => {
+                    setClient(e.target.value); // This will be the phone number
+                    setPage(1);
+                  }}
+                >
+                  <option value="">All Clients</option>
+                  {clientList.map((user) => (
+                    <option key={user.id} value={user.phone_number}>
+                      {user.full_name} ({user.phone_number})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label
+                  htmlFor="franchise"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Franchise
+                </label>
+                <select
+                  id="franchise"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  value={franchise}
+                  onChange={(e) => {
+                    setFranchise(e.target.value);
+                    setPage(1);
+                  }}
+                >
+                  <option value="">All Franchises</option>
+                  {franchiseList.map((franchiseItem) => (
+                    <option
+                      key={franchiseItem.id}
+                      value={franchiseItem.phone_number}
+                    >
+                      {franchiseItem.full_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Date Filter Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Date Filter Type
+                </label>
+                <select
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  value={dateRangeType}
+                  onChange={(e) => {
+                    setDateRangeType(e.target.value as DateRangeType);
+                    // Clear existing date values when changing type
+                    setDateRangeStart("");
+                    setDateRangeEnd("");
+                    setPage(1);
+                  }}
+                >
+                  <option value="created">Created Date</option>
+                  <option value="due">Due Date</option>
+                  <option value="completed">Completion Date</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {getDateRangeLabel()}
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="date"
+                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white cursor-pointer"
+                    value={dateRangeStart}
+                    onClick={(e) => (e.target as HTMLInputElement).showPicker()}
                     onChange={(e) => {
-                      setClient(e.target.value);
+                      setDateRangeStart(e.target.value);
                       setPage(1);
                     }}
-                  >
-                    <option value="">All Clients</option>
-                    {clientList.map((user) => (
-                      <option key={user.id} value={user.full_name}>
-                        {user.full_name}
-                      </option>
-                    ))}
-                  </select>
+                  />
+                  <span className="text-gray-500 dark:text-gray-400">to</span>
+                  <input
+                    type="date"
+                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white cursor-pointer"
+                    value={dateRangeEnd}
+                    onClick={(e) => (e.target as HTMLInputElement).showPicker()}
+                    onChange={(e) => {
+                      setDateRangeEnd(e.target.value);
+                      setPage(1);
+                    }}
+                  />
                 </div>
               </div>
             </div>
@@ -517,10 +572,10 @@ export default function TasksTable() {
         )}
       </div>
 
-      {/* Table */}
+      {/* Table - Updated to include Franchise column */}
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
         <div className="max-w-full overflow-x-auto">
-          <div className="min-w-[1000px]">
+          <div className="min-w-[1200px]">
             <Table>
               <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                 <TableRow>
@@ -547,7 +602,7 @@ export default function TasksTable() {
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                 {tasks.length === 0 ? (
                   <TableRow>
-                    <TableCell className="text-center px-4 py-16" colSpan={8}>
+                    <TableCell className="text-center px-4 py-16" colSpan={9}>
                       <div className="text-center">
                         <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
                           No tasks found
@@ -586,6 +641,7 @@ export default function TasksTable() {
                       <TableCell className="px-4 py-4 text-start capitalize">
                         {task.priority}
                       </TableCell>
+
                       <TableCell className="px-4 py-4 text-start text-blue-600 ">
                         {" "}
                         <Link to={`/user-details/${task.client?.id}`}>

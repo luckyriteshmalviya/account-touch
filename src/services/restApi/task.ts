@@ -76,14 +76,15 @@ export const getTaskListService = async (params: {
   due_after?: string;
   due_before?: string;
   maker?: string;
-  ordering?: string; 
+  ordering?: string;
   page?: number;
-  page_size?: number; 
+  page_size?: number;
   priority?: "low" | "medium" | "high" | "urgent";
   search?: string;
   started_after?: string;
   started_before?: string;
   status?: string;
+  franchise?: string;
 }) => {
   try {
     const token = getAccessToken();
@@ -116,6 +117,7 @@ export const getTaskListService = async (params: {
     if (params.started_before)
       queryParams.append("started_before", params.started_before);
     if (params.status) queryParams.append("status", params.status);
+    if (params.franchise) queryParams.append("franchise", params.franchise);
 
     const res = await fetch(
       `https://api.accountouch.com/api/tasks/tasks/?${queryParams.toString()}`,
