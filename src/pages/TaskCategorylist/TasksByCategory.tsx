@@ -14,36 +14,48 @@ export default function TasksByCategory() {
     });
   }
 
+  // Function to handle category click and navigate with category filter
+  const handleCategoryClick = (categoryName: string) => {
+    // Navigate to task-list with category as query parameter
+    navigate(`/task-list?category=${encodeURIComponent(categoryName)}`);
+  };
+
   return (
-    <div className="p-6 bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-2xl shadow-md hover:shadow-lg transition">
-      <div
-        className="flex items-center gap-2 mb-4"
-        onClick={() => navigate("/task-list")}
-      >
-        <FolderIcon className="text-indigo-600 w-5 h-5" />
-        <h3 className="text-lg font-semibold text-gray-800">
+    <div
+      className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+      onClick={() => navigate("/task-list")}
+    >
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           Tasks by Category
         </h3>
+        <FolderIcon className="h-5 w-5 text-gray-400" />
       </div>
 
       {loading ? (
-        <p className="text-gray-500">Loading...</p>
+        <div className="text-gray-500 dark:text-gray-400">Loading...</div>
       ) : Object.keys(categoryCounts).length === 0 ? (
-        <p className="text-gray-500">No tasks found.</p>
+        <div className="text-gray-500 dark:text-gray-400">No tasks found.</div>
       ) : (
-        <ul className="space-y-3">
+        <div className="space-y-3">
           {Object.entries(categoryCounts).map(([category, count]) => (
-            <li
+            <div
               key={category}
-              className="flex items-center justify-between text-gray-700 font-medium"
+              className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer transition-colors"
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent parent div click
+                handleCategoryClick(category);
+              }}
             >
-              <span>{category}</span>
-              <span className="bg-indigo-100 text-indigo-600 text-sm font-semibold px-3 py-1 rounded-full">
+              <span className="text-gray-700 dark:text-gray-300 font-medium">
+                {category}
+              </span>
+              <span className="text-sm text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 px-2 py-1 rounded-full">
                 {count}
               </span>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );

@@ -10,7 +10,7 @@ export default function Checker() {
   const totalTasks = dashboardData?.total_tasks || 0;
   const processCounts = dashboardData?.process_type_pending_counts || [];
   const overdueTasks = dashboardData?.tasks_overdue || [];
-  const dueNextWeek = dashboardData?.tasks_due_next_week || [];
+  // const dueNextWeek = dashboardData?.tasks_due_next_week || [];
 
   const subtaskList = [
     { label: "Awaiting Questionnaire Review", code: "questionnaire" },

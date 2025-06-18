@@ -6,7 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../ui/table";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import {
   deleteTaskService,
@@ -14,6 +14,7 @@ import {
 } from "../../../services/restApi/task";
 import { Edit, Eye, ChevronDown, ChevronUp } from "lucide-react";
 import { getUserListService } from "../../../services/restApi/user";
+import { getCategoryListService } from "../../../services/restApi/category";
 
 interface Task {
   id: string;
@@ -48,7 +49,6 @@ interface Task {
     id: number;
     full_name: string;
   };
-  // Added franchise field to Task interface
   franchise: {
     id: number;
     name: string;
@@ -62,18 +62,21 @@ interface Task {
   checker_notes: string;
 }
 
-// Updated user interface to include phone_number
 interface User {
   id: number;
   full_name: string;
   phone_number: string;
 }
 
-// Added Franchise interface
 interface Franchise {
   id: number;
   full_name: string;
   phone_number: string;
+}
+
+interface Category {
+  id: number;
+  name: string;
 }
 
 type PriorityType = "low" | "medium" | "high" | "urgent";
@@ -86,11 +89,13 @@ export default function TasksTable() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Basic filters (always visible)
   const [search, setSearch] = useState("");
   const [priority, setPriority] = useState<PriorityType | "">("");
   const [status, setStatus] = useState<StatusType | "">("");
+  const [category, setCategory] = useState<string>("");
 
   // More filters toggle
   const [showMoreFilters, setShowMoreFilters] = useState(false);
@@ -100,31 +105,86 @@ export default function TasksTable() {
   const [dateRangeStart, setDateRangeStart] = useState<string>("");
   const [dateRangeEnd, setDateRangeEnd] = useState<string>("");
 
-  // User filters - now storing phone numbers for API calls
+  // User filters
   const [maker, setMaker] = useState<string>("");
   const [checker, setChecker] = useState<string>("");
   const [client, setClient] = useState<string>("");
-
-  // Added franchise filter
   const [franchise, setFranchise] = useState<string>("");
 
-  // User lists for dropdowns - updated interface
+  // User and category lists for dropdowns
   const [makerList, setMakerList] = useState<User[]>([]);
   const [checkerList, setCheckerList] = useState<User[]>([]);
   const [clientList, setClientList] = useState<User[]>([]);
-
-  // Added franchise list
   const [franchiseList, setFranchiseList] = useState<Franchise[]>([]);
+  const [categoryList, setCategoryList] = useState<Category[]>([]);
+
+  // Add loading state to ensure proper initialization
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const navigate = useNavigate();
 
+  // First load all dropdown data
   useEffect(() => {
+    const fetchUserLists = async () => {
+      try {
+        // Fetch all data in parallel
+        const [
+          makerResponse,
+          checkerResponse,
+          clientResponse,
+          franchiseResponse,
+          categoryResponse,
+        ] = await Promise.all([
+          getUserListService({ role: "Maker", page: 1, page_size: 100 }),
+          getUserListService({ role: "Checker", page: 1, page_size: 100 }),
+          getUserListService({ role: "Client", page: 1, page_size: 100 }),
+          getUserListService({ role: "Franchise", page: 1, page_size: 100 }),
+          getCategoryListService({ page: 1 }),
+        ]);
+
+        // Set all lists
+        if (makerResponse?.results) setMakerList(makerResponse.results);
+        if (checkerResponse?.results) setCheckerList(checkerResponse.results);
+        if (clientResponse?.results) setClientList(clientResponse.results);
+        if (franchiseResponse?.results)
+          setFranchiseList(franchiseResponse.results);
+        if (categoryResponse?.results)
+          setCategoryList(categoryResponse.results);
+
+        // Now check for URL parameters after data is loaded
+        const categoryParam = searchParams.get("category");
+        if (categoryParam) {
+          setCategory(categoryParam);
+          setShowMoreFilters(true);
+          // Clear the URL parameter after setting the filter
+          const newSearchParams = new URLSearchParams(searchParams);
+          newSearchParams.delete("category");
+          setSearchParams(newSearchParams);
+        }
+
+        // Mark as initialized
+        setIsInitialized(true);
+      } catch (error) {
+        console.error("Error fetching dropdown data:", error);
+        setIsInitialized(true); // Still mark as initialized even if error
+      }
+    };
+
+    fetchUserLists();
+  }, [searchParams, setSearchParams]);
+
+  // Fetch tasks only after initialization is complete
+  useEffect(() => {
+    if (!isInitialized) return; // Don't fetch tasks until dropdown data is loaded
+
     fetchTasks();
   }, [
+    isInitialized, // Add this dependency
     page,
     search,
     priority,
     status,
+    category,
     dateRangeType,
     dateRangeStart,
     dateRangeEnd,
@@ -134,56 +194,9 @@ export default function TasksTable() {
     franchise,
   ]);
 
-  // Fetch user lists for dropdowns
-  useEffect(() => {
-    const fetchUserLists = async () => {
-      // Fetch makers
-      const makerResponse = await getUserListService({
-        role: "Maker",
-        page: 1,
-        page_size: 100,
-      });
-      console.log("makerResponse", makerResponse);
-      if (makerResponse?.results) {
-        setMakerList(makerResponse.results);
-      }
-
-      // Fetch checkers
-      const checkerResponse = await getUserListService({
-        role: "Checker",
-        page: 1,
-        page_size: 100,
-      });
-      if (checkerResponse?.results) {
-        setCheckerList(checkerResponse.results);
-      }
-
-      // Fetch clients
-      const clientResponse = await getUserListService({
-        role: "Client",
-        page: 1,
-        page_size: 100,
-      });
-      if (clientResponse?.results) {
-        setClientList(clientResponse.results);
-      }
-
-      // Fetch franchises - Updated to use proper API call
-      const franchiseResponse = await getUserListService({
-        role: "Franchise", // Changed from "franchises" to "Franchise" for consistency
-        page: 1,
-        page_size: 100,
-      });
-      if (franchiseResponse?.results) {
-        setFranchiseList(franchiseResponse.results);
-      }
-    };
-
-    fetchUserLists();
-  }, []);
-
   const fetchTasks = async () => {
-    // Create a params object with only defined values
+    console.log("Fetching tasks with category:", category);
+
     const params: any = {
       page,
       page_size: 10,
@@ -193,6 +206,7 @@ export default function TasksTable() {
     if (search) params.search = search;
     if (priority) params.priority = priority;
     if (status) params.status = status;
+    if (category) params.category = category;
 
     // Date filters based on selected type
     if (dateRangeStart && dateRangeEnd) {
@@ -212,50 +226,41 @@ export default function TasksTable() {
       }
     }
 
-    // User filters - now using phone numbers for API calls
-    if (maker) {
-      params.maker = maker;
-      console.log("Maker Phone:", maker);
-    }
-    if (checker) {
-      params.checker = checker;
-      console.log("Checker Phone:", checker);
-    }
-    if (client) {
-      params.client = client;
-      console.log("Client Phone:", client);
-    }
+    // User filters
+    if (maker) params.maker = maker;
+    if (checker) params.checker = checker;
+    if (client) params.client = client;
+    if (franchise) params.franchise = franchise;
 
-    // Added franchise filter
-    if (franchise) {
-      params.franchise = franchise; // Assuming API expects franchise_id
-      console.log("Franchise ID:", franchise);
-    }
-
-    // For debugging
     console.log("Task filter params:", params);
 
-    const res = await getTaskListService(params);
+    try {
+      const res = await getTaskListService(params);
 
-    if (res?.results) {
-      setTasks(res.results);
-      setTotalCount(res.count);
-      setTotalPages(Math.ceil(res.count / 10));
+      if (res?.results) {
+        setTasks(res.results);
+        setTotalCount(res.count);
+        setTotalPages(Math.ceil(res.count / 10));
+        console.log("Tasks fetched successfully:", res.results.length);
+      }
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
     }
   };
 
-  // Clear all filters - updated to include franchise
+  // Clear all filters
   const clearFilters = () => {
     setSearch("");
     setPriority("");
     setStatus("");
+    setCategory("");
     setDateRangeType("created");
     setDateRangeStart("");
     setDateRangeEnd("");
     setMaker("");
     setChecker("");
     setClient("");
-    setFranchise(""); // Added franchise reset
+    setFranchise("");
     setPage(1);
   };
 
@@ -293,12 +298,23 @@ export default function TasksTable() {
     }
   };
 
+  // Show loading state while initializing
+  if (!isInitialized) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg text-gray-600 dark:text-gray-400">
+          Loading filters...
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
-      {/* Filters Section - Updated Layout */}
+      {/* Filters Section */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6 border border-gray-100 dark:border-gray-700">
-        {/* Basic Filters - Always Visible (Search, Priority, Status) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+        {/* Basic Filters - Always Visible (Search, Priority, Status, Category) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           <div className="space-y-2">
             <label
               htmlFor="search"
@@ -363,7 +379,35 @@ export default function TasksTable() {
               <option value="pending">Pending</option>
               <option value="started">Started</option>
               <option value="completed">Completed</option>
-              <option value="completed">Rejected</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+
+          {/* Category Filter */}
+          <div className="space-y-2">
+            <label
+              htmlFor="category"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              Category{" "}
+              {category && <span className="text-blue-600">({category})</span>}
+            </label>
+            <select
+              id="category"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+              value={category}
+              onChange={(e) => {
+                console.log("Category changed to:", e.target.value);
+                setCategory(e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="">All Categories</option>
+              {categoryList.map((cat) => (
+                <option key={cat.id} value={cat.name}>
+                  {cat.name}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -408,7 +452,7 @@ export default function TasksTable() {
           </button>
         </div>
 
-        {/* Advanced Filters - Toggle Visibility (Maker, Checker, Client, Franchise, Date Filters) */}
+        {/* Advanced Filters - Toggle Visibility */}
         {showMoreFilters && (
           <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
             {/* User Filters Row */}
@@ -425,7 +469,7 @@ export default function TasksTable() {
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                   value={maker}
                   onChange={(e) => {
-                    setMaker(e.target.value); // This will be the phone number
+                    setMaker(e.target.value);
                     setPage(1);
                   }}
                 >
@@ -450,7 +494,7 @@ export default function TasksTable() {
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                   value={checker}
                   onChange={(e) => {
-                    setChecker(e.target.value); // This will be the phone number
+                    setChecker(e.target.value);
                     setPage(1);
                   }}
                 >
@@ -475,7 +519,7 @@ export default function TasksTable() {
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                   value={client}
                   onChange={(e) => {
-                    setClient(e.target.value); // This will be the phone number
+                    setClient(e.target.value);
                     setPage(1);
                   }}
                 >
@@ -528,7 +572,6 @@ export default function TasksTable() {
                   value={dateRangeType}
                   onChange={(e) => {
                     setDateRangeType(e.target.value as DateRangeType);
-                    // Clear existing date values when changing type
                     setDateRangeStart("");
                     setDateRangeEnd("");
                     setPage(1);
@@ -573,7 +616,7 @@ export default function TasksTable() {
         )}
       </div>
 
-      {/* Table - Updated to include Franchise column */}
+      {/* Table */}
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
         <div className="max-w-full overflow-x-auto">
           <div className="min-w-[1200px]">
@@ -609,8 +652,9 @@ export default function TasksTable() {
                           No tasks found
                         </h3>
                         <p className="text-gray-500 dark:text-gray-400 mb-4">
-                          No tasks match the selected filters. Try adjusting
-                          your filters or clear them to see all tasks.
+                          {category
+                            ? `No tasks found for category "${category}". Try selecting a different category or clear filters.`
+                            : "No tasks match the selected filters. Try adjusting your filters or clear them to see all tasks."}
                         </p>
                         <button
                           onClick={clearFilters}
@@ -642,18 +686,14 @@ export default function TasksTable() {
                       <TableCell className="px-4 py-4 text-start capitalize">
                         {task.priority}
                       </TableCell>
-
                       <TableCell className="px-4 py-4 text-start text-blue-600 ">
-                        {" "}
                         <Link to={`/user-details/${task.client?.id}`}>
-                          {" "}
                           {task.client?.full_name || "N/A"}
                         </Link>
                       </TableCell>
                       <TableCell className="px-4 py-4 text-start text-blue-600">
-                        {" "}
                         <Link to={`/user-details/${task.maker?.id}`}>
-                          {task.maker?.full_name || "N/A"}{" "}
+                          {task.maker?.full_name || "N/A"}
                         </Link>
                       </TableCell>
                       <TableCell className="px-4 py-4 text-start">
