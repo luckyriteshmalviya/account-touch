@@ -12,18 +12,11 @@ export default function Checker() {
   const overdueTasks = dashboardData?.tasks_overdue || [];
   const dueNextWeek = dashboardData?.tasks_due_next_week || [];
 
-  // Mapping process type to label & code
   const subtaskList = [
-    {
-      label: "Awaiting Questionnaire Review",
-      code: "questionnaire",
-    },
+    { label: "Awaiting Questionnaire Review", code: "questionnaire" },
     { label: "Awaiting Document Review", code: "documentation" },
     { label: "Awaiting Payment Confirmation", code: "payment" },
-    {
-      label: "Awaiting Final Document Approval",
-      code: "document_preparation",
-    },
+    { label: "Awaiting Final Document Approval", code: "document_preparation" },
   ];
 
   const getProcessCount = (type: string) =>
@@ -32,45 +25,65 @@ export default function Checker() {
     )?.count || 0;
 
   return (
-    <div className="p-6 bg-white min-h-screen space-y-8">
+    <div className="p-8 bg-gradient-to-br from-gray-50 via-white to-gray-100 min-h-screen space-y-12">
       {/* Top Row */}
-      <div className="flex justify-around gap-8">
-        {/* A: Makers Under Me */}
-        <div className="w-72 border rounded-lg p-4 shadow">
-          <h2 className="text-red-600 font-bold uppercase">CHECKER</h2>
-          <div className="flex items-center gap-2 font-semibold mt-2">
-            <Dot /> <GroupIcon />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Makers Under Me */}
+        <div className="p-6 bg-white rounded-2xl shadow-lg border hover:scale-[1.01] transition">
+          <h2 className="text-sm uppercase font-bold text-red-600 tracking-wide">
+            Checker Overview
+          </h2>
+          <div className="flex items-center gap-2 text-gray-700 font-semibold mt-4">
+            <Dot className="text-green-600" />
+            <GroupIcon />
             Makers Under me:
           </div>
-          <div className="mt-2 text-blue-500 text-2xl font-bold">
-            {loading ? "..." : makers.length}
+          <div className="mt-4 space-y-2">
+            {loading ? (
+              <div className="text-gray-500">Loading...</div>
+            ) : makers.length === 0 ? (
+              <div className="text-gray-500">No makers assigned</div>
+            ) : (
+              makers.map((maker: any, index: number) => (
+                <div
+                  key={index}
+                  className="bg-gray-100 text-gray-800 text-sm px-3 py-1 rounded-lg flex items-center gap-2"
+                >
+                  <Dot className="text-blue-500 w-4 h-4" />
+                  {maker.name}
+                </div>
+              ))
+            )}
           </div>
         </div>
 
-        {/* B: Total Tasks Under Me */}
-        <div className="w-72 border rounded-lg p-4 shadow">
-          <div className="flex items-center gap-2 font-semibold mt-6">
+        {/* Total Tasks Under Me */}
+        <div className="p-6 bg-white rounded-2xl shadow-lg border hover:scale-[1.01] transition">
+          <div className="flex items-center gap-2 text-gray-700 font-semibold">
             <DotIcon />
             Total Tasks under Me:
           </div>
-          <div className="mt-2 text-blue-500 text-2xl font-bold">
+          <div className="mt-4 text-blue-600 text-4xl font-extrabold text-center">
             {loading ? "..." : totalTasks}
           </div>
         </div>
       </div>
 
-      {/* Middle Section */}
-      <div className="flex justify-around gap-12">
-        {/* C: Subtasks in My Queue */}
-        <div>
-          <ul className="list-disc ml-5 space-y-2">
-            <li className="font-semibold flex items-center gap-2">
-              <HammerIcon /> Subtasks in My Queue:
-            </li>
+      {/* Subtasks & Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+        {/* Subtasks */}
+        <div className="p-6 bg-white rounded-2xl shadow-lg border">
+          <h3 className="font-bold text-lg text-gray-800 mb-4 flex items-center gap-2">
+            <HammerIcon className="text-indigo-500" /> Subtasks in My Queue
+          </h3>
+          <ul className="space-y-3">
             {subtaskList.map((task, idx) => (
-              <li key={idx} className="flex items-center gap-2 ml-6">
-                {task.label}:
-                <span className="bg-gray-200 text-sm px-2 py-1 rounded">
+              <li
+                key={idx}
+                className="flex justify-between items-center border-b pb-2"
+              >
+                <span className="text-gray-700">{task.label}</span>
+                <span className="bg-indigo-100 text-indigo-600 text-sm font-medium px-3 py-1 rounded-full">
                   {loading ? "..." : getProcessCount(task.code)}
                 </span>
               </li>
@@ -78,24 +91,35 @@ export default function Checker() {
           </ul>
         </div>
 
-        {/* D: Actions Required */}
-        <div>
-          <ul className="list-disc ml-5 space-y-2">
-            <li className="font-semibold flex items-center gap-2">
-              <AlertIcon />
-              Actions Required:
+        {/* Actions Required */}
+        <div className="p-6 bg-white rounded-2xl shadow-lg border">
+          <h3 className="font-bold text-lg text-gray-800 mb-4 flex items-center gap-2">
+            <AlertIcon className="text-red-500" /> Actions Required
+          </h3>
+          <ul className="space-y-3">
+            <li className="flex justify-between items-center border-b pb-2">
+              Payments to confirm
+              <span className="bg-yellow-100 text-yellow-700 text-sm font-medium px-3 py-1 rounded-full">
+                {loading ? "..." : getProcessCount("payment")}
+              </span>
             </li>
-            <li className="ml-6">
-              {loading ? "..." : getProcessCount("payment")} Payments to confirm
+            <li className="flex justify-between items-center border-b pb-2">
+              Overdue Tasks
+              <span className="bg-red-100 text-red-600 text-sm font-medium px-3 py-1 rounded-full">
+                {loading ? "..." : overdueTasks.length}
+              </span>
             </li>
-            <span className="ml-6 mt-2 border border-red-500 text-red-600 w-fit px-3 py-1 text-sm">
-              {loading ? "..." : overdueTasks.length} Overdue Tasks
-            </span>
+            <li className="flex justify-between items-center">
+              Tasks Due Next Week
+              <span className="bg-blue-100 text-blue-600 text-sm font-medium px-3 py-1 rounded-full">
+                {loading ? "..." : dueNextWeek.length}
+              </span>
+            </li>
           </ul>
         </div>
       </div>
 
-      {/* Bottom Row */}
+      {/* Task Category List */}
       <TaskCategoryList />
     </div>
   );

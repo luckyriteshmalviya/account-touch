@@ -10,43 +10,49 @@ export default function Franchise() {
   const clients = dashboardData?.clients || [];
 
   return (
-    <div className="p-6 bg-white min-h-screen space-y-8">
-      <div className="flex justify-evenly gap-8">
+    <div className="p-6 bg-gradient-to-br from-white to-gray-50 min-h-screen space-y-10">
+      {/* Top Info Cards */}
+      <div className="flex flex-wrap gap-6 justify-center ">
         {/* Clients Added by Me */}
-        <div className="w-fit border rounded-lg p-4 shadow">
-          <div className="flex items-center gap-2 font-semibold">
-            <Dot />
+        <div className="p-6 bg-white rounded-2xl shadow-lg border hover:scale-[1.01] transition flex-1">
+          <div className="flex items-center gap-2 text-gray-700 font-semibold mt-4">
+            <Dot className="text-green-600" />
             <GroupIcon />
             Clients Added by Me:
           </div>
-
-          {/* Client Names */}
-          <ul className="mt-2 list-disc list-inside text-gray-700 text-center text-sm space-y-1">
+          <div className="mt-4 space-y-2 max-h-52 overflow-auto">
             {loading ? (
-              <li>Loading...</li>
-            ) : clients.length > 0 ? (
-              clients.map((client: any) => (
-                <li key={client.id}>{client.name}</li>
-              ))
+              <div className="text-gray-500">Loading...</div>
+            ) : clients.length === 0 ? (
+              <div className="text-gray-500">No clients added</div>
             ) : (
-              <li>No clients added</li>
+              clients.map((client: any, index: number) => (
+                <div
+                  key={index}
+                  className="bg-gray-100 text-gray-800 text-sm px-3 py-1 rounded-lg flex items-center gap-2"
+                >
+                  <Dot className="text-blue-500 w-4 h-4" />
+                  {client.name}
+                </div>
+              ))
             )}
-          </ul>
+          </div>
         </div>
 
         {/* Total Tasks Initiated by Clients */}
-        <div className="w-fit border rounded-lg p-4 shadow">
-          <div className="flex items-center gap-2 font-semibold">
-            <Dot />
+        <div className="p-6 bg-white rounded-2xl shadow-lg border hover:scale-[1.01] transition flex-1">
+          <div className="flex items-center gap-2 text-gray-700 font-semibold mt-4">
+            <Dot className="text-green-600" />
             <FileIcon />
-            Total Tasks Initiated by Clients:
+            Tasks Initiated by Clients:
           </div>
-          <div className="mt-2 text-blue-500 text-2xl text-center font-bold cursor-pointer">
+          <div className="mt-6 text-indigo-600 text-5xl text-center font-extrabold cursor-pointer transition hover:scale-105">
             {loading ? "..." : assignedClients}
           </div>
         </div>
       </div>
 
+      {/* Task Category List */}
       <TaskCategoryList />
     </div>
   );

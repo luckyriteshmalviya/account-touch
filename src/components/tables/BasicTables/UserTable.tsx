@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -37,16 +37,19 @@ interface Order {
 
 export default function UserTableOne() {
   const navigate = useNavigate();
+  const isSuperAdmin = useIsSuperAdmin();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const initialRole = searchParams.get("role") || "";
   const [tableData, setTableData] = useState<Order[]>([]);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const pageSize = 10;
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState("");
+  const [roleFilter, setRoleFilter] = useState(initialRole);
   const [statusFilter, setStatusFilter] = useState("");
 
-  const isSuperAdmin = useIsSuperAdmin();
   const fetchUsers = async () => {
     const params: any = {
       page,
@@ -68,9 +71,17 @@ export default function UserTableOne() {
     }
   };
 
+  // Fetch on filter changes
   useEffect(() => {
     fetchUsers();
   }, [page, searchTerm, roleFilter, statusFilter]);
+
+  // Watch URL query param change & set role filter accordingly
+  useEffect(() => {
+    const paramRole = searchParams.get("role") || "";
+    setRoleFilter(paramRole);
+    setPage(1);
+  }, [searchParams]);
 
   const totalPages = Math.ceil(totalCount / pageSize);
 
@@ -137,8 +148,16 @@ export default function UserTableOne() {
         <select
           value={roleFilter}
           onChange={(e) => {
-            setRoleFilter(e.target.value);
+            const value = e.target.value;
+            setRoleFilter(value);
             setPage(1);
+            // update role query param in URL
+            if (value) {
+              searchParams.set("role", value);
+            } else {
+              searchParams.delete("role");
+            }
+            setSearchParams(searchParams);
           }}
           className="px-3 py-2 border rounded-md"
         >
@@ -193,9 +212,6 @@ export default function UserTableOne() {
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                 {tableData.map((order) => (
                   <TableRow key={order.id}>
-                    {/* <TableCell className="px-4 py-4 text-start">
-                      {(page - 1) * pageSize + index + 1}
-                    </TableCell> */}
                     <TableCell className="px-4 py-4 text-start">
                       <div>
                         <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
@@ -232,7 +248,6 @@ export default function UserTableOne() {
                         className="w-5 h-5 text-blue-600 hover:text-blue-800 cursor-pointer"
                         onClick={() => showDetails(order)}
                       />
-
                       {isSuperAdmin && (
                         <Trash
                           className="w-5 h-5 text-red-600 hover:text-red-800 cursor-pointer"
@@ -248,7 +263,7 @@ export default function UserTableOne() {
         </div>
       </div>
 
-      {/* Pagination - Updated with page numbers */}
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center items-center mt-6 gap-2 flex-wrap">
           <button
@@ -258,7 +273,6 @@ export default function UserTableOne() {
           >
             Prev
           </button>
-
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((pg) => (
             <button
               key={pg}
@@ -272,7 +286,6 @@ export default function UserTableOne() {
               {pg}
             </button>
           ))}
-
           <button
             onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
             disabled={page === totalPages}

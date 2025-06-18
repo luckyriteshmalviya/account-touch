@@ -1,78 +1,60 @@
-import { useEffect, useState } from "react";
+import { useDashboard } from "../../context/DashboardContext";
 import { ListIcon, DollarLineIcon } from "../../icons";
-import { getDashboardDataService } from "../../services/restApi/dashboard";
+import { useNavigate } from "react-router-dom";
 
 export default function DashboardStats() {
-  const [tasksCreated, setTasksCreated] = useState(0);
-  const [totalRevenue] = useState(0); // reserved for future use
-  const [overdueTasks, setOverdueTasks] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        const data = await getDashboardDataService();
-
-        setTasksCreated(data.total_tasks || 0);
-        setOverdueTasks(data.tasks_due_next_week.length || 0);
-        // setTotalRevenue(data.total_revenue || 0); // reserved for future use
-      } catch (err: any) {
-        console.error("Error fetching dashboard data:", err);
-        setError(err.message || "Something went wrong");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, []);
+  const { dashboardData, loading } = useDashboard();
+  const navigate = useNavigate();
+  const tasksCreated = dashboardData?.total_tasks || 0;
+  const overdueTasks = dashboardData?.tasks_due_next_week?.length || 0;
+  const totalRevenue = 0; // placeholder for future
 
   return (
-    <>
-      <div className="mt-6 w-[70vw] border-2 border-blue-400 rounded-lg px-4 pt-3 bg-white dark:bg-gray-900 dark:border-gray-700">
-        <h4 className="ml-3 mb-4">In this financial year</h4>
+    <div className="mt-6 w-[75vw] border border-gray-200 rounded-2xl px-6 py-5 bg-white shadow-lg">
+      <h4 className="text-lg font-bold text-gray-800 mb-6">
+        📊 This Financial Year Summary
+      </h4>
 
-        <div className="flex justify-around items-center gap-16 text-sm sm:text-base text-gray-700 dark:text-white/80">
-          {/* Tasks Created */}
-          <div className="flex items-center gap-2">
-            <ListIcon className="text-gray-700 dark:text-white/80" />
-            <span>
-              Tasks Created:{" "}
-              <strong className="text-gray-900 dark:text-white">
-                {loading ? "..." : tasksCreated}
-              </strong>
-            </span>
+      <div className="flex flex-wrap justify-between items-center gap-6 text-sm sm:text-base text-gray-700">
+        {/* Tasks Created */}
+        <div className="flex items-center gap-3 bg-gray-50 px-4 py-3 rounded-xl w-full sm:w-auto flex-1 shadow-sm hover:shadow-md transition">
+          <div className="w-10 h-10 flex items-center justify-center rounded-full bg-indigo-100">
+            <ListIcon className="text-indigo-600 w-5 h-5" />
           </div>
+          <div onClick={() => navigate("/task-list")}>
+            <p className="text-xs text-gray-500">Tasks Created</p>
+            <h3 className="text-lg font-semibold text-gray-900">
+              {loading ? "..." : tasksCreated}
+            </h3>
+          </div>
+        </div>
 
-          {/* Total Revenue */}
-          <div className="flex items-center gap-2">
-            <DollarLineIcon className="text-yellow-500" />
-            <span>
-              Total Revenue Collected:{" "}
-              <strong className="text-gray-900 dark:text-white">
-                ₹ {loading ? "..." : totalRevenue.toLocaleString()}
-              </strong>
-            </span>
+        {/* Total Revenue */}
+        <div className="flex items-center gap-3 bg-gray-50 px-4 py-3 rounded-xl w-full sm:w-auto flex-1 shadow-sm hover:shadow-md transition">
+          <div className="w-10 h-10 flex items-center justify-center rounded-full bg-yellow-100">
+            <DollarLineIcon className="text-yellow-600 w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-xs text-gray-500">Total Revenue</p>
+            <h3 className="text-lg font-semibold text-gray-900">
+              ₹ {loading ? "..." : totalRevenue.toLocaleString()}
+            </h3>
           </div>
         </div>
 
         {/* Overdue Tasks */}
-        <div className="border-2 border-red-600 w-fit mt-4 ml-10 px-4 py-2 rounded-lg">
-          <span className="text-base font-semibold text-gray-800 dark:text-white">
-            Overdue Tasks This Week:{" "}
-            <strong className="text-gray-900 dark:text-white">
+        <div className="flex items-center gap-3 bg-gray-50 px-4 py-3 rounded-xl w-full sm:w-auto flex-1 shadow-sm hover:shadow-md transition">
+          <div className="w-10 h-10 flex items-center justify-center rounded-full bg-red-100">
+            <ListIcon className="text-red-600 w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-xs text-gray-500">Overdue This Week</p>
+            <h3 className="text-lg font-semibold text-gray-900">
               {loading ? "..." : overdueTasks}
-            </strong>
-          </span>
+            </h3>
+          </div>
         </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="mt-4 text-red-500 text-sm text-center">{error}</div>
-        )}
       </div>
-    </>
+    </div>
   );
 }
