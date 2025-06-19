@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   Table,
   TableBody,
@@ -12,10 +12,294 @@ import {
   deleteTaskService,
   getTaskListService,
 } from "../../../services/restApi/task";
-import { Edit, Eye, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Edit,
+  Eye,
+  ChevronDown,
+  ChevronUp,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Calendar,
+} from "lucide-react";
 import { getUserListService } from "../../../services/restApi/user";
 import { getCategoryListService } from "../../../services/restApi/category";
 
+// DateRangePicker Component Props Interface
+interface DateRangePickerProps {
+  startDate: Date | null;
+  endDate: Date | null;
+  onDateChange: (start: Date | null, end: Date | null) => void;
+  placeholder?: string;
+  label?: string;
+}
+
+// DateRangePicker Component
+const DateRangePicker: React.FC<DateRangePickerProps> = ({
+  startDate,
+  endDate,
+  onDateChange,
+  placeholder = "Select date range",
+  label = "Date Range",
+}) => {
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+  const [tempStartDate, setTempStartDate] = useState<Date | null>(startDate);
+  const [tempEndDate, setTempEndDate] = useState<Date | null>(endDate);
+  const [, setIsSelectingEnd] = useState<boolean>(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const months: string[] = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const daysOfWeek: string[] = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+
+  useEffect(() => {
+    setTempStartDate(startDate);
+    setTempEndDate(endDate);
+  }, [startDate, endDate]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+        setTempStartDate(startDate);
+        setTempEndDate(endDate);
+        setIsSelectingEnd(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [startDate, endDate]);
+
+  const formatDate = (date: Date | null): string => {
+    if (!date) return "";
+    return date.toLocaleDateString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  const getDisplayText = (): string => {
+    if (tempStartDate && tempEndDate) {
+      return `${formatDate(tempStartDate)} - ${formatDate(tempEndDate)}`;
+    }
+    if (tempStartDate) {
+      return `${formatDate(tempStartDate)} - Select end date`;
+    }
+    return placeholder;
+  };
+
+  const getDaysInMonth = (date: Date): (Date | null)[] => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+
+    const days: (Date | null)[] = [];
+
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(new Date(year, month, day));
+    }
+
+    return days;
+  };
+
+  const isSameDay = (date1: Date | null, date2: Date | null): boolean => {
+    if (!date1 || !date2) return false;
+    return date1.toDateString() === date2.toDateString();
+  };
+
+  const isInRange = (date: Date): boolean => {
+    if (!tempStartDate || !tempEndDate || !date) return false;
+    return date >= tempStartDate && date <= tempEndDate;
+  };
+
+  const isToday = (date: Date): boolean => {
+    if (!date) return false;
+    return isSameDay(date, new Date());
+  };
+
+  const handleDateClick = (date: Date): void => {
+    if (!tempStartDate || (tempStartDate && tempEndDate)) {
+      setTempStartDate(date);
+      setTempEndDate(null);
+      setIsSelectingEnd(true);
+    } else if (tempStartDate && !tempEndDate) {
+      if (date >= tempStartDate) {
+        setTempEndDate(date);
+        setIsSelectingEnd(false);
+        setTimeout(() => {
+          onDateChange(tempStartDate, date);
+          setIsOpen(false);
+        }, 200);
+      } else {
+        setTempStartDate(date);
+        setTempEndDate(null);
+      }
+    }
+  };
+
+  const navigateMonth = (direction: number): void => {
+    setCurrentMonth((prev) => {
+      const newMonth = new Date(prev);
+      newMonth.setMonth(prev.getMonth() + direction);
+      return newMonth;
+    });
+  };
+
+  const clearDates = (): void => {
+    setTempStartDate(null);
+    setTempEndDate(null);
+    setIsSelectingEnd(false);
+    onDateChange(null, null);
+  };
+
+  const days = getDaysInMonth(currentMonth);
+
+  return (
+    <div className="relative w-full" ref={dropdownRef}>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        {label}
+      </label>
+
+      <div
+        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer bg-white dark:bg-gray-700 hover:border-blue-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-20 transition-all duration-200 flex items-center justify-between"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span
+          className={`text-sm ${
+            tempStartDate || tempEndDate
+              ? "text-gray-900 dark:text-white"
+              : "text-gray-500 dark:text-gray-400"
+          }`}
+        >
+          {getDisplayText()}
+        </span>
+        <div className="flex items-center gap-2">
+          {(tempStartDate || tempEndDate) && (
+            <button
+              onClick={(e: React.MouseEvent) => {
+                e.stopPropagation();
+                clearDates();
+              }}
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+          <Calendar className="h-4 w-4 text-gray-400" />
+        </div>
+      </div>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-50 p-4 min-w-[320px]">
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={() => navigateMonth(-1)}
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+            >
+              <ChevronLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+            </button>
+
+            <h3 className="font-semibold text-gray-900 dark:text-white">
+              {months[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+            </h3>
+
+            <button
+              onClick={() => navigateMonth(1)}
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+            >
+              <ChevronRight className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-7 gap-1 mb-2">
+            {daysOfWeek.map((day) => (
+              <div
+                key={day}
+                className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 py-2"
+              >
+                {day}
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7 gap-1">
+            {days.map((date, index) => {
+              if (!date) {
+                return <div key={index} className="h-10" />;
+              }
+
+              const isStart = isSameDay(date, tempStartDate);
+              const isEnd = isSameDay(date, tempEndDate);
+              const inRange = isInRange(date);
+              const today = isToday(date);
+
+              let className =
+                "h-10 w-10 flex items-center justify-center text-sm rounded-lg cursor-pointer transition-all duration-200 ";
+
+              if (isStart || isEnd) {
+                className += "bg-blue-600 text-white font-semibold ";
+              } else if (inRange) {
+                className +=
+                  "bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 ";
+              } else if (today) {
+                className += "bg-purple-500 text-white font-semibold ";
+              } else {
+                className +=
+                  "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ";
+              }
+
+              return (
+                <button
+                  key={index}
+                  onClick={() => handleDateClick(date)}
+                  className={className}
+                >
+                  {date.getDate()}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-3 text-xs text-gray-500 dark:text-gray-400 text-center">
+            {!tempStartDate
+              ? "Select start date"
+              : !tempEndDate
+              ? "Select end date"
+              : "Range selected"}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Main TasksTable Component Interfaces
 interface Task {
   id: string;
   title: string;
@@ -85,28 +369,30 @@ type StatusType = "pending" | "started" | "completed" | "rejected";
 export default function TasksTable() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [, setTotalCount] = useState(0);
+  const [page, setPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [, setTotalCount] = useState<number>(0);
   const [searchParams] = useSearchParams();
-  const pageSize = 10;
+  const pageSize: number = 10;
 
   // Basic filters (always visible)
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState<string>("");
   const [priority, setPriority] = useState<PriorityType | "">("");
   const [status, setStatus] = useState<StatusType | "">("");
   const [category, setCategory] = useState<string>("");
 
   // More filters toggle
-  const [showMoreFilters, setShowMoreFilters] = useState(false);
+  const [showMoreFilters, setShowMoreFilters] = useState<boolean>(false);
 
-  // Separate date range filters for each type
-  const [createdDateStart, setCreatedDateStart] = useState<string>("");
-  const [createdDateEnd, setCreatedDateEnd] = useState<string>("");
-  const [dueDateStart, setDueDateStart] = useState<string>("");
-  const [dueDateEnd, setDueDateEnd] = useState<string>("");
-  const [completedDateStart, setCompletedDateStart] = useState<string>("");
-  const [completedDateEnd, setCompletedDateEnd] = useState<string>("");
+  // Date range filters using Date objects
+  const [createdDateStart, setCreatedDateStart] = useState<Date | null>(null);
+  const [createdDateEnd, setCreatedDateEnd] = useState<Date | null>(null);
+  const [dueDateStart, setDueDateStart] = useState<Date | null>(null);
+  const [dueDateEnd, setDueDateEnd] = useState<Date | null>(null);
+  const [completedDateStart, setCompletedDateStart] = useState<Date | null>(
+    null
+  );
+  const [completedDateEnd, setCompletedDateEnd] = useState<Date | null>(null);
 
   // User filters
   const [maker, setMaker] = useState<string>("");
@@ -122,16 +408,27 @@ export default function TasksTable() {
   const [categoryList, setCategoryList] = useState<Category[]>([]);
 
   // Add loading state to ensure proper initialization
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [urlParamsProcessed, setUrlParamsProcessed] = useState(false);
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
+  const [urlParamsProcessed, setUrlParamsProcessed] = useState<boolean>(false);
 
   const navigate = useNavigate();
 
+  // Helper function to convert date to string format
+  const dateToString = (date: Date | null): string => {
+    if (!date) return "";
+    return date.toISOString().split("T")[0];
+  };
+
+  // Helper function to convert string to date
+  const stringToDate = (dateString: string): Date | null => {
+    if (!dateString) return null;
+    return new Date(dateString);
+  };
+
   // First load all dropdown data
   useEffect(() => {
-    const fetchUserLists = async () => {
+    const fetchUserLists = async (): Promise<void> => {
       try {
-        // Fetch all data in parallel
         const [
           makerResponse,
           checkerResponse,
@@ -146,7 +443,6 @@ export default function TasksTable() {
           getCategoryListService({ page: 1 }),
         ]);
 
-        // Set all lists
         if (makerResponse?.results) setMakerList(makerResponse.results);
         if (checkerResponse?.results) setCheckerList(checkerResponse.results);
         if (clientResponse?.results) setClientList(clientResponse.results);
@@ -155,11 +451,10 @@ export default function TasksTable() {
         if (categoryResponse?.results)
           setCategoryList(categoryResponse.results);
 
-        // Mark as initialized
         setIsInitialized(true);
       } catch (error) {
         console.error("Error fetching dropdown data:", error);
-        setIsInitialized(true); // Still mark as initialized even if error
+        setIsInitialized(true);
       }
     };
 
@@ -170,18 +465,15 @@ export default function TasksTable() {
   useEffect(() => {
     if (!isInitialized || urlParamsProcessed) return;
 
-    const handleUrlParameters = () => {
-      // Handle category parameter
+    const handleUrlParameters = (): void => {
       const categoryParam = searchParams.get("category");
       if (categoryParam) {
         setCategory(categoryParam);
         setShowMoreFilters(true);
       }
 
-      // Handle status parameter (can be comma-separated)
       const statusParam = searchParams.get("status");
       if (statusParam) {
-        // For now, just take the first status if multiple are provided
         const firstStatus = statusParam.split(",")[0];
         if (
           ["pending", "started", "completed", "rejected"].includes(firstStatus)
@@ -191,38 +483,32 @@ export default function TasksTable() {
         }
       }
 
-      // Handle created date range parameters
       const createdStartParam = searchParams.get("created_start");
       const createdEndParam = searchParams.get("created_end");
 
       if (createdStartParam && createdEndParam) {
-        setCreatedDateStart(createdStartParam);
-        setCreatedDateEnd(createdEndParam);
+        setCreatedDateStart(stringToDate(createdStartParam));
+        setCreatedDateEnd(stringToDate(createdEndParam));
         setShowMoreFilters(true);
       }
 
-      // Handle due date range parameters
       const dueStartParam = searchParams.get("due_start");
       const dueEndParam = searchParams.get("due_end");
 
       if (dueStartParam && dueEndParam) {
-        setDueDateStart(dueStartParam);
-        setDueDateEnd(dueEndParam);
+        setDueDateStart(stringToDate(dueStartParam));
+        setDueDateEnd(stringToDate(dueEndParam));
         setShowMoreFilters(true);
       } else if (dueEndParam && !dueStartParam) {
-        // Handle case where only due_end is provided (for overdue tasks)
-
-        setDueDateEnd(dueEndParam);
+        setDueDateEnd(stringToDate(dueEndParam));
         setShowMoreFilters(true);
       }
 
-      // Show more filters if requested
       const showMoreParam = searchParams.get("show_more");
       if (showMoreParam === "true") {
         setShowMoreFilters(true);
       }
 
-      // Mark URL parameters as processed
       setUrlParamsProcessed(true);
     };
 
@@ -233,7 +519,6 @@ export default function TasksTable() {
   useEffect(() => {
     if (!isInitialized || !urlParamsProcessed) return;
 
-    // Add a small delay to ensure all state updates are complete
     const timeoutId = setTimeout(() => {
       fetchTasks();
     }, 50);
@@ -259,13 +544,12 @@ export default function TasksTable() {
     franchise,
   ]);
 
-  const fetchTasks = async () => {
-    const params: any = {
+  const fetchTasks = async (): Promise<void> => {
+    const params: Record<string, any> = {
       page,
       page_size: pageSize,
     };
 
-    // Only add parameters that have values
     if (search) params.search = search;
     if (priority) params.priority = priority;
     if (status) params.status = status;
@@ -273,29 +557,26 @@ export default function TasksTable() {
 
     // Created date filters
     if (createdDateStart && createdDateEnd) {
-      params.created_after = createdDateStart;
-      params.created_before = createdDateEnd;
+      params.created_after = dateToString(createdDateStart);
+      params.created_before = dateToString(createdDateEnd);
     }
 
     // Due date filters
     if (dueDateStart && dueDateEnd) {
-      params.due_after = dueDateStart;
-      params.due_before = dueDateEnd;
+      params.due_after = dateToString(dueDateStart);
+      params.due_before = dateToString(dueDateEnd);
     } else if (dueDateEnd && !dueDateStart) {
-      // Handle case where only due end date is provided (for overdue tasks)
-      params.due_before = dueDateEnd;
+      params.due_before = dateToString(dueDateEnd);
     } else if (dueDateStart && !dueDateEnd) {
-      // Handle case where only due start date is provided
-      params.due_after = dueDateStart;
+      params.due_after = dateToString(dueDateStart);
     }
 
     // Completed date filters
     if (completedDateStart && completedDateEnd) {
-      params.completed_after = completedDateStart;
-      params.completed_before = completedDateEnd;
+      params.completed_after = dateToString(completedDateStart);
+      params.completed_before = dateToString(completedDateEnd);
     }
 
-    // User filters
     if (maker) params.maker = maker;
     if (checker) params.checker = checker;
     if (client) params.client = client;
@@ -315,17 +596,17 @@ export default function TasksTable() {
   };
 
   // Clear all filters
-  const clearFilters = () => {
+  const clearFilters = (): void => {
     setSearch("");
     setPriority("");
     setStatus("");
     setCategory("");
-    setCreatedDateStart("");
-    setCreatedDateEnd("");
-    setDueDateStart("");
-    setDueDateEnd("");
-    setCompletedDateStart("");
-    setCompletedDateEnd("");
+    setCreatedDateStart(null);
+    setCreatedDateEnd(null);
+    setDueDateStart(null);
+    setDueDateEnd(null);
+    setCompletedDateStart(null);
+    setCompletedDateEnd(null);
     setMaker("");
     setChecker("");
     setClient("");
@@ -334,7 +615,7 @@ export default function TasksTable() {
     setShowMoreFilters(false);
   };
 
-  const handleDelete = async () => {
+  const handleDelete = async (): Promise<void> => {
     if (deleteId !== null) {
       const success = await deleteTaskService(Number(deleteId));
       if (success) {
@@ -355,7 +636,31 @@ export default function TasksTable() {
     }
   };
 
-  // Show loading state while initializing
+  // Date range change handlers
+  const handleCreatedDateChange = (
+    start: Date | null,
+    end: Date | null
+  ): void => {
+    setCreatedDateStart(start);
+    setCreatedDateEnd(end);
+    setPage(1);
+  };
+
+  const handleDueDateChange = (start: Date | null, end: Date | null): void => {
+    setDueDateStart(start);
+    setDueDateEnd(end);
+    setPage(1);
+  };
+
+  const handleCompletedDateChange = (
+    start: Date | null,
+    end: Date | null
+  ): void => {
+    setCompletedDateStart(start);
+    setCompletedDateEnd(end);
+    setPage(1);
+  };
+
   if (!isInitialized) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -370,7 +675,7 @@ export default function TasksTable() {
     <>
       {/* Filters Section */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6 border border-gray-100 dark:border-gray-700">
-        {/* Basic Filters - Always Visible (Search, Priority, Status, Category) */}
+        {/* Basic Filters - Always Visible */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           <div className="space-y-2">
             <label
@@ -385,7 +690,7 @@ export default function TasksTable() {
               placeholder="Search by title or description..."
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               value={search}
-              onChange={(e) => {
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 setSearch(e.target.value);
                 setPage(1);
               }}
@@ -403,7 +708,7 @@ export default function TasksTable() {
               id="priority"
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               value={priority}
-              onChange={(e) => {
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                 setPriority(e.target.value as PriorityType | "");
                 setPage(1);
               }}
@@ -427,7 +732,7 @@ export default function TasksTable() {
               id="status"
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               value={status}
-              onChange={(e) => {
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                 setStatus(e.target.value as StatusType | "");
                 setPage(1);
               }}
@@ -440,7 +745,6 @@ export default function TasksTable() {
             </select>
           </div>
 
-          {/* Category Filter */}
           <div className="space-y-2">
             <label
               htmlFor="category"
@@ -453,7 +757,7 @@ export default function TasksTable() {
               id="category"
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               value={category}
-              onChange={(e) => {
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                 setCategory(e.target.value);
                 setPage(1);
               }}
@@ -524,7 +828,7 @@ export default function TasksTable() {
                   id="maker"
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                   value={maker}
-                  onChange={(e) => {
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                     setMaker(e.target.value);
                     setPage(1);
                   }}
@@ -549,7 +853,7 @@ export default function TasksTable() {
                   id="checker"
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                   value={checker}
-                  onChange={(e) => {
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                     setChecker(e.target.value);
                     setPage(1);
                   }}
@@ -574,7 +878,7 @@ export default function TasksTable() {
                   id="client"
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                   value={client}
-                  onChange={(e) => {
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                     setClient(e.target.value);
                     setPage(1);
                   }}
@@ -599,7 +903,7 @@ export default function TasksTable() {
                   id="franchise"
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                   value={franchise}
-                  onChange={(e) => {
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                     setFranchise(e.target.value);
                     setPage(1);
                   }}
@@ -617,136 +921,31 @@ export default function TasksTable() {
               </div>
             </div>
 
-            {/* Date Filter Rows - Each type gets its own row */}
-            <div className="flex flex-wrap gap-8">
-              {/* Created Date */}
-              <div className="flex flex-col space-y-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Created Date
-                </label>
-                <div className="flex items-end gap-2">
-                  <div>
-                    <label className="block text-xs text-gray-500 dark:text-gray-400">
-                      From
-                    </label>
-                    <input
-                      type="date"
-                      className="w-40 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white cursor-pointer"
-                      value={createdDateStart}
-                      onClick={(e) =>
-                        (e.target as HTMLInputElement).showPicker()
-                      }
-                      onChange={(e) => {
-                        setCreatedDateStart(e.target.value);
-                        setPage(1);
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 dark:text-gray-400">
-                      To
-                    </label>
-                    <input
-                      type="date"
-                      className="w-40 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white cursor-pointer"
-                      value={createdDateEnd}
-                      onClick={(e) =>
-                        (e.target as HTMLInputElement).showPicker()
-                      }
-                      onChange={(e) => {
-                        setCreatedDateEnd(e.target.value);
-                        setPage(1);
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
+            {/* Date Range Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <DateRangePicker
+                startDate={createdDateStart}
+                endDate={createdDateEnd}
+                onDateChange={handleCreatedDateChange}
+                label="Created Date Range"
+                placeholder="Select created date range"
+              />
 
-              {/* Due Date */}
-              <div className="flex flex-col space-y-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Due Date
-                </label>
-                <div className="flex items-end gap-2">
-                  <div>
-                    <label className="block text-xs text-gray-500 dark:text-gray-400">
-                      From
-                    </label>
-                    <input
-                      type="date"
-                      className="w-40 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white cursor-pointer"
-                      value={dueDateStart}
-                      onClick={(e) =>
-                        (e.target as HTMLInputElement).showPicker()
-                      }
-                      onChange={(e) => {
-                        setDueDateStart(e.target.value);
-                        setPage(1);
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 dark:text-gray-400">
-                      To
-                    </label>
-                    <input
-                      type="date"
-                      className="w-40 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white cursor-pointer"
-                      value={dueDateEnd}
-                      onClick={(e) =>
-                        (e.target as HTMLInputElement).showPicker()
-                      }
-                      onChange={(e) => {
-                        setDueDateEnd(e.target.value);
-                        setPage(1);
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
+              <DateRangePicker
+                startDate={dueDateStart}
+                endDate={dueDateEnd}
+                onDateChange={handleDueDateChange}
+                label="Due Date Range"
+                placeholder="Select due date range"
+              />
 
-              {/* Completed Date */}
-              <div className="flex flex-col space-y-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Completed Date
-                </label>
-                <div className="flex items-end gap-2">
-                  <div>
-                    <label className="block text-xs text-gray-500 dark:text-gray-400">
-                      From
-                    </label>
-                    <input
-                      type="date"
-                      className="w-40 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white cursor-pointer"
-                      value={completedDateStart}
-                      onClick={(e) =>
-                        (e.target as HTMLInputElement).showPicker()
-                      }
-                      onChange={(e) => {
-                        setCompletedDateStart(e.target.value);
-                        setPage(1);
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 dark:text-gray-400">
-                      To
-                    </label>
-                    <input
-                      type="date"
-                      className="w-40 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white cursor-pointer"
-                      value={completedDateEnd}
-                      onClick={(e) =>
-                        (e.target as HTMLInputElement).showPicker()
-                      }
-                      onChange={(e) => {
-                        setCompletedDateEnd(e.target.value);
-                        setPage(1);
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
+              <DateRangePicker
+                startDate={completedDateStart}
+                endDate={completedDateEnd}
+                onDateChange={handleCompletedDateChange}
+                label="Completed Date Range"
+                placeholder="Select completed date range"
+              />
             </div>
           </div>
         )}
@@ -771,7 +970,6 @@ export default function TasksTable() {
                   ].map((header) => (
                     <TableCell
                       key={header}
-                      isHeader
                       className="px-4 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                     >
                       {header}
@@ -808,7 +1006,7 @@ export default function TasksTable() {
                         <a
                           href={`/tasks/view/${task.id}`}
                           className="text-blue-600 hover:text-blue-800 hover:underline"
-                          onClick={(e) => {
+                          onClick={(e: React.MouseEvent) => {
                             e.preventDefault();
                             navigate(`/tasks/view/${task.id}`);
                           }}
@@ -860,7 +1058,6 @@ export default function TasksTable() {
       </div>
 
       {/* Pagination Controls */}
-      {/* {totalPages > 1 && ( */}
       <div className="flex justify-center items-center mt-2 gap-2 flex-wrap">
         <button
           onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
@@ -890,7 +1087,6 @@ export default function TasksTable() {
           Next
         </button>
       </div>
-      {/* )} */}
 
       {/* Delete Confirmation Modal */}
       {deleteId !== null && (
