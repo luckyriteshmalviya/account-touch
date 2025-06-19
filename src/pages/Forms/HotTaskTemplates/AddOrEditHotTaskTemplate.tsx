@@ -6,17 +6,15 @@ import {
   addTaskTemplatService,
   updateTaskTemplatService,
   getTaskTemplatDetailsService,
-  getTaskTemplatCategory
+  getTaskTemplatCategory,
 } from "../../../services/restApi/taskTemplate";
-import {
-  getProcessTemplatListService,
-} from "../../../services/restApi/processTemplate";
+import { getProcessTemplatListService } from "../../../services/restApi/processTemplate";
 
 interface ProcessTemplate {
   id: number;
   name: string;
   process_type: string;
-  title: string
+  title: string;
 }
 
 export default function AddOrEditTaskTemplatPage() {
@@ -31,19 +29,19 @@ export default function AddOrEditTaskTemplatPage() {
     order: 0,
     priority: "low" as Priority, // cast here if needed
     fees: "",
-    process_templates: ''
+    process_templates: "",
   });
 
-  const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
+  const [, setCategories] = useState<{ id: number; name: string }[]>([]);
   const { id } = useParams();
   const isEdit = !!id;
   const navigate = useNavigate();
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [processtype, setprocesstype] = useState("");
-  const [processTemplates, setProcessTemplates] = useState<ProcessTemplate[]>([]);
-
-  console.log(setPage, setSearch, setprocesstype, categories);
+  // const [, setPage] = useState(1);
+  const [search] = useState("");
+  const [processtype] = useState("");
+  const [processTemplates, setProcessTemplates] = useState<ProcessTemplate[]>(
+    []
+  );
 
   useEffect(() => {
     async function fetchCategories() {
@@ -57,7 +55,7 @@ export default function AddOrEditTaskTemplatPage() {
 
     const fetchProcessTemplates = async () => {
       try {
-        const res = await getProcessTemplatListService({ page, search, processtype });
+        const res = await getProcessTemplatListService({ search, processtype });
         setProcessTemplates(res?.results);
       } catch (err) {
         console.error("Error fetching process templates", err);
@@ -83,7 +81,7 @@ export default function AddOrEditTaskTemplatPage() {
             order: data?.order || 0,
             priority: (data?.priority as Priority) || "low",
             fees: data?.fees || "",
-            process_templates: JSON.parse(data?.process_templates) || ""
+            process_templates: JSON.parse(data?.process_templates) || "",
           });
         } catch (error) {
           Swal.fire("Error", "Failed to load template details", "error");
@@ -105,7 +103,7 @@ export default function AddOrEditTaskTemplatPage() {
           icon: "success",
           title: `Task Template ${isEdit ? "Updated" : "Created"}`,
           timer: 2000,
-          showConfirmButton: false
+          showConfirmButton: false,
         });
         navigate("/task-templates-list");
       } else {

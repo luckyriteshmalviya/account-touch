@@ -7,38 +7,40 @@ export default function TasksDueInWeek() {
   const navigate = useNavigate();
   const dueNextWeekCount = dashboardData?.tasks_due_next_week?.length ?? 0;
 
-  // Function to get next week's date range
-  const getNextWeekDateRange = () => {
+  const handleCardClick = () => {
     const today = new Date();
-    const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const currentDay = today.getDay();
 
-    // Calculate days until next Monday (start of next week)
+    // Calculate days until next Monday
     const daysUntilNextMonday = currentDay === 0 ? 1 : 8 - currentDay;
 
     // Next Monday
     const nextMonday = new Date(today);
     nextMonday.setDate(today.getDate() + daysUntilNextMonday);
 
-    // Next Sunday (end of next week)
+    // Next Sunday
     const nextSunday = new Date(nextMonday);
     nextSunday.setDate(nextMonday.getDate() + 6);
 
-    // Format dates as YYYY-MM-DD for date inputs
-    const formatDate = (date: Date) => {
+    const formatDate = (date: Date): string => {
       return date.toISOString().split("T")[0];
     };
 
-    return {
-      start: formatDate(nextMonday),
-      end: formatDate(nextSunday),
-    };
-  };
+    const dueStart = formatDate(today); // today
+    const dueEnd = formatDate(nextSunday); // end of next week
+    const createdStart = dashboardData?.financial_year_start || "2025-04-01";
+    const createdEnd = dashboardData?.financial_year_end || "2026-03-31";
 
-  const handleCardClick = () => {
-    const { start, end } = getNextWeekDateRange();
+    const params = new URLSearchParams({
+      created_start: createdStart,
+      created_end: createdEnd,
+      due_start: dueStart,
+      due_end: dueEnd,
+      status: "pending,started",
+      show_more: "true",
+    });
 
-    // Navigate to tasks table with due date filter parameters
-    navigate(`/task-list?due_start=${start}&due_end=${end}&show_more=true`);
+    navigate(`/task-list?${params.toString()}`);
   };
 
   return (

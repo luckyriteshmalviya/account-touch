@@ -81,15 +81,15 @@ interface Category {
 
 type PriorityType = "low" | "medium" | "high" | "urgent";
 type StatusType = "pending" | "started" | "completed" | "rejected";
-type DateRangeType = "created" | "due" | "completed";
 
 export default function TasksTable() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [, setTotalPages] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [, setTotalCount] = useState(0);
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
+  const pageSize = 10;
 
   // Basic filters (always visible)
   const [search, setSearch] = useState("");
@@ -100,10 +100,13 @@ export default function TasksTable() {
   // More filters toggle
   const [showMoreFilters, setShowMoreFilters] = useState(false);
 
-  // Date range filters
-  const [dateRangeType, setDateRangeType] = useState<DateRangeType>("created");
-  const [dateRangeStart, setDateRangeStart] = useState<string>("");
-  const [dateRangeEnd, setDateRangeEnd] = useState<string>("");
+  // Separate date range filters for each type
+  const [createdDateStart, setCreatedDateStart] = useState<string>("");
+  const [createdDateEnd, setCreatedDateEnd] = useState<string>("");
+  const [dueDateStart, setDueDateStart] = useState<string>("");
+  const [dueDateEnd, setDueDateEnd] = useState<string>("");
+  const [completedDateStart, setCompletedDateStart] = useState<string>("");
+  const [completedDateEnd, setCompletedDateEnd] = useState<string>("");
 
   // User filters
   const [maker, setMaker] = useState<string>("");
@@ -168,56 +171,63 @@ export default function TasksTable() {
     if (!isInitialized || urlParamsProcessed) return;
 
     const handleUrlParameters = () => {
-      console.log("Handling URL parameters:", Object.fromEntries(searchParams));
-
-      let hasUrlParams = false;
-
       // Handle category parameter
       const categoryParam = searchParams.get("category");
       if (categoryParam) {
-        console.log("Setting category from URL:", categoryParam);
         setCategory(categoryParam);
         setShowMoreFilters(true);
-        hasUrlParams = true;
+      }
+
+      // Handle status parameter (can be comma-separated)
+      const statusParam = searchParams.get("status");
+      if (statusParam) {
+        // For now, just take the first status if multiple are provided
+        const firstStatus = statusParam.split(",")[0];
+        if (
+          ["pending", "started", "completed", "rejected"].includes(firstStatus)
+        ) {
+          setStatus(firstStatus as StatusType);
+          setShowMoreFilters(true);
+        }
+      }
+
+      // Handle created date range parameters
+      const createdStartParam = searchParams.get("created_start");
+      const createdEndParam = searchParams.get("created_end");
+
+      if (createdStartParam && createdEndParam) {
+        setCreatedDateStart(createdStartParam);
+        setCreatedDateEnd(createdEndParam);
+        setShowMoreFilters(true);
       }
 
       // Handle due date range parameters
       const dueStartParam = searchParams.get("due_start");
       const dueEndParam = searchParams.get("due_end");
-      const showMoreParam = searchParams.get("show_more");
 
       if (dueStartParam && dueEndParam) {
-        console.log("Setting due date range from URL:", {
-          dueStartParam,
-          dueEndParam,
-        });
-        setDateRangeType("due");
-        setDateRangeStart(dueStartParam);
-        setDateRangeEnd(dueEndParam);
-        hasUrlParams = true;
+        setDueDateStart(dueStartParam);
+        setDueDateEnd(dueEndParam);
+        setShowMoreFilters(true);
+      } else if (dueEndParam && !dueStartParam) {
+        // Handle case where only due_end is provided (for overdue tasks)
 
-        // Show more filters if requested
-        if (showMoreParam === "true") {
-          setShowMoreFilters(true);
-        }
+        setDueDateEnd(dueEndParam);
+        setShowMoreFilters(true);
+      }
+
+      // Show more filters if requested
+      const showMoreParam = searchParams.get("show_more");
+      if (showMoreParam === "true") {
+        setShowMoreFilters(true);
       }
 
       // Mark URL parameters as processed
       setUrlParamsProcessed(true);
-
-      // Clear URL parameters after setting filters - but do it after a short delay
-      // to ensure the filters are applied first
-      if (hasUrlParams) {
-        setTimeout(() => {
-          console.log("Clearing URL parameters");
-          const newSearchParams = new URLSearchParams();
-          setSearchParams(newSearchParams, { replace: true });
-        }, 100);
-      }
     };
 
     handleUrlParameters();
-  }, [isInitialized, searchParams, setSearchParams, urlParamsProcessed]);
+  }, [isInitialized, searchParams, urlParamsProcessed]);
 
   // Fetch tasks only after initialization is complete and URL params are processed
   useEffect(() => {
@@ -237,9 +247,12 @@ export default function TasksTable() {
     priority,
     status,
     category,
-    dateRangeType,
-    dateRangeStart,
-    dateRangeEnd,
+    createdDateStart,
+    createdDateEnd,
+    dueDateStart,
+    dueDateEnd,
+    completedDateStart,
+    completedDateEnd,
     maker,
     checker,
     client,
@@ -247,18 +260,9 @@ export default function TasksTable() {
   ]);
 
   const fetchTasks = async () => {
-    console.log("Fetching tasks with filters:", {
-      category,
-      dateRangeType,
-      dateRangeStart,
-      dateRangeEnd,
-      isInitialized,
-      urlParamsProcessed,
-    });
-
     const params: any = {
       page,
-      page_size: 10,
+      page_size: pageSize,
     };
 
     // Only add parameters that have values
@@ -267,22 +271,28 @@ export default function TasksTable() {
     if (status) params.status = status;
     if (category) params.category = category;
 
-    // Date filters based on selected type
-    if (dateRangeStart && dateRangeEnd) {
-      switch (dateRangeType) {
-        case "created":
-          params.created_after = dateRangeStart;
-          params.created_before = dateRangeEnd;
-          break;
-        case "due":
-          params.due_after = dateRangeStart;
-          params.due_before = dateRangeEnd;
-          break;
-        case "completed":
-          params.completed_after = dateRangeStart;
-          params.completed_before = dateRangeEnd;
-          break;
-      }
+    // Created date filters
+    if (createdDateStart && createdDateEnd) {
+      params.created_after = createdDateStart;
+      params.created_before = createdDateEnd;
+    }
+
+    // Due date filters
+    if (dueDateStart && dueDateEnd) {
+      params.due_after = dueDateStart;
+      params.due_before = dueDateEnd;
+    } else if (dueDateEnd && !dueDateStart) {
+      // Handle case where only due end date is provided (for overdue tasks)
+      params.due_before = dueDateEnd;
+    } else if (dueDateStart && !dueDateEnd) {
+      // Handle case where only due start date is provided
+      params.due_after = dueDateStart;
+    }
+
+    // Completed date filters
+    if (completedDateStart && completedDateEnd) {
+      params.completed_after = completedDateStart;
+      params.completed_before = completedDateEnd;
     }
 
     // User filters
@@ -291,16 +301,13 @@ export default function TasksTable() {
     if (client) params.client = client;
     if (franchise) params.franchise = franchise;
 
-    console.log("Task filter params:", params);
-
     try {
       const res = await getTaskListService(params);
 
       if (res?.results) {
         setTasks(res.results);
         setTotalCount(res.count);
-        setTotalPages(Math.ceil(res.count / 10));
-        console.log("Tasks fetched successfully:", res.results.length);
+        setTotalPages(Math.ceil(res.count / pageSize));
       }
     } catch (error) {
       console.error("Error fetching tasks:", error);
@@ -313,9 +320,12 @@ export default function TasksTable() {
     setPriority("");
     setStatus("");
     setCategory("");
-    setDateRangeType("created");
-    setDateRangeStart("");
-    setDateRangeEnd("");
+    setCreatedDateStart("");
+    setCreatedDateEnd("");
+    setDueDateStart("");
+    setDueDateEnd("");
+    setCompletedDateStart("");
+    setCompletedDateEnd("");
     setMaker("");
     setChecker("");
     setClient("");
@@ -342,19 +352,6 @@ export default function TasksTable() {
         });
       }
       setDeleteId(null);
-    }
-  };
-
-  const getDateRangeLabel = () => {
-    switch (dateRangeType) {
-      case "created":
-        return "Created Date Range";
-      case "due":
-        return "Due Date Range";
-      case "completed":
-        return "Completion Date Range";
-      default:
-        return "Date Range";
     }
   };
 
@@ -457,7 +454,6 @@ export default function TasksTable() {
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               value={category}
               onChange={(e) => {
-                console.log("Category changed to:", e.target.value);
                 setCategory(e.target.value);
                 setPage(1);
               }}
@@ -621,67 +617,141 @@ export default function TasksTable() {
               </div>
             </div>
 
-            {/* Date Filter Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
+            {/* Date Filter Rows - Each type gets its own row */}
+            <div className="flex flex-wrap gap-8">
+              {/* Created Date */}
+              <div className="flex flex-col space-y-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Date Filter Type
+                  Created Date
                 </label>
-                <select
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                  value={dateRangeType}
-                  onChange={(e) => {
-                    setDateRangeType(e.target.value as DateRangeType);
-                    setDateRangeStart("");
-                    setDateRangeEnd("");
-                    setPage(1);
-                  }}
-                >
-                  <option value="created">Created Date</option>
-                  <option value="due">Due Date</option>
-                  <option value="completed">Completion Date</option>
-                </select>
+                <div className="flex items-end gap-2">
+                  <div>
+                    <label className="block text-xs text-gray-500 dark:text-gray-400">
+                      From
+                    </label>
+                    <input
+                      type="date"
+                      className="w-40 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white cursor-pointer"
+                      value={createdDateStart}
+                      onClick={(e) =>
+                        (e.target as HTMLInputElement).showPicker()
+                      }
+                      onChange={(e) => {
+                        setCreatedDateStart(e.target.value);
+                        setPage(1);
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 dark:text-gray-400">
+                      To
+                    </label>
+                    <input
+                      type="date"
+                      className="w-40 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white cursor-pointer"
+                      value={createdDateEnd}
+                      onClick={(e) =>
+                        (e.target as HTMLInputElement).showPicker()
+                      }
+                      onChange={(e) => {
+                        setCreatedDateEnd(e.target.value);
+                        setPage(1);
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-2">
+              {/* Due Date */}
+              <div className="flex flex-col space-y-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {getDateRangeLabel()}
-                  {dateRangeStart &&
-                    dateRangeEnd &&
-                    dateRangeType === "due" && (
-                      <span className="ml-2 text-blue-600 text-xs">
-                        (Next Week Filter Applied)
-                      </span>
-                    )}
+                  Due Date
                 </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="date"
-                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white cursor-pointer"
-                    value={dateRangeStart}
-                    onClick={(e) => (e.target as HTMLInputElement).showPicker()}
-                    onChange={(e) => {
-                      setDateRangeStart(e.target.value);
-                      setPage(1);
-                    }}
-                  />
-                  <span className="text-gray-500 dark:text-gray-400">to</span>
-                  <input
-                    type="date"
-                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white cursor-pointer"
-                    value={dateRangeEnd}
-                    onClick={(e) => (e.target as HTMLInputElement).showPicker()}
-                    onChange={(e) => {
-                      setDateRangeEnd(e.target.value);
-                      setPage(1);
-                    }}
-                  />
+                <div className="flex items-end gap-2">
+                  <div>
+                    <label className="block text-xs text-gray-500 dark:text-gray-400">
+                      From
+                    </label>
+                    <input
+                      type="date"
+                      className="w-40 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white cursor-pointer"
+                      value={dueDateStart}
+                      onClick={(e) =>
+                        (e.target as HTMLInputElement).showPicker()
+                      }
+                      onChange={(e) => {
+                        setDueDateStart(e.target.value);
+                        setPage(1);
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 dark:text-gray-400">
+                      To
+                    </label>
+                    <input
+                      type="date"
+                      className="w-40 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white cursor-pointer"
+                      value={dueDateEnd}
+                      onClick={(e) =>
+                        (e.target as HTMLInputElement).showPicker()
+                      }
+                      onChange={(e) => {
+                        setDueDateEnd(e.target.value);
+                        setPage(1);
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Completed Date */}
+              <div className="flex flex-col space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Completed Date
+                </label>
+                <div className="flex items-end gap-2">
+                  <div>
+                    <label className="block text-xs text-gray-500 dark:text-gray-400">
+                      From
+                    </label>
+                    <input
+                      type="date"
+                      className="w-40 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white cursor-pointer"
+                      value={completedDateStart}
+                      onClick={(e) =>
+                        (e.target as HTMLInputElement).showPicker()
+                      }
+                      onChange={(e) => {
+                        setCompletedDateStart(e.target.value);
+                        setPage(1);
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 dark:text-gray-400">
+                      To
+                    </label>
+                    <input
+                      type="date"
+                      className="w-40 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white cursor-pointer"
+                      value={completedDateEnd}
+                      onClick={(e) =>
+                        (e.target as HTMLInputElement).showPicker()
+                      }
+                      onChange={(e) => {
+                        setCompletedDateEnd(e.target.value);
+                        setPage(1);
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         )}
       </div>
+
       {/* Table */}
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
         <div className="max-w-full overflow-x-auto">
@@ -788,6 +858,39 @@ export default function TasksTable() {
           </div>
         </div>
       </div>
+
+      {/* Pagination Controls */}
+      {/* {totalPages > 1 && ( */}
+      <div className="flex justify-center items-center mt-2 gap-2 flex-wrap">
+        <button
+          onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+          disabled={page === 1}
+          className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+        >
+          Prev
+        </button>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((pg) => (
+          <button
+            key={pg}
+            onClick={() => setPage(pg)}
+            className={`px-3 py-1 rounded ${
+              page === pg
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 hover:bg-gray-300"
+            }`}
+          >
+            {pg}
+          </button>
+        ))}
+        <button
+          onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+          disabled={page === totalPages}
+          className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+      {/* )} */}
 
       {/* Delete Confirmation Modal */}
       {deleteId !== null && (

@@ -16,10 +16,18 @@ export default function TasksByCategory() {
 
   // Function to handle category click and navigate with category filter
   const handleCategoryClick = (categoryName: string) => {
-    // Navigate to task-list with category as query parameter
-    navigate(`/task-list?category=${encodeURIComponent(categoryName)}`);
-  };
+    const createdStart = dashboardData?.financial_year_start || "2025-04-01";
+    const createdEnd = dashboardData?.financial_year_end || "2026-03-31";
 
+    const params = new URLSearchParams({
+      created_start: createdStart,
+      created_end: createdEnd,
+      category: categoryName,
+      show_more: "true",
+    });
+
+    navigate(`/task-list?${params.toString()}`);
+  };
   return (
     <div
       className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm cursor-pointer hover:shadow-md transition-shadow"

@@ -14,7 +14,7 @@ export const getProcessTemplatListService = async (params: {
 
     if (params.is_active)
       queryParams.append("is_active", params.is_active.toString());
-    if (params.page) queryParams.append("page", params.page.toString());
+    // if (params.page) queryParams.append("page", params.page.toString());
     if (params.processtype)
       queryParams.append("process_type", params.processtype);
     if (params.search) queryParams.append("search", params.search);
@@ -24,7 +24,7 @@ export const getProcessTemplatListService = async (params: {
       queryParams.append("ordering", "created_at"); // 👈 Default: latest created first
     }
     const res = await fetch(
-      `https://api.accountouch.com/api/tasks/process-templates?${queryParams.toString()}`,
+      `  https://api.accountouch.com/api/tasks/process-templates?page_size=500&${queryParams.toString()}`,
       {
         method: "GET",
         headers: {

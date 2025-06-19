@@ -5,41 +5,51 @@ import { useNavigate } from "react-router-dom";
 export default function DashboardStats() {
   const { dashboardData, loading } = useDashboard();
   const navigate = useNavigate();
+
   const tasksCreated = dashboardData?.total_tasks || 0;
   const overdueTasks = dashboardData?.overdue_tasks?.length || 0;
-  const totalRevenue = 0; // placeholder for future
+  const totalRevenue = dashboardData?.total_fees_collected || 0;
 
-  // Helper function to get this week's date range
-  const getThisWeekDateRange = () => {
+  // Get financial year dates from dashboard data
+  const financialYearStart =
+    dashboardData?.financial_year_start || "2025-04-01";
+  const financialYearEnd = dashboardData?.financial_year_end || "2026-03-31";
+
+  // Get today's date in YYYY-MM-DD format
+  const getTodayDate = () => {
     const today = new Date();
-    const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    return today.toISOString().split("T")[0];
+  };
 
-    // Calculate start of week (Monday)
-    const startOfWeek = new Date(today);
-    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay; // If Sunday, go back 6 days
-    startOfWeek.setDate(today.getDate() + mondayOffset);
+  // Handle click on total tasks
+  const handleTotalTasksClick = () => {
+    // Navigate with financial year date range filter
+    const params = new URLSearchParams({
+      created_start: financialYearStart,
+      created_end: financialYearEnd,
+      show_more: "true",
+    });
 
-    // Calculate end of week (Sunday)
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6);
-
-    // Format dates as YYYY-MM-DD
-    const formatDate = (date: Date) => {
-      return date.toISOString().split("T")[0];
-    };
-
-    return {
-      start: formatDate(startOfWeek),
-      end: formatDate(endOfWeek),
-    };
+    navigate(`/task-list?${params.toString()}`);
   };
 
   // Handle click on overdue tasks
   const handleOverdueTasksClick = () => {
-    const { start, end } = getThisWeekDateRange();
+    const today = getTodayDate();
 
-    // Navigate to task list with due date filter for this week and show more filters
-    navigate(`/task-list?due_start=${start}&due_end=${end}&show_more=true`);
+    // Navigate with filters for overdue tasks:
+    // - Created within financial year
+    // - Due date less than today
+    // - Status is pending or started (in_progress)
+    const params = new URLSearchParams({
+      created_start: financialYearStart,
+      created_end: financialYearEnd,
+      due_end: today, // Tasks due before today (overdue)
+      status: "pending,started", // Pending and started tasks
+      show_more: "true",
+    });
+
+    navigate(`/task-list?${params.toString()}`);
   };
 
   return (
@@ -54,10 +64,7 @@ export default function DashboardStats() {
           <div className="w-10 h-10 flex items-center justify-center rounded-full bg-indigo-100">
             <ListIcon className="text-indigo-600 w-5 h-5" />
           </div>
-          <div
-            onClick={() => navigate("/task-list")}
-            className="cursor-pointer"
-          >
+          <div onClick={handleTotalTasksClick} className="cursor-pointer">
             <p className="text-xs text-gray-500">Tasks Created</p>
             <h3 className="text-lg font-semibold text-gray-900">
               {loading ? "..." : tasksCreated}
@@ -84,7 +91,7 @@ export default function DashboardStats() {
             <ListIcon className="text-red-600 w-5 h-5" />
           </div>
           <div onClick={handleOverdueTasksClick} className="cursor-pointer">
-            <p className="text-xs text-gray-500">Overdue This Week</p>
+            <p className="text-xs text-gray-500">Overdue Tasks</p>
             <h3 className="text-lg font-semibold text-gray-900">
               {loading ? "..." : overdueTasks}
             </h3>

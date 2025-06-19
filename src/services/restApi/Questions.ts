@@ -26,7 +26,7 @@ export const getQuestionListService = async (params: {
     if (params.search) queryParams.append("search", params.search);
     queryParams.append("ordering", params.ordering || "-created_at");
 
-    const res = await fetch(`${API_BASE}/?${queryParams}`, {
+    const res = await fetch(`${API_BASE}/?page_size=500/?${queryParams}`, {
       method: "GET",
       headers: getAuthHeaders(),
     });
