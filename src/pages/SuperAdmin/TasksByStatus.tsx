@@ -1,49 +1,21 @@
 import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
-import { useEffect, useState } from "react";
-import { getDashboardDataService } from "../../services/restApi/dashboard";
-import { ListIcon } from "../../icons";
 import { useNavigate } from "react-router-dom";
+import { ListIcon } from "../../icons";
+import { useDashboard } from "../../context/DashboardContext";
 
 export default function TasksByStatus() {
-  const [taskStatusCounts, setTaskStatusCounts] = useState<number[]>([
-    0, 0, 0, 0,
-  ]);
-  const [loading, setLoading] = useState(true);
+  const { dashboardData, loading } = useDashboard();
   const navigate = useNavigate();
 
   const categories = ["PENDING", "IN_PROGRESS", "COMPLETED", "REJECTED"];
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const data = await getDashboardDataService();
-
-        const countsMap = data.task_status_counts.reduce(
-          (
-            acc: Record<string, number>,
-            item: { status: string; count: number }
-          ) => {
-            acc[item.status.toUpperCase()] = item.count;
-            return acc;
-          },
-          {}
-        );
-
-        const countsArray = categories.map((status) =>
-          Math.max(countsMap[status] || 0, 0)
-        );
-        setTaskStatusCounts(countsArray);
-      } catch (err) {
-        console.error("Error fetching task status data", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
+  const taskStatusCounts = categories.map((status) => {
+    const countObj = dashboardData?.task_status_counts?.find(
+      (item: any) => item.status.toUpperCase() === status
+    );
+    return countObj ? countObj.count : 0;
+  });
 
   const options: ApexOptions = {
     colors: ["#3b82f6", "#facc15", "#10b981", "#ef4444"],

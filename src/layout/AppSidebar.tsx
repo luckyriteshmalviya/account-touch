@@ -82,16 +82,17 @@ const AppSidebar: React.FC = () => {
     (path: string) => location.pathname === path,
     [location.pathname]
   );
-
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("auth") || "").user;
-
-    if (!user.roles) return;
-
-    const roles = user.roles.map((elem: any) => elem.slug);
-
-    setCurrentRole(roles);
-  }, [localStorage]);
+    try {
+      const authString = localStorage.getItem("auth");
+      if (!authString) return;
+      const user = JSON.parse(authString)?.user;
+      const roles = user?.roles?.map((elem: any) => elem.slug) || [];
+      setCurrentRole(roles);
+    } catch (error) {
+      console.error("Error parsing auth from localStorage", error);
+    }
+  }, []);
 
   useEffect(() => {
     let submenuMatched = false;

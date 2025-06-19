@@ -3,15 +3,15 @@ import useAuth from "../hooks/useAuth";
 import { useEffect } from "react";
 
 const ProtectedRoutesLayout = (props: any) => {
-    const auth = useAuth();
-    const navigate = useNavigate()
+  const auth = useAuth();
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        if (!auth.isAuthenticated) {
-          navigate("/signin")
-        }
-    }, [])
+  useEffect(() => {
+    if (auth.isAuthenticated === false) {
+      navigate("/signin");
+    }
+  }, [auth.isAuthenticated, navigate]);
 
-    return props.children
+  return props.children;
 };
 export default ProtectedRoutesLayout;
