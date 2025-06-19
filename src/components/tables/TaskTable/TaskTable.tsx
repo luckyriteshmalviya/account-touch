@@ -120,6 +120,7 @@ export default function TasksTable() {
 
   // Add loading state to ensure proper initialization
   const [isInitialized, setIsInitialized] = useState(false);
+  const [urlParamsProcessed, setUrlParamsProcessed] = useState(false);
 
   const navigate = useNavigate();
 
@@ -151,17 +152,6 @@ export default function TasksTable() {
         if (categoryResponse?.results)
           setCategoryList(categoryResponse.results);
 
-        // Now check for URL parameters after data is loaded
-        const categoryParam = searchParams.get("category");
-        if (categoryParam) {
-          setCategory(categoryParam);
-          setShowMoreFilters(true);
-          // Clear the URL parameter after setting the filter
-          const newSearchParams = new URLSearchParams(searchParams);
-          newSearchParams.delete("category");
-          setSearchParams(newSearchParams);
-        }
-
         // Mark as initialized
         setIsInitialized(true);
       } catch (error) {
@@ -171,15 +161,77 @@ export default function TasksTable() {
     };
 
     fetchUserLists();
-  }, [searchParams, setSearchParams]);
+  }, []);
 
-  // Fetch tasks only after initialization is complete
+  // Handle URL parameters after initialization - ONLY ONCE
   useEffect(() => {
-    if (!isInitialized) return; // Don't fetch tasks until dropdown data is loaded
+    if (!isInitialized || urlParamsProcessed) return;
 
-    fetchTasks();
+    const handleUrlParameters = () => {
+      console.log("Handling URL parameters:", Object.fromEntries(searchParams));
+
+      let hasUrlParams = false;
+
+      // Handle category parameter
+      const categoryParam = searchParams.get("category");
+      if (categoryParam) {
+        console.log("Setting category from URL:", categoryParam);
+        setCategory(categoryParam);
+        setShowMoreFilters(true);
+        hasUrlParams = true;
+      }
+
+      // Handle due date range parameters
+      const dueStartParam = searchParams.get("due_start");
+      const dueEndParam = searchParams.get("due_end");
+      const showMoreParam = searchParams.get("show_more");
+
+      if (dueStartParam && dueEndParam) {
+        console.log("Setting due date range from URL:", {
+          dueStartParam,
+          dueEndParam,
+        });
+        setDateRangeType("due");
+        setDateRangeStart(dueStartParam);
+        setDateRangeEnd(dueEndParam);
+        hasUrlParams = true;
+
+        // Show more filters if requested
+        if (showMoreParam === "true") {
+          setShowMoreFilters(true);
+        }
+      }
+
+      // Mark URL parameters as processed
+      setUrlParamsProcessed(true);
+
+      // Clear URL parameters after setting filters - but do it after a short delay
+      // to ensure the filters are applied first
+      if (hasUrlParams) {
+        setTimeout(() => {
+          console.log("Clearing URL parameters");
+          const newSearchParams = new URLSearchParams();
+          setSearchParams(newSearchParams, { replace: true });
+        }, 100);
+      }
+    };
+
+    handleUrlParameters();
+  }, [isInitialized, searchParams, setSearchParams, urlParamsProcessed]);
+
+  // Fetch tasks only after initialization is complete and URL params are processed
+  useEffect(() => {
+    if (!isInitialized || !urlParamsProcessed) return;
+
+    // Add a small delay to ensure all state updates are complete
+    const timeoutId = setTimeout(() => {
+      fetchTasks();
+    }, 50);
+
+    return () => clearTimeout(timeoutId);
   }, [
-    isInitialized, // Add this dependency
+    isInitialized,
+    urlParamsProcessed,
     page,
     search,
     priority,
@@ -195,7 +247,14 @@ export default function TasksTable() {
   ]);
 
   const fetchTasks = async () => {
-    console.log("Fetching tasks with category:", category);
+    console.log("Fetching tasks with filters:", {
+      category,
+      dateRangeType,
+      dateRangeStart,
+      dateRangeEnd,
+      isInitialized,
+      urlParamsProcessed,
+    });
 
     const params: any = {
       page,
@@ -262,6 +321,7 @@ export default function TasksTable() {
     setClient("");
     setFranchise("");
     setPage(1);
+    setShowMoreFilters(false);
   };
 
   const handleDelete = async () => {
@@ -586,6 +646,13 @@ export default function TasksTable() {
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   {getDateRangeLabel()}
+                  {dateRangeStart &&
+                    dateRangeEnd &&
+                    dateRangeType === "due" && (
+                      <span className="ml-2 text-blue-600 text-xs">
+                        (Next Week Filter Applied)
+                      </span>
+                    )}
                 </label>
                 <div className="flex items-center gap-2">
                   <input
@@ -615,7 +682,6 @@ export default function TasksTable() {
           </div>
         )}
       </div>
-
       {/* Table */}
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
         <div className="max-w-full overflow-x-auto">
@@ -722,29 +788,6 @@ export default function TasksTable() {
           </div>
         </div>
       </div>
-
-      {/* Pagination */}
-      {totalCount > 10 && (
-        <div className="flex justify-center mt-4 space-x-2">
-          <button
-            disabled={page === 1}
-            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-          >
-            Prev
-          </button>
-          <span className="px-4 py-2">
-            {page} / {totalPages}
-          </span>
-          <button
-            disabled={page === totalPages}
-            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-            onClick={() => setPage((prev) => prev + 1)}
-          >
-            Next
-          </button>
-        </div>
-      )}
 
       {/* Delete Confirmation Modal */}
       {deleteId !== null && (
