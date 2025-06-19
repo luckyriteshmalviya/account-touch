@@ -87,8 +87,8 @@ export default function TasksTable() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
+  const [, setTotalPages] = useState(1);
+  const [, setTotalCount] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Basic filters (always visible)
