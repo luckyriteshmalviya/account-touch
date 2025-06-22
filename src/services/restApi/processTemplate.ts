@@ -21,7 +21,7 @@ export const getProcessTemplatListService = async (params: {
     if (params.ordering) {
       queryParams.append("ordering", params.ordering);
     } else {
-      queryParams.append("ordering", "created_at"); // 👈 Default: latest created first
+      queryParams.append("ordering", "title"); // 👈 Default: latest created first
     }
     const res = await fetch(
       `  https://api.accountouch.com/api/tasks/process-templates?page_size=500&${queryParams.toString()}`,

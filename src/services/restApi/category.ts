@@ -47,7 +47,7 @@ export const getCategoryListService = async (params: {
     if (params.ordering) {
       queryParams.append("ordering", params.ordering);
     } else {
-      queryParams.append("ordering", "-created_at"); // 👈 Default: latest created first
+      queryParams.append("ordering", "name"); // 👈 Default: latest created first
     }
 
     const res = await fetch(`https://api.accountouch.com/api/tasks/categories/?${queryParams.toString()}`, {

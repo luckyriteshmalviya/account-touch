@@ -24,9 +24,9 @@ export const getQuestionListService = async (params: {
     const queryParams = new URLSearchParams();
     if (params.page) queryParams.append("page", params.page.toString());
     if (params.search) queryParams.append("search", params.search);
-    queryParams.append("ordering", params.ordering || "-created_at");
+    queryParams.append("ordering", params.ordering || "text");
 
-    const res = await fetch(`${API_BASE}/?page_size=500/?${queryParams}`, {
+    const res = await fetch(`${API_BASE}/?page_size=500&${queryParams}`, {
       method: "GET",
       headers: getAuthHeaders(),
     });
