@@ -1,13 +1,22 @@
 import { Search } from "lucide-react";
 import { useDashboard } from "../../context/DashboardContext";
+import { useNavigate } from "react-router-dom";
 
 export default function ActiveTasksList() {
   const { dashboardData, loading } = useDashboard();
+  const navigate = useNavigate();
 
   const processCounts = dashboardData?.process_type_pending_counts || [];
 
+  const handleTaskClick = () => {
+    navigate(`/task-list?status=pending`);
+  };
+
   return (
-    <div className="border border-gray-200 bg-white p-5 rounded-2xl shadow-lg text-sm text-gray-800 w-full">
+    <div
+      className="border border-gray-200 bg-white p-5 rounded-2xl shadow-lg text-sm text-gray-800 w-full cursor-pointer"
+      onClick={handleTaskClick}
+    >
       {/* Header */}
       <div className="flex items-center gap-2 font-semibold mb-4">
         <div className="w-9 h-9 flex items-center justify-center rounded-full bg-blue-100">
@@ -26,7 +35,7 @@ export default function ActiveTasksList() {
           {processCounts.map((item: any, idx: number) => (
             <li
               key={idx}
-              className="flex justify-between items-center bg-gray-50 px-4 py-2 rounded-xl shadow-sm hover:shadow-md transition"
+              className="flex justify-between items-center bg-gray-50 px-4 py-2 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer"
             >
               <span className="capitalize text-gray-700">
                 {item.process_template__process_type.replace(/_/g, " ")}
