@@ -17,7 +17,7 @@ export const getDashboardDataService = async () => {
       throw new Error("Failed to fetch dashboard data");
     }
     const parsedResponse = await res.json();
-    console.log("parsedResponse", parsedResponse);
+    // console.log("parsedResponse", parsedResponse);
     return parsedResponse;
     // return await res.json();
   } catch (err) {

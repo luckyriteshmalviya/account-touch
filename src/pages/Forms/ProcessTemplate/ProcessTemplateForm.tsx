@@ -239,9 +239,15 @@ const ProcessTemplatForm = ({
                   .filter((doc) => selectedDocumentType.includes(doc.id))
                   .map((doc) => ({ value: doc.id, label: doc.name }))}
                 onChange={(selectedOptions: any) => {
-                  let selectedIds = selectedOptions?.map(
-                    (option: any) => option?.value
-                  );
+                  let selectedIds: string[] = [];
+
+                  if (Array.isArray(selectedOptions)) {
+                    selectedIds = selectedOptions.map(
+                      (option: any) => option.value
+                    );
+                  } else if (selectedOptions) {
+                    selectedIds = [selectedOptions.value];
+                  }
 
                   // Find Payment Receipt doc id
                   const paymentReceiptDoc = documentList.find(

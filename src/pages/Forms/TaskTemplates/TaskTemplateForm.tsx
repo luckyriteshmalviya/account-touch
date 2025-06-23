@@ -4,6 +4,7 @@ import Label from "../../../components/form/Label";
 import Input from "../../../components/form/input/InputField";
 import TextArea from "../../../components/form/input/TextArea";
 import { useNavigate, useParams } from "react-router";
+import { Trash } from "lucide-react";
 
 interface ProcessTemplate {
   id: number;
@@ -173,7 +174,9 @@ const TaskTemplatForm = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Title */}
           <div>
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">
+              Title<span className="text-red-500">*</span>
+            </Label>
             <Input
               id="title"
               type="text"
@@ -193,7 +196,9 @@ const TaskTemplatForm = ({
 
           {/* Category */}
           <div>
-            <Label htmlFor="category">Category</Label>
+            <Label htmlFor="category">
+              Category<span className="text-red-500">*</span>
+            </Label>
             <select
               id="category"
               className="border px-2 py-2 rounded w-full"
@@ -368,7 +373,7 @@ const TaskTemplatForm = ({
           <br />
           <div>
             {/* Header Row */}
-            <div className="grid grid-cols-2 gap-4 font-bold text-lg text-gray-700 mb-2">
+            <div className="grid grid-cols-2  font-bold text-lg text-gray-700 mb-2">
               <div>Process Template</div>
               <div>Order</div>
             </div>
@@ -390,7 +395,7 @@ const TaskTemplatForm = ({
                   )}
 
                   {/* Row with dropdown and input */}
-                  <div className="grid grid-cols-2 gap-4 items-center">
+                  <div className="grid grid-cols-[1fr_1fr_auto] gap-4 items-center">
                     <select
                       className="border px-2 py-2 rounded"
                       value={process.process_template_id}
@@ -408,6 +413,7 @@ const TaskTemplatForm = ({
                         </option>
                       ))}
                     </select>
+
                     <Input
                       type="number"
                       className="border px-2 py-2 rounded"
@@ -423,6 +429,41 @@ const TaskTemplatForm = ({
                         }
                       }}
                     />
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (selectedProcesses.length === 1) {
+                          // agar sirf ek bacha ho — reset karo
+                          const updated = [...selectedProcesses];
+                          updated[index] = {
+                            process_template_id: "",
+                            order: 0,
+                          };
+                          setSelectedProcesses(updated);
+                          updateProcessTemplateIds(updated);
+                        } else {
+                          // warna normal delete karo
+                          const updated = selectedProcesses.filter(
+                            (_, i) => i !== index
+                          );
+                          setSelectedProcesses(updated);
+                          updateProcessTemplateIds(updated);
+                        }
+                      }}
+                      className={`${
+                        process.process_template_id
+                          ? "text-red-500 hover:text-red-700"
+                          : "text-gray-300 cursor-not-allowed"
+                      }`}
+                      title={
+                        process.process_template_id
+                          ? "Remove Process Template"
+                          : "Please select a process template to enable remove"
+                      }
+                    >
+                      <Trash size={18} />
+                    </button>
                   </div>
                 </div>
               );

@@ -163,7 +163,7 @@ export default function ProcessTemplatTable() {
                         {/* ) : (
                           <span className="text-red-600 text-xl">❌</span>
                         )} */}
-                      </TableCell>{" "}
+                      </TableCell>
                       <TableCell className="px-4 py-4 text-start">
                         {proc?.required_documents?.[0]?.created_at
                           ? new Date(proc?.required_documents?.[0]?.created_at)
