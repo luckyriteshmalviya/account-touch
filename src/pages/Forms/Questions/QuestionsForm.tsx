@@ -45,8 +45,8 @@ const QuestionsForm = ({
   const validate = () => {
     const newErrors: { text?: string; description?: string } = {};
     if (!question.text.trim()) newErrors.text = "Text is required.";
-    if (!question.description?.trim())
-      newErrors.description = "Description is required.";
+    // if (!question.description?.trim())
+    //   newErrors.description = "Description is required.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -63,7 +63,9 @@ const QuestionsForm = ({
       <ComponentCard title={editMode ? "Edit Question" : "Add Question"}>
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-1">
           <div className="space-y-2">
-            <Label htmlFor="text">Text</Label>
+            <Label htmlFor="text">
+              Text<span className="text-red-500">*</span>
+            </Label>
             <Input
               id="text"
               value={question.text}

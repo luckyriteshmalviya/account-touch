@@ -56,9 +56,9 @@ const ProcessTemplatForm = ({
     if (!processTemplat.title.trim()) {
       newErrors.title = "Title is required.";
     }
-    if (!processTemplat.description?.trim()) {
-      newErrors.description = "Description is required.";
-    }
+    // if (!processTemplat.description?.trim()) {
+    //   newErrors.description = "Description is required.";
+    // }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;

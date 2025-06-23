@@ -51,9 +51,9 @@ const CategoryForm = ({
     if (!category.name.trim()) {
       newErrors.name = "Name is required.";
     }
-    if (!category.description?.trim()) {
-      newErrors.description = "Description is required.";
-    }
+    // if (!category.description?.trim()) {
+    //   newErrors.description = "Description is required.";
+    // }
     if (!category.image && !editMode) {
       newErrors.image = "Image is required.";
     }
@@ -106,9 +106,7 @@ const CategoryForm = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">
-              Description <span className="text-red-500">*</span>
-            </Label>
+            <Label htmlFor="description">Description</Label>
             <TextArea
               rows={6}
               value={category.description}

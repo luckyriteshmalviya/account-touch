@@ -5,7 +5,7 @@ import Input from "../../../components/form/input/InputField";
 import { priorityToOptions } from "../../../constants/arrays";
 import Select from "../../../components/form/Select";
 import SelectWithSearch from "../../../components/form/SelectWithSearch";
-import TextArea from "../../../components/form/input/TextArea";
+// import TextArea from "../../../components/form/input/TextArea";
 import { useNavigate, useParams } from "react-router";
 
 const frequencyOptions = [
@@ -23,6 +23,7 @@ interface Category {
 interface Template {
   id: number;
   title: string;
+  description: string;
 }
 
 interface User {
@@ -111,7 +112,6 @@ const TaskForm = ({
 
     fetchCategories();
   }, []);
-
   // Fetch templates based on selected category
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -231,7 +231,9 @@ const TaskForm = ({
       <ComponentCard title={editMode ? "Edit Task" : "Add New Task"}>
         <div className="grid grid-cols-2 gap-6 xl:grid-cols-2">
           <div className="space-y-6">
-            <Label htmlFor="client_id">Client</Label>
+            <Label htmlFor="client_id">
+              Client<span className="text-red-500">*</span>
+            </Label>
             <SelectWithSearch
               options={clients.map((client) => ({
                 value: client.id.toString(),
@@ -251,7 +253,9 @@ const TaskForm = ({
           </div>
 
           <div className="space-y-6">
-            <Label htmlFor="maker_id">Maker</Label>
+            <Label htmlFor="maker_id">
+              Maker<span className="text-red-500">*</span>
+            </Label>
             <Select
               options={[
                 ...makers.map((maker: any) => ({
@@ -275,35 +279,10 @@ const TaskForm = ({
             />
           </div>
 
-          <div className="space-y-6 col-span-2">
-            <Label htmlFor="title">Title</Label>
-            <Input
-              value={task.title}
-              type="text"
-              id="title"
-              onChange={(e) =>
-                setTask((prev: any) => ({ ...prev, title: e.target.value }))
-              }
-              required
-              className="w-full mt-2"
-            />
-          </div>
-
-          <div className="space-y-6 col-span-2">
-            <Label htmlFor="description">Description</Label>
-            <TextArea
-              rows={6}
-              value={task.description}
-              error
-              onChange={(value) =>
-                setTask((prev: any) => ({ ...prev, description: value }))
-              }
-              className="w-full mt-2"
-            />
-          </div>
-
           <div className="space-y-6">
-            <Label htmlFor="category_id">Category</Label>
+            <Label htmlFor="category_id">
+              Category<span className="text-red-500">*</span>
+            </Label>
             <Select
               options={[
                 ...categories.map((category) => ({
@@ -326,7 +305,9 @@ const TaskForm = ({
           </div>
 
           <div className="space-y-6">
-            <Label htmlFor="template_id">Template</Label>
+            <Label htmlFor="template_id">
+              Template<span className="text-red-500">*</span>
+            </Label>
             <Select
               options={[
                 ...templates.map((template) => ({
@@ -334,9 +315,18 @@ const TaskForm = ({
                   label: template.title,
                 })),
               ]}
-              onChange={(value) =>
-                setTask((prev: any) => ({ ...prev, template_id: value }))
-              }
+              onChange={(value) => {
+                const selectedTemplate = templates.find(
+                  (template) => template.id.toString() === value
+                );
+
+                setTask((prev: any) => ({
+                  ...prev,
+                  template_id: value,
+                  title: selectedTemplate?.title || "",
+                  description: selectedTemplate?.description || "",
+                }));
+              }}
               value={task.template_id}
               disabled={!task.category_id}
               className="w-full mt-2"
@@ -361,7 +351,9 @@ const TaskForm = ({
           </div>
 
           <div className="space-y-6">
-            <Label htmlFor="due_date">Due Date</Label>
+            <Label htmlFor="due_date">
+              Due Date<span className="text-red-500">*</span>
+            </Label>
             <Input
               value={formatDateForInput(task.due_date)}
               type="datetime-local"

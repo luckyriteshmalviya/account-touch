@@ -370,7 +370,9 @@ export const UserForm = ({
         <ComponentCard title="Roles and Responsibilities">
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-6">
-              <Label htmlFor="roles">Roles</Label>
+              <Label htmlFor="roles">
+                Roles<span className="text-red-500">*</span>
+              </Label>
               <Select
                 id="roles"
                 name="roles"

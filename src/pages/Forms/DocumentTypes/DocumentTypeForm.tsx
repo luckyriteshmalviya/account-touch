@@ -52,7 +52,9 @@ const DocumentTypeForm = ({
       >
         {/* Name */}
         <div className="space-y-2 mb-4">
-          <Label htmlFor="name">Name</Label>
+          <Label htmlFor="name">
+            Name<span className="text-red-500">*</span>
+          </Label>
           <Input
             value={documentType.name}
             type="text"
@@ -71,7 +73,9 @@ const DocumentTypeForm = ({
 
         {/* Description */}
         <div className="space-y-2 mb-4">
-          <Label htmlFor="description">Description</Label>
+          <Label htmlFor="description">
+            Description<span className="text-red-500">*</span>
+          </Label>
           <textarea
             value={documentType.description || ""}
             id="description"

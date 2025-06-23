@@ -97,8 +97,8 @@ const TaskTemplatForm = ({
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
     if (!taskTemplat.title.trim()) newErrors.title = "Title is required.";
-    if (!taskTemplat.description.trim())
-      newErrors.description = "Description is required.";
+    // if (!taskTemplat.description.trim())
+    //   newErrors.description = "Description is required.";
     if (
       !taskTemplat.image ||
       (typeof taskTemplat.image === "string" && !taskTemplat.image.trim())
@@ -241,7 +241,9 @@ const TaskTemplatForm = ({
 
           {/* Image Upload */}
           <div>
-            <Label htmlFor="image">Image</Label>
+            <Label htmlFor="image">
+              Image<span className="text-red-500">*</span>
+            </Label>
             <Input
               type="file"
               className="border p-2 rounded w-full"
@@ -351,7 +353,9 @@ const TaskTemplatForm = ({
 
           {/* Fees */}
           <div>
-            <Label htmlFor="fees">Fees</Label>
+            <Label htmlFor="fees">
+              Fees<span className="text-red-500">*</span>
+            </Label>
             <Input
               id="fees"
               type="text"

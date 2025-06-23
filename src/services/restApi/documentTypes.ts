@@ -20,7 +20,7 @@ export const getDocumentTypeListService = async (params: {
       queryParams.append("ordering", params.ordering);
     } else {
       // queryParams.append("ordering", "-created_at");
-      queryParams.append("page_size", "500");
+      queryParams.append("page_size", "10");
     }
 
     const res = await fetch(
