@@ -95,7 +95,8 @@ export const UserForm = ({
 
   // Error state for validation
   const [errors, setErrors] = useState<FormErrors>({});
-
+  // console.log("Current User Role:", currentUserRole);
+  // console.log("Current User:", currentUser);
   useEffect(() => {
     setIsActive(user.is_active);
   }, [user.is_active]);
@@ -460,11 +461,15 @@ export const UserForm = ({
                       isActive ? "text-green-600" : "text-red-600"
                     }`}
                   >
-                    Active
+                    {isActive ? "Active" : "Inactive"}
                   </span>
                 }
                 checked={isActive}
-                onChange={() => setIsActive(!isActive)}
+                onChange={() => {
+                  const newActiveStatus = !isActive;
+                  setIsActive(newActiveStatus);
+                  handleInputChange("is_active", newActiveStatus);
+                }}
                 disabled={isDisabled}
               />
             </div>

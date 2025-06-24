@@ -28,23 +28,23 @@ export default function DocumentPreparation({
   task,
   setTask,
   onPrevious,
-  processes,
-}: DocumentPreparationProps) {
+}: // processes,
+DocumentPreparationProps) {
   // const [, setFormData] = useState<Record<string, string>>({});
 
   // Disable submit if any payment process is not completed
-  const hasPendingPayment =
-    Array.isArray(processes) &&
-    processes.some(
-      (p) =>
-        p.process_template_detail?.process_type === "payment" &&
-        p.status !== "completed"
-    );
+  // const hasPendingPayment =
+  //   Array.isArray(processes) &&
+  //   processes.some(
+  //     (p) =>
+  //       p.process_template_detail?.process_type === "payment" &&
+  //       p.status !== "completed"
+  //   );
 
-  const hasPendingAnyProcess =
-    Array.isArray(processes) && processes.some((p) => p.status !== "completed");
+  // const hasPendingAnyProcess =
+  //   Array.isArray(processes) && processes.some((p) => p.status !== "completed");
 
-  const [isSubmitting] = useState(false);
+  // const [isSubmitting] = useState(false);
   // const [, setError] = useState<string | null>(null);
   // const [, setSuccess] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<UploadStatusType>({});
@@ -256,14 +256,14 @@ export default function DocumentPreparation({
   };
 
   // Find index of current process in processes array
-  const currentStepIndex =
-    processes?.findIndex((p) => p.id === process.id) ?? -1;
+  // const currentStepIndex =
+  //   processes?.findIndex((p) => p.id === process.id) ?? -1;
 
   // Check if current step is the last step
-  const isLastStep =
-    currentStepIndex !== -1 &&
-    processes &&
-    currentStepIndex === processes.length - 1;
+  // const isLastStep =
+  //   currentStepIndex !== -1 &&
+  //   processes &&
+  //   currentStepIndex === processes.length - 1;
 
   const getPreviewIframeSrc = (url: string) => {
     const extension = url.split(".").pop()?.split("?")[0]?.toLowerCase();
@@ -438,7 +438,7 @@ export default function DocumentPreparation({
         {task.status === "completed" && (
           <b className="text-green-600">Task Already Submitted</b>
         )}
-
+        {/* 
         {task.status !== "completed" && isLastStep && (
           <button
             type="submit"
@@ -463,7 +463,7 @@ export default function DocumentPreparation({
           >
             {isSubmitting ? "Submitting..." : "Submit"}
           </button>
-        )}
+        )} */}
       </div>
       {/* Modal */}
       {isModalOpen && previewUrl && (
