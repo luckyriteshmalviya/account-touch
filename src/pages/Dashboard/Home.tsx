@@ -25,11 +25,10 @@ export default function Home() {
       }
     }
   }, []); // Empty dependency array - only run once on mount
-
   return (
     <>
       <PageMeta title="Account Touch Dashboard" description="Account Touch" />
-      {role === "super-admin" && <SuperAdmin />}
+      {role === "super_admin" && <SuperAdmin />}
       {role === "franchise" && <Franchise />}
       {role === "checker" && <Checker />}
       {role === "maker" && <Maker />}

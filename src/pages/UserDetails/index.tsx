@@ -128,10 +128,7 @@ const UserDetails: FC = () => {
             }
           );
 
-          const assignedPerson = {
-            label: res.assigned_to.full_name || "",
-            value: res.assigned_to.id || "",
-          };
+          const assignedPerson = res.assigned_to?.id;
 
           setAssignedTo(assignedPerson);
 
