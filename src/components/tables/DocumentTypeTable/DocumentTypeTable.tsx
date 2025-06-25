@@ -40,7 +40,9 @@ export default function DocumentTypesTable() {
     const res = await getDocumentTypeListService({ page, search });
     if (res?.results) {
       setDocumentTypes(res.results);
-      setTotalPages(Math.ceil(res.count / 10));
+      // Use the API's page_size if available, otherwise assume 10
+      const pageSize = res.page_size || 10;
+      setTotalPages(Math.ceil(res.count / pageSize));
     }
   };
 

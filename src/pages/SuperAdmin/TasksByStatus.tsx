@@ -24,6 +24,15 @@ export default function TasksByStatus() {
       type: "bar",
       height: 200,
       toolbar: { show: false },
+      events: {
+        dataPointSelection: function (config) {
+          const clickedIndex = config.dataPointIndex;
+          if (clickedIndex >= 0) {
+            const clickedStatus = categories[clickedIndex].toLowerCase();
+            navigate(`/task-list?status=${clickedStatus}`);
+          }
+        },
+      },
     },
     plotOptions: {
       bar: {
@@ -73,13 +82,13 @@ export default function TasksByStatus() {
   ];
 
   return (
-    <div
-      onClick={() => navigate("/task-list")}
-      className="cursor-pointer overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 px-6 pt-5 pb-6 dark:border-gray-800 dark:bg-white/[0.03] shadow-lg transition-all duration-500 hover:shadow-xl active:scale-[0.98]"
-    >
+    <div className="cursor-pointer overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 px-6 pt-5 pb-6 dark:border-gray-800 dark:bg-white/[0.03] shadow-lg transition-all duration-500 hover:shadow-xl active:scale-[0.98]">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
+        <div
+          className="flex items-center gap-3"
+          onClick={() => navigate("/task-list")}
+        >
           <div className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-100">
             <ListIcon className="text-blue-600 w-5 h-5" />
           </div>

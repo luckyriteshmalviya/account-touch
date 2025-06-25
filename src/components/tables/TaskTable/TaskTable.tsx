@@ -364,7 +364,12 @@ interface Category {
 }
 
 type PriorityType = "low" | "medium" | "high" | "urgent";
-type StatusType = "pending" | "started" | "completed" | "rejected";
+type StatusType =
+  | "pending"
+  | "started"
+  | "completed"
+  | "in_progress"
+  | "rejected";
 
 export default function TasksTable() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -476,7 +481,13 @@ export default function TasksTable() {
       if (statusParam) {
         const firstStatus = statusParam.split(",")[0];
         if (
-          ["pending", "started", "completed", "rejected"].includes(firstStatus)
+          [
+            "pending",
+            "started",
+            "completed",
+            "in_progress",
+            "rejected",
+          ].includes(firstStatus)
         ) {
           setStatus(firstStatus as StatusType);
           setShowMoreFilters(true);
@@ -742,6 +753,7 @@ export default function TasksTable() {
               <option value="started">Started</option>
               <option value="completed">Completed</option>
               <option value="rejected">Rejected</option>
+              <option value="in_progress">In Progress</option>
             </select>
           </div>
 
