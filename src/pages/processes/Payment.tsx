@@ -37,15 +37,12 @@ export default function Payment({
     );
   }
 
-
   const [fees, setFees] = useState(task.fees);
   const [originalFees, setOriginalFees] = useState(task.fees);
   const [feesError, setFeesError] = useState("");
   const [isUpdatingFees, setIsUpdatingFees] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<UploadStatusType>({});
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
-  // const [, setError] = useState<string | null>(null);
-  // const [, setSuccess] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -59,24 +56,21 @@ export default function Payment({
     process.process_template_detail.required_documents || [];
   const paymentStatus = process.status || "PENDING";
 
-  // Check if user is admin or checker
-  // const isAdminOrChecker =
-  //   userRole === "super-admin" ||
-  //   userRole === "admin" ||
-  //   userRole === "checker";
+  // Check if task is completed
+  const isTaskCompleted = task.status?.toLowerCase() === "completed";
 
   const checkFees = (value: string = fees) => {
     const numericValue = parseFloat(value) || 0;
     const numericTaskFees = parseFloat(task.fees) || 0;
-    
+
     if (numericValue < numericTaskFees) {
       setFeesError(`Fees must be at least ${numericTaskFees}`);
       return false;
     }
-    setFeesError('');
+    setFeesError("");
     return true;
   };
-  
+
   // Check if the fees have meaningfully changed (ignoring decimal .00)
   const hasFeesChanged = () => {
     const currentFees = parseFloat(fees) || 0;
@@ -166,7 +160,6 @@ export default function Payment({
         file
       );
 
-
       // FIXED CODE:
       if (result && !result.error) {
         // Create the updated status object first
@@ -247,7 +240,9 @@ export default function Payment({
     const extension = url.split(".").pop()?.split("?")[0]?.toLowerCase();
 
     // Handle image files
-    if (["png", "jpg", "jpeg", "gif", "bmp", "webp"].includes(extension || "")) {
+    if (
+      ["png", "jpg", "jpeg", "gif", "bmp", "webp"].includes(extension || "")
+    ) {
       return url;
     }
 
@@ -349,14 +344,15 @@ export default function Payment({
         <p className="text-gray-600 dark:text-gray-300 ">
           Payment Status:{" "}
           <span
-            className={`font-medium ${paymentStatus === "completed"
+            className={`font-medium ${
+              paymentStatus === "completed"
                 ? "text-green-600"
                 : paymentStatus === "rejected"
-                  ? "text-red-600"
-                  : paymentStatus === "cancelled"
-                    ? "text-gray-500"
-                    : ""
-              }`}
+                ? "text-red-600"
+                : paymentStatus === "cancelled"
+                ? "text-gray-500"
+                : ""
+            }`}
           >
             {paymentStatus}
           </span>
@@ -369,7 +365,9 @@ export default function Payment({
           <label className="text-gray-600 dark:text-gray-300 whitespace-nowrap">
             Fees:{" "}
             <input
-              className={`font-medium border rounded px-2 py-1 w-32 ${feesError ? 'border-red-500' : 'border-gray-300'}`}
+              className={`font-medium border rounded px-2 py-1 w-32 ${
+                feesError ? "border-red-500" : "border-gray-300"
+              }`}
               type="number"
               value={fees}
               onChange={(e) => {
@@ -391,12 +389,12 @@ export default function Payment({
                   setOriginalFees(fees);
                   setStatusUpdateMessage({
                     type: "success",
-                    text: "Fees updated successfully"
+                    text: "Fees updated successfully",
                   });
                 } catch (error) {
                   setStatusUpdateMessage({
                     type: "error",
-                    text: "Failed to update fees"
+                    text: "Failed to update fees",
                   });
                 } finally {
                   setIsUpdatingFees(false);
@@ -405,7 +403,7 @@ export default function Payment({
               disabled={isUpdatingFees}
               className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isUpdatingFees ? 'Updating...' : 'Update Fees'}
+              {isUpdatingFees ? "Updating..." : "Update Fees"}
             </button>
           )}
         </div>
@@ -417,7 +415,6 @@ export default function Payment({
           All documents uploaded successfully!
         </div>
       )}
-
 
       <div className="space-y-4">
         {requiredDocuments.map((document: any) => {
@@ -450,7 +447,6 @@ export default function Payment({
                       </p>
 
                       <a
-                        // href={uploadedDoc.file_url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 mt-1 inline-block cursor-pointer"
@@ -458,49 +454,53 @@ export default function Payment({
                       >
                         View/Download Document
                       </a>
-
-                      {/* <button
-        onClick={() =>
-          openPreview(uploadedDoc.file_url)
-        }
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-      >
-        View .docx Document
-      </button> */}
                     </div>
                   )}
                 </div>
                 <div>
-                  <input
-                    type="file"
-                    className="hidden"
-                    onChange={(e) => handleFileChange(document, e)}
-                    ref={(el) => {
-                      fileInputRefs.current[documentId] = el;
-                    }}
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleUploadClick(documentId)}
-                    disabled={status === "uploading"}
-                    className={`px-4 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 ${status === "success"
-                        ? "bg-green-500 text-white hover:bg-green-600 focus:ring-green-500"
-                        : status === "error"
-                          ? "bg-red-100 text-red-700 hover:bg-red-200 focus:ring-red-500"
-                          : "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"
-                      } disabled:opacity-50`}
-                  >
-                    {status === "uploading"
-                      ? "Uploading..."
-                      : status === "success"
-                        ? uploadedDoc
-                          ? "Replace"
-                          : "Uploaded ✓"
-                        : status === "error"
+                  {/* Only show upload/replace button if task is not completed */}
+                  {!isTaskCompleted && (
+                    <>
+                      <input
+                        type="file"
+                        className="hidden"
+                        onChange={(e) => handleFileChange(document, e)}
+                        ref={(el) => {
+                          fileInputRefs.current[documentId] = el;
+                        }}
+                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleUploadClick(documentId)}
+                        disabled={status === "uploading"}
+                        className={`px-4 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                          status === "success"
+                            ? "bg-green-500 text-white hover:bg-green-600 focus:ring-green-500"
+                            : status === "error"
+                            ? "bg-red-100 text-red-700 hover:bg-red-200 focus:ring-red-500"
+                            : "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"
+                        } disabled:opacity-50`}
+                      >
+                        {status === "uploading"
+                          ? "Uploading..."
+                          : status === "success"
+                          ? uploadedDoc
+                            ? "Replace"
+                            : "Uploaded ✓"
+                          : status === "error"
                           ? "Try Again"
                           : "Upload File"}
-                  </button>
+                      </button>
+                    </>
+                  )}
+
+                  {/* Show status indicator when task is completed */}
+                  {isTaskCompleted && status === "success" && (
+                    <div className="px-4 py-2 rounded-md text-sm font-medium bg-green-100 text-green-700">
+                      Document Uploaded ✓
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -517,10 +517,11 @@ export default function Payment({
       {/* Status update message */}
       {statusUpdateMessage && (
         <div
-          className={`p-4 mb-4 rounded-md ${statusUpdateMessage.type === "success"
+          className={`p-4 mb-4 rounded-md ${
+            statusUpdateMessage.type === "success"
               ? "bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400"
               : "bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400"
-            }`}
+          }`}
         >
           {statusUpdateMessage.text}
         </div>
@@ -599,19 +600,14 @@ export default function Payment({
 
         <button
           onClick={() => {
-            // const res = checkFees();
-            // if (!res) return;
             onComplete();
-
-            // updateTaskDetails(task.id, {
-            //   fees: fees,
-            // });
           }}
           disabled={!allUploaded}
-          className={`px-4 py-2 rounded-md ml-auto focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${allUploaded
+          className={`px-4 py-2 rounded-md ml-auto focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+            allUploaded
               ? "bg-blue-600 hover:bg-blue-700 text-white"
               : "bg-gray-400 cursor-not-allowed text-gray-600"
-            }`}
+          }`}
           title={
             !allUploaded
               ? "Please upload all required documents to proceed"
@@ -698,8 +694,11 @@ export default function Payment({
                           alt="Document Preview"
                           className="max-w-full max-h-[70vh] object-contain shadow-lg rounded bg-white p-4"
                           onError={(e) => {
-                            console.error('Error loading image:', e);
-                            console.error('Image URL that failed to load:', previewUrl);
+                            console.error("Error loading image:", e);
+                            console.error(
+                              "Image URL that failed to load:",
+                              previewUrl
+                            );
                           }}
                         />
                       </div>

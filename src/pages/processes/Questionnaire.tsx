@@ -4,6 +4,7 @@ import { submitQuestionnaireService } from "../../services/restApi/task";
 interface QuestionnaireProps {
   process: any;
   taskId: string;
+  task: any;
   onComplete: () => void;
   onPrevious?: () => void;
 }
@@ -11,6 +12,7 @@ interface QuestionnaireProps {
 export default function Questionnaire({
   process,
   taskId,
+  task,
   onComplete,
   onPrevious,
 }: QuestionnaireProps) {
@@ -270,13 +272,15 @@ export default function Questionnaire({
 
           <div className="flex justify-end flex-col">
             <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={handleEdit}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                Edit Responses
-              </button>
+              {task.status !== "completed" && (
+                <button
+                  type="button"
+                  onClick={handleEdit}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  Edit Responses
+                </button>
+              )}
               {hasExistingResponses && !isEditing && (
                 <button
                   type="button"

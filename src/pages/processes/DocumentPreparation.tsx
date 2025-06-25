@@ -288,6 +288,9 @@ DocumentPreparationProps) {
     return null;
   };
 
+  // Check if task is completed
+  const isTaskCompleted = task.status === "completed";
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
       <h2 className="text-xl font-semibold mb-4">Document Preparation</h2>
@@ -389,28 +392,37 @@ DocumentPreparationProps) {
                     }}
                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                   />
-                  <button
-                    type="button"
-                    onClick={() => handleUploadClick(documentId)}
-                    disabled={status === "uploading"}
-                    className={`px-4 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                      status === "success"
-                        ? "bg-green-500 text-white hover:bg-green-600 focus:ring-green-500"
+                  {/* Hide upload/replace button when task is completed */}
+                  {!isTaskCompleted && (
+                    <button
+                      type="button"
+                      onClick={() => handleUploadClick(documentId)}
+                      disabled={status === "uploading"}
+                      className={`px-4 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                        status === "success"
+                          ? "bg-green-500 text-white hover:bg-green-600 focus:ring-green-500"
+                          : status === "error"
+                          ? "bg-red-100 text-red-700 hover:bg-red-200 focus:ring-red-500"
+                          : "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"
+                      } disabled:opacity-50`}
+                    >
+                      {status === "uploading"
+                        ? "Uploading..."
+                        : status === "success"
+                        ? uploadedDoc
+                          ? "Replace"
+                          : "Uploaded ✓"
                         : status === "error"
-                        ? "bg-red-100 text-red-700 hover:bg-red-200 focus:ring-red-500"
-                        : "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"
-                    } disabled:opacity-50`}
-                  >
-                    {status === "uploading"
-                      ? "Uploading..."
-                      : status === "success"
-                      ? uploadedDoc
-                        ? "Replace"
-                        : "Uploaded ✓"
-                      : status === "error"
-                      ? "Try Again"
-                      : "Upload File"}
-                  </button>
+                        ? "Try Again"
+                        : "Upload File"}
+                    </button>
+                  )}
+                  {/* Show completion status when task is completed */}
+                  {isTaskCompleted && status === "success" && (
+                    <span className="px-4 py-2 rounded-md text-sm font-medium bg-green-100 text-green-700">
+                      Uploaded ✓
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -435,7 +447,7 @@ DocumentPreparationProps) {
           </button>
         )}
 
-        {task.status === "completed" && (
+        {isTaskCompleted && (
           <b className="text-green-600">Task Already Submitted</b>
         )}
         {/* 

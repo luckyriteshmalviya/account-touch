@@ -223,15 +223,16 @@ export default function ViewTaskPage() {
                 onClick={handleStartWorkflow}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
-                {processes.some(
+                {/* {processes.some(
                   (process) =>
                     process.status === "completed" ||
                     process.questionnaire_submission ||
                     (process.uploaded_documents &&
                       process.uploaded_documents.length > 0)
                 )
-                  ? "Complete the Task"
-                  : "Start Task Workflow"}
+                  ?  */}
+                Start Task Workflow
+                {/* : "Start Task Workflow"} */}
               </button>
             )}
           </div>
@@ -275,14 +276,15 @@ export default function ViewTaskPage() {
           </div>
         </div>
       )}
-
-      <button
-        type="button"
-        onClick={() => navigate(`/manage-task/${id}`)}
-        className="px-8 mt-4 p-2 border border-1 border-zinc-400 hover:bg-blue-400 rounded-lg"
-      >
-        Edit
-      </button>
+      {task.status !== "completed" && (
+        <button
+          type="button"
+          onClick={() => navigate(`/manage-task/${id}`)}
+          className="px-8 mt-4 p-2 border border-1 border-zinc-400 hover:bg-blue-400 rounded-lg"
+        >
+          Edit
+        </button>
+      )}
     </div>
   );
 }

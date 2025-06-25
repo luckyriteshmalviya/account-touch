@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { getUserListService } from "../../../services/restApi/user";
 import { getCategoryListService } from "../../../services/restApi/category";
+import useIsSuperAdmin from "../../../hooks/useIsSuperAdmin";
+import { Trash2 } from "lucide-react";
 
 // DateRangePicker Component Props Interface
 interface DateRangePickerProps {
@@ -429,6 +431,8 @@ export default function TasksTable() {
     if (!dateString) return null;
     return new Date(dateString);
   };
+
+  const isSuperAdmin = useIsSuperAdmin();
 
   // First load all dropdown data
   useEffect(() => {
@@ -1059,6 +1063,12 @@ export default function TasksTable() {
                           className="w-5 h-5 text-blue-600 hover:text-blue-800 cursor-pointer"
                           onClick={() => navigate(`/manage-task/${task.id}`)}
                         />
+                        {isSuperAdmin && task.status !== "completed" && (
+                          <Trash2
+                            className="w-5 h-5 text-red-600 hover:text-red-800 cursor-pointer"
+                            onClick={() => setDeleteId(task.id)}
+                          />
+                        )}
                       </TableCell>
                     </TableRow>
                   ))

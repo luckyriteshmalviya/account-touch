@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { uploadDocumentService } from "../../services/restApi/task";
 
 interface DocumentsProps {
+  task: any;
   process: any;
   onComplete: () => void;
   onPrevious?: () => void;
@@ -16,6 +17,7 @@ type UploadStatusType = Record<
 >;
 
 export default function Documents({
+  task,
   process,
   onComplete,
   onPrevious,
@@ -26,6 +28,9 @@ export default function Documents({
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Check if task is completed
+  const isTaskCompleted = task?.status === "completed";
 
   // Check if there are already uploaded documents
   useEffect(() => {
@@ -299,37 +304,49 @@ export default function Documents({
                   )}
                 </div>
                 <div>
-                  <input
-                    type="file"
-                    className="hidden"
-                    onChange={(e) => handleFileChange(document, e)}
-                    ref={(el) => {
-                      fileInputRefs.current[documentId] = el;
-                    }}
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleUploadClick(documentId)}
-                    disabled={status === "uploading"}
-                    className={`px-4 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                      status === "success"
-                        ? "bg-green-500 text-white hover:bg-green-600 focus:ring-green-500"
-                        : status === "error"
-                        ? "bg-red-100 text-red-700 hover:bg-red-200 focus:ring-red-500"
-                        : "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"
-                    } disabled:opacity-50`}
-                  >
-                    {status === "uploading"
-                      ? "Uploading..."
-                      : status === "success"
-                      ? uploadedDoc
-                        ? "Replace"
-                        : "Uploaded ✓"
-                      : status === "error"
-                      ? "Try Again"
-                      : "Upload File"}
-                  </button>
+                  {/* Hide upload input and button when task is completed */}
+                  {!isTaskCompleted && (
+                    <>
+                      <input
+                        type="file"
+                        className="hidden"
+                        onChange={(e) => handleFileChange(document, e)}
+                        ref={(el) => {
+                          fileInputRefs.current[documentId] = el;
+                        }}
+                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleUploadClick(documentId)}
+                        disabled={status === "uploading"}
+                        className={`px-4 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                          status === "success"
+                            ? "bg-green-500 text-white hover:bg-green-600 focus:ring-green-500"
+                            : status === "error"
+                            ? "bg-red-100 text-red-700 hover:bg-red-200 focus:ring-red-500"
+                            : "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"
+                        } disabled:opacity-50`}
+                      >
+                        {status === "uploading"
+                          ? "Uploading..."
+                          : status === "success"
+                          ? uploadedDoc
+                            ? "Replace"
+                            : "Uploaded ✓"
+                          : status === "error"
+                          ? "Try Again"
+                          : "Upload File"}
+                      </button>
+                    </>
+                  )}
+
+                  {/* Show status indicator when task is completed */}
+                  {isTaskCompleted && status === "success" && (
+                    <div className="px-4 py-2 rounded-md text-sm font-medium bg-green-100 text-green-700">
+                      Document Uploaded ✓
+                    </div>
+                  )}
                 </div>
               </div>
 

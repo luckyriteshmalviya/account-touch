@@ -95,7 +95,7 @@ export default function TaskStepsPage() {
   // ✅ Update completed steps
   useEffect(() => {
     if (task && task.processes) {
-      console.table(task.processes);
+      // console.table(task.processes);
       const completed = task.processes
         .map((p: Process, i: number) => (p.status === "completed" ? i : null))
         .filter((i): i is number => i !== null);
@@ -243,6 +243,7 @@ export default function TaskStepsPage() {
               case "questionnaire":
                 return (
                   <Questionnaire
+                    task={task}
                     process={currentProcess}
                     taskId={task.id}
                     onComplete={() => handleStepComplete(currentStep)}
@@ -251,6 +252,7 @@ export default function TaskStepsPage() {
               case "documentation":
                 return (
                   <Documents
+                    task={task}
                     process={currentProcess}
                     onComplete={() => handleStepComplete(currentStep)}
                     onPrevious={
