@@ -103,7 +103,11 @@ export const UserForm = ({
 
   // Filter roles based on current user's role
   const getFilteredRolesOptions = (): RoleOption[] => {
-    if (currentUserRole === "super-admin" || currentUserRole === "admin") {
+    if (
+      currentUserRole === "super-admin" ||
+      currentUserRole === "admin" ||
+      currentUserRole === "super_admin"
+    ) {
       return rolesOptions; // Admin can assign all roles
     }
     // Non-admin users can only add Clients
@@ -125,7 +129,9 @@ export const UserForm = ({
     // Show for admin/super-admin adding client (but not mandatory)
     if (
       selectedRoles.value === "client" &&
-      (currentUserRole === "super-admin" || currentUserRole === "admin")
+      (currentUserRole === "super-admin" ||
+        currentUserRole === "admin" ||
+        currentUserRole === "super_admin")
     ) {
       return true;
     }
@@ -148,7 +154,11 @@ export const UserForm = ({
       return false;
     }
     // Super admin and admin can always edit
-    if (currentUserRole === "super-admin" || currentUserRole === "admin") {
+    if (
+      currentUserRole === "super-admin" ||
+      currentUserRole === "admin" ||
+      currentUserRole === "super_admin"
+    ) {
       return true;
     }
     return true;
@@ -168,6 +178,7 @@ export const UserForm = ({
     if (
       selectedRoles?.value === "client" &&
       (currentUserRole === "super-admin" ||
+        currentUserRole === "super_admin" ||
         currentUserRole === "admin" ||
         currentUserRole === "maker" ||
         currentUserRole === "checker")

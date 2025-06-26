@@ -176,7 +176,8 @@ export const AddUserForm = () => {
         setAssignedToOptions(franchiseOption);
       } else if (
         currentUserRole === "super-admin" ||
-        currentUserRole === "admin"
+        currentUserRole === "admin" ||
+        currentUserRole === "super_admin"
       ) {
         // For admin roles, fetch franchise users for client assignment
         const fetchAssignedToUsers = async () => {

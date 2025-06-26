@@ -8,7 +8,7 @@ function useIsSuperAdmin() {
       const auth = JSON.parse(localStorage.getItem("auth") || "{}");
       const roles = auth?.user?.roles || [];
       const hasSuperAdmin = roles.some(
-        (role: { name: string }) => role.name === "Super Admin"
+        (role: { name: string }) => role.name === "super_admin"
       );
       setIsSuperAdmin(hasSuperAdmin);
     } catch (error) {

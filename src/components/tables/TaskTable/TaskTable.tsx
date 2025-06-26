@@ -632,7 +632,7 @@ export default function TasksTable() {
 
   const handleDelete = async (): Promise<void> => {
     if (deleteId !== null) {
-      const success = await deleteTaskService(Number(deleteId));
+      const success = await deleteTaskService(deleteId);
       if (success) {
         setTasks((prev) => prev.filter((task) => task.id !== deleteId));
         Swal.fire({

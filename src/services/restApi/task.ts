@@ -140,7 +140,7 @@ export const getTaskListService = async (params: {
   }
 };
 
-export const deleteTaskService = async (taskId: number) => {
+export const deleteTaskService = async (taskId: string) => {
   try {
     const token = getAccessToken();
 

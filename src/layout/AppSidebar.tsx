@@ -324,7 +324,7 @@ const AppSidebar: React.FC = () => {
                   <HorizontaLDots className="size-6" />
                 )}
               </h2>
-              {currentRole.includes("super-admin")
+              {currentRole.includes("super_admin")
                 ? renderMenuItems(navItemsForAdmin, "main")
                 : renderMenuItems(navItems, "main")}
             </div>
