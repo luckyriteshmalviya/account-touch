@@ -80,11 +80,14 @@ export const UserForm = ({
   const param = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const transformedAssignedToOptions = assignedToOptions
-    ? assignedToOptions.map((user) => ({
-        label: user.full_name || user.first_name || user.email,
-        value: user.id,
-      }))
+  // Filter out inactive checkers from assignedToOptions
+  const activeAssignedToOptions = assignedToOptions
+    ? assignedToOptions
+        .filter((user) => user.is_active !== false) // Only show active users
+        .map((user) => ({
+          label: user.full_name || user.first_name || user.email,
+          value: user.id,
+        }))
     : [];
 
   // Compute disabled logic once
@@ -95,8 +98,7 @@ export const UserForm = ({
 
   // Error state for validation
   const [errors, setErrors] = useState<FormErrors>({});
-  // console.log("Current User Role:", currentUserRole);
-  // console.log("Current User:", currentUser);
+
   useEffect(() => {
     setIsActive(user.is_active);
   }, [user.is_active]);
@@ -435,7 +437,7 @@ export const UserForm = ({
                     id="assignedTo"
                     value={getAssignedToValue()}
                     name="Assigned To"
-                    options={transformedAssignedToOptions}
+                    options={activeAssignedToOptions}
                     onChange={(values: AssignedToOption | null) => {
                       if (isAssignedToEditable()) {
                         setErrors((prev) => ({
@@ -460,6 +462,7 @@ export const UserForm = ({
             }
           </div>
         </ComponentCard>
+
         {param.id && (
           <ComponentCard title="Status">
             <div className="flex gap-4 justify-between items-center">
@@ -484,6 +487,7 @@ export const UserForm = ({
             </div>
           </ComponentCard>
         )}
+
         <ComponentCard title="PAN Details">
           <div className="grid grid-cols-2 gap-6">
             {[
@@ -510,6 +514,7 @@ export const UserForm = ({
             ))}
           </div>
         </ComponentCard>
+
         {selectedRoles?.value === "client" && (
           <ComponentCard title="GST Details">
             <div className="grid grid-cols-2 gap-6 ">
@@ -538,6 +543,7 @@ export const UserForm = ({
             </div>
           </ComponentCard>
         )}
+
         {param.id && !editMode && (
           <ComponentCard title="Created By">
             <div className="grid grid-cols-2 gap-6">
@@ -562,6 +568,7 @@ export const UserForm = ({
             </div>
           </ComponentCard>
         )}
+
         {/* Buttons */}
         <div className="mt-6 flex gap-4">
           {!id && (

@@ -87,14 +87,16 @@ export const AddUserForm = () => {
 
     const payload: any = {
       ...user,
-      role_names: selectedRoles?.value,
+      role_names: selectedRoles?.value ? [selectedRoles.value] : [],
+      // role_names: selectedRoles?.value,
     };
-
+    // console.log(typeof selectedRoles?.value);
     // Only add assigned_to_id if assignedTo is selected in UI
     if (assignedTo && assignedTo.value) {
       payload.assigned_to_id = assignedTo.value;
     }
 
+    console.log("Payload being sent:", JSON.stringify(payload, null, 2));
     try {
       const res = await addUserService(payload);
       if (res && res.id) {
@@ -143,12 +145,19 @@ export const AddUserForm = () => {
   const [assignedToOptions, setAssignedToOptions] = useState<any[]>([]);
 
   useEffect(() => {
-    if (selectedRoles?.value === "maker") {
-      // If 'Maker' role is selected, fetch users for 'Assigned To'
+    if (
+      selectedRoles?.value === "maker" ||
+      selectedRoles?.value === "franchise"
+    ) {
+      // If 'Maker' or 'Franchise' role is selected, fetch active Checkers for 'Assigned To'
       const fetchAssignedToUsers = async () => {
         try {
           const response = await fetchAssignedToList("Checker");
-          setAssignedToOptions(response.results || []);
+          // Filter only active checkers
+          const activeCheckers = (response.results || []).filter(
+            (checker: any) => checker.is_active !== false
+          );
+          setAssignedToOptions(activeCheckers);
         } catch (error) {
           console.error("Error fetching assigned users:", error);
           Swal.fire({
@@ -171,6 +180,7 @@ export const AddUserForm = () => {
             last_name: currentUser?.last_name,
             full_name: currentUser?.full_name,
             email: currentUser?.email,
+            is_active: true, // Assuming current user is active
           },
         ];
         setAssignedToOptions(franchiseOption);
@@ -179,11 +189,15 @@ export const AddUserForm = () => {
         currentUserRole === "admin" ||
         currentUserRole === "super_admin"
       ) {
-        // For admin roles, fetch franchise users for client assignment
+        // For admin roles, fetch active franchise users for client assignment
         const fetchAssignedToUsers = async () => {
           try {
             const response = await fetchAssignedToList("Franchise");
-            setAssignedToOptions(response.results || []);
+            // Filter only active franchise users
+            const activeFranchises = (response.results || []).filter(
+              (franchise: any) => franchise.is_active !== false
+            );
+            setAssignedToOptions(activeFranchises);
           } catch (error) {
             console.error("Error fetching assigned users:", error);
             Swal.fire({
