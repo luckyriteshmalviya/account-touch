@@ -226,7 +226,7 @@ export const UserForm = ({
 
     // Validate required fields
     if (!user.first_name) newErrors.first_name = "First Name is required";
-    if (!user.email) newErrors.email = "Email is required";
+
     if (!user.phone_number) newErrors.phone_number = "Phone Number is required";
 
     // Email format validation
@@ -327,9 +327,7 @@ export const UserForm = ({
 
           <div className="grid grid-cols-2 gap-6 ">
             <div className="space-y-6">
-              <Label htmlFor="email">
-                Email <span className="text-red-500">*</span>
-              </Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 value={user.email}
                 type="text"
@@ -512,32 +510,34 @@ export const UserForm = ({
             ))}
           </div>
         </ComponentCard>
-        <ComponentCard title="GST Details">
-          <div className="grid grid-cols-2 gap-6 ">
-            {[
-              { label: "GST Number", field: "gst_number" as keyof User },
-              {
-                label: "GST Portal Login",
-                field: "gst_site_login" as keyof User,
-              },
-              {
-                label: "GST Portal Password",
-                field: "gst_site_password" as keyof User,
-              },
-            ].map(({ label, field }) => (
-              <div className="space-y-6" key={field}>
-                <Label htmlFor={field}>{label}</Label>
-                <Input
-                  value={user[field] as string}
-                  type="text"
-                  id={field}
-                  onChange={(e) => handleInputChange(field, e.target.value)}
-                  disabled={isDisabled}
-                />
-              </div>
-            ))}
-          </div>
-        </ComponentCard>
+        {selectedRoles?.value === "client" && (
+          <ComponentCard title="GST Details">
+            <div className="grid grid-cols-2 gap-6 ">
+              {[
+                { label: "GST Number", field: "gst_number" as keyof User },
+                {
+                  label: "GST Portal Login",
+                  field: "gst_site_login" as keyof User,
+                },
+                {
+                  label: "GST Portal Password",
+                  field: "gst_site_password" as keyof User,
+                },
+              ].map(({ label, field }) => (
+                <div className="space-y-6" key={field}>
+                  <Label htmlFor={field}>{label}</Label>
+                  <Input
+                    value={user[field] as string}
+                    type="text"
+                    id={field}
+                    onChange={(e) => handleInputChange(field, e.target.value)}
+                    disabled={isDisabled}
+                  />
+                </div>
+              ))}
+            </div>
+          </ComponentCard>
+        )}
         {param.id && !editMode && (
           <ComponentCard title="Created By">
             <div className="grid grid-cols-2 gap-6">
