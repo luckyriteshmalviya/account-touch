@@ -7,13 +7,9 @@ import {
   updateProcessTemplatService,
   getProcessTemplatDetailsService,
 } from "../../../services/restApi/processTemplate";
-
-// Assuming you have this service for fetching questionnaire list
 import { getQuestionnairesListService } from "../../../services/restApi/Questionnaires";
 import { getDocumentTypeListService } from "../../../services/restApi/documentTypes";
 import { getProceduresListService } from "../../../services/restApi/Procedure";
-// Add this import for procedures
-// import { getProceduresListService } from "../../../services/restApi/procedures";
 
 interface Questionnaire {
   id: string;
@@ -36,235 +32,201 @@ export default function AddOrEditProcessTemplatPage() {
     title: "",
     description: "",
     process_type: "",
-    created_by_id: 0, // You'll probably get this from auth/user context
+    created_by_id: 0,
   });
 
   const [questionnaireList, setQuestionnaireList] = useState<Questionnaire[]>(
     []
   );
-
   const [selectedQuestionnaire, setSelectedQuestionnaire] = useState("");
 
   const [documentList, setDocumentList] = useState<any[]>([]);
   const [selectedDocumentType, setSelectedDocumentType] = useState<any[]>([]);
 
-  // Add procedure state
   const [procedureList, setProcedureList] = useState<Procedure[]>([]);
   const [selectedProcedure, setSelectedProcedure] = useState("");
 
-  const [page] = useState(1);
-  const [search] = useState("");
+  const page = 1;
+  const search = "";
 
   const { id } = useParams();
   const isEdit = !!id;
   const navigate = useNavigate();
 
+  // 🔵 Fetch lists based on process_type
   useEffect(() => {
-    if (processTemplat.process_type === "") return;
+    if (!processTemplat.process_type) return;
 
-    // Fetch questionnaire list on mount
-    if (processTemplat.process_type === "questionnaire") {
-      async function fetchQuestionnaires() {
-        try {
+    const fetchData = async () => {
+      try {
+        if (processTemplat.process_type === "questionnaire") {
           const data = await getQuestionnairesListService({ page, search });
           setQuestionnaireList(data.results || []);
-        } catch (error) {
-          console.error("Error fetching questionnaires:", error);
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "Failed to fetch questionnaire list.",
-          });
         }
-      }
-      fetchQuestionnaires();
-    }
 
-    // Fetch procedure list
-    if (processTemplat.process_type === "procedure") {
-      async function fetchProcedures() {
-        try {
+        if (processTemplat.process_type === "procedure") {
           const data = await getProceduresListService({ page, search });
           setProcedureList(data.results || []);
-        } catch (error) {
-          console.error("Error fetching procedures:", error);
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "Failed to fetch procedure list.",
-          });
         }
-      }
-      fetchProcedures();
-    }
 
-    // Fetch document list
-    if (
-      processTemplat.process_type === "documentation" ||
-      processTemplat.process_type === "document_preparation" ||
-      processTemplat.process_type === "payment"
-    ) {
-      async function fetchdocuments() {
-        try {
+        if (
+          ["documentation", "document_preparation", "payment"].includes(
+            processTemplat.process_type
+          )
+        ) {
           const data = await getDocumentTypeListService({ page, search });
           setDocumentList(data.results || []);
 
-          // 👇 if payment type, select "Payment Receipt"
           if (processTemplat.process_type === "payment") {
             const paymentReceiptDoc = data.results.find(
-              (doc: any) => doc.name.toLowerCase() === "payment receipt" // ya jo bhi actual name API me aaye
+              (doc: any) => doc.name.toLowerCase() === "payment receipt"
             );
             if (paymentReceiptDoc) {
               setSelectedDocumentType([paymentReceiptDoc.id]);
             }
           }
-        } catch (error) {
-          console.error("Error fetching documents:", error);
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "Failed to fetch document list.",
-          });
         }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Failed to fetch data. Please try again.",
+        });
       }
-      fetchdocuments();
-    }
+    };
+
+    fetchData();
   }, [processTemplat.process_type]);
 
+  // 🔵 Load edit data
   useEffect(() => {
-    if (isEdit) {
-      (async () => {
-        try {
-          const data = await getProcessTemplatDetailsService(id as string);
-          setProcessTemplat({
-            title: data.title || "",
-            description: data.description || "",
-            process_type: data.process_type, // dynamic now
-            created_by_id: data.created_by?.id || 0,
-          });
+    if (!isEdit) return;
 
-          if (data.process_type === "questionnaire") {
-            setSelectedQuestionnaire(data?.questionnaire?.id || "");
-          } else if (data.process_type === "procedure") {
-            setSelectedProcedure(data?.procedure?.id || "");
-          } else if (
-            data.process_type === "documentation" ||
-            data.process_type === "document_preparation" ||
-            data.process_type === "payment"
-          ) {
-            const requiredDocumentIds =
-              data?.required_documents.map((item: any) => item.id) || [];
-            setSelectedDocumentType(requiredDocumentIds);
-          }
-        } catch (error) {
-          console.error("Error fetching process template details:", error);
-          await Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "Failed to fetch process template details.",
-          });
+    const fetchDetails = async () => {
+      try {
+        const data = await getProcessTemplatDetailsService(id as string);
+
+        // Map 'steps_procedure' to 'procedure' for UI
+        const mappedProcessType =
+          data.process_type === "steps_procedure"
+            ? "procedure"
+            : data.process_type;
+
+        setProcessTemplat({
+          title: data.title || "",
+          description: data.description || "",
+          process_type: mappedProcessType,
+          created_by_id: data.created_by?.id || 0,
+        });
+
+        if (mappedProcessType === "questionnaire") {
+          setSelectedQuestionnaire(data?.questionnaire?.id || "");
         }
-      })();
-    }
+
+        if (mappedProcessType === "procedure") {
+          setSelectedProcedure(data?.procedure?.id || "");
+        }
+
+        if (
+          ["documentation", "document_preparation", "payment"].includes(
+            mappedProcessType
+          )
+        ) {
+          const requiredDocumentIds =
+            data?.required_documents.map((item: any) => item.id) || [];
+          setSelectedDocumentType(requiredDocumentIds);
+        }
+      } catch (error) {
+        console.error("Error fetching details:", error);
+        await Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Failed to fetch Process Template details.",
+        });
+      }
+    };
+
+    fetchDetails();
   }, [id, isEdit]);
 
+  // 🔵 Submit handler
   const handleSubmit = async () => {
     if (!processTemplat.title.trim()) {
-      await Swal.fire({
+      return Swal.fire({
         icon: "error",
         title: "Validation Error",
         text: "Title is required!",
       });
-      return;
     }
 
     if (
-      selectedQuestionnaire.length === 0 &&
-      processTemplat.process_type === "questionnaire"
+      processTemplat.process_type === "questionnaire" &&
+      !selectedQuestionnaire
     ) {
-      await Swal.fire({
+      return Swal.fire({
         icon: "error",
         title: "Validation Error",
-        text: "Questionnaire ID is required!",
+        text: "Select a questionnaire!",
       });
-      return;
+    }
+
+    if (processTemplat.process_type === "procedure" && !selectedProcedure) {
+      return Swal.fire({
+        icon: "error",
+        title: "Validation Error",
+        text: "Select a procedure!",
+      });
     }
 
     if (
-      selectedProcedure.length === 0 &&
-      processTemplat.process_type === "procedure"
+      ["documentation", "document_preparation"].includes(
+        processTemplat.process_type
+      ) &&
+      selectedDocumentType.length === 0
     ) {
-      await Swal.fire({
+      return Swal.fire({
         icon: "error",
         title: "Validation Error",
-        text: "Procedure is required!",
+        text: "Select document(s)!",
       });
-      return;
-    }
-
-    if (
-      selectedDocumentType.length === 0 &&
-      (processTemplat.process_type === "documentation" ||
-        processTemplat.process_type === "document_preparation")
-    ) {
-      await Swal.fire({
-        icon: "error",
-        title: "Validation Error",
-        text: "Select Document!",
-      });
-      return;
     }
 
     if (!processTemplat.process_type.trim()) {
-      await Swal.fire({
+      return Swal.fire({
         icon: "error",
         title: "Validation Error",
-        text: "Process Type is required!",
+        text: "Process type is required!",
       });
-      return;
     }
 
     const localStorageProfile = localStorage.getItem("auth");
     const parsedProfile = JSON.parse(localStorageProfile || "{}");
-    let payload;
 
+    let payload: any = {
+      title: processTemplat.title,
+      description: processTemplat.description || "",
+      created_by_id: parsedProfile?.user?.id,
+    };
+
+    // Dynamic payload
     if (processTemplat.process_type === "questionnaire") {
-      payload = {
-        title: processTemplat.title,
-        description: processTemplat.description || "",
-        process_type: processTemplat.process_type,
-        questionnaire_id: selectedQuestionnaire,
-        created_by_id: parsedProfile?.user?.id,
-      };
-    } else if (processTemplat.process_type === "procedure") {
-      payload = {
-        title: processTemplat.title,
-        description: processTemplat.description || "",
-        process_type: "steps_procedure",
-        procedure_id: selectedProcedure,
-        created_by_id: parsedProfile?.user?.id,
-      };
-    } else if (
-      processTemplat.process_type === "documentation" ||
-      processTemplat.process_type === "document_preparation" ||
-      processTemplat.process_type === "payment"
-    ) {
-      if (!selectedDocumentType.length) {
-        await Swal.fire({
-          icon: "error",
-          title: "Validation Error",
-          text: "Select at least one document type.",
-        });
-        return;
-      }
+      payload.process_type = "questionnaire";
+      payload.questionnaire_id = selectedQuestionnaire;
+    }
 
-      payload = {
-        title: processTemplat.title,
-        description: processTemplat.description || "",
-        process_type: processTemplat.process_type,
-        required_document_ids: selectedDocumentType,
-        created_by_id: parsedProfile?.user?.id,
-      };
+    if (processTemplat.process_type === "procedure") {
+      payload.process_type = "steps_procedure";
+      payload.procedure_id = selectedProcedure;
+    }
+
+    if (
+      ["documentation", "document_preparation", "payment"].includes(
+        processTemplat.process_type
+      )
+    ) {
+      payload.process_type = processTemplat.process_type;
+      payload.required_document_ids = selectedDocumentType;
     }
 
     try {
