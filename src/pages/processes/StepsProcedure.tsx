@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { submitProcedureStepsService } from "../../services/restApi/task";
+import Swal from "sweetalert2";
 
 interface ProcedureStepsProps {
   process: any;
@@ -74,10 +75,21 @@ export default function ProcedureSteps({
     const res = await submitProcedureStepsService(payload);
 
     if (res.error) {
-      alert(`Error: ${res.error}`);
+      Swal.fire({
+        icon: "error",
+        title: "Oops!",
+        text: res.error,
+        confirmButtonColor: "#d33",
+      });
     } else {
-      alert("Procedure steps submitted successfully!");
-      onComplete();
+      Swal.fire({
+        icon: "success",
+        title: "Success",
+        text: "Procedure steps submitted successfully!",
+        confirmButtonColor: "#3085d6",
+      }).then(() => {
+        onComplete();
+      });
     }
   };
 
