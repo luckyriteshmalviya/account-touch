@@ -410,3 +410,35 @@ export const requestPaymentService = async (processId: number) => {
     return { error: "Network or server error occurred", status: 500 };
   }
 };
+export const submitProcedureStepsService = async (data: any) => {
+  try {
+    const token = getAccessToken();
+
+    const res = await fetch(
+      `https://api.accountouch.com/api/tasks/steps-procedure-submissions/`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      }
+    );
+
+    const responseData = await res.json();
+
+    if (!res.ok) {
+      return {
+        error: responseData.detail || `Error: ${res.status} ${res.statusText}`,
+        status: res.status,
+        data: responseData,
+      };
+    }
+
+    return responseData;
+  } catch (error) {
+    console.error("Error submitting procedure steps:", error);
+    return { error: "Network or server error occurred", status: 500 };
+  }
+};
