@@ -329,14 +329,29 @@ export default function App() {
                 </ProtectedRoutesLayout>
               }
             />
-            <Route path="/add-banner-image" element={<AddOrEditBanner />} />
+            <Route
+              path="/add-banner-image"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditBanner />
+                </ProtectedRoutesLayout>
+              }
+            />
             <Route
               path="/edit-banner-image/:id"
-              element={<AddOrEditBanner />}
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditBanner />
+                </ProtectedRoutesLayout>
+              }
             />
             <Route
               path="/view-banner-image/:id"
-              element={<ViewBannerImage />}
+              element={
+                <ProtectedRoutesLayout>
+                  <ViewBannerImage />
+                </ProtectedRoutesLayout>
+              }
             />
 
             <Route
@@ -349,15 +364,27 @@ export default function App() {
             />
             <Route
               path="/add-notification-text"
-              element={<AddOrEditNotificationText />}
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditNotificationText />
+                </ProtectedRoutesLayout>
+              }
             />
             <Route
               path="/edit-notification-text/:id"
-              element={<AddOrEditNotificationText />}
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditNotificationText />
+                </ProtectedRoutesLayout>
+              }
             />
             <Route
               path="/view-notification-text/:id"
-              element={<ViewNotificationText />}
+              element={
+                <ProtectedRoutesLayout>
+                  <ViewNotificationText />
+                </ProtectedRoutesLayout>
+              }
             />
 
             <Route
@@ -535,15 +562,37 @@ export default function App() {
                 </ProtectedRoutesLayout>
               }
             />
-            <Route path="/procedures-list" element={<ProceduresTable />} />
-            <Route path="/manage-procedure" element={<AddOrEditProcedure />} />
+            <Route
+              path="/procedures-list"
+              element={
+                <ProtectedRoutesLayout>
+                  <ProceduresTable />
+                </ProtectedRoutesLayout>
+              }
+            />
+            <Route
+              path="/manage-procedure"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditProcedure />
+                </ProtectedRoutesLayout>
+              }
+            />
             <Route
               path="/manage-procedure/:id"
-              element={<AddOrEditProcedure />}
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditProcedure />
+                </ProtectedRoutesLayout>
+              }
             />
             <Route
               path="/procedures/view/:id"
-              element={<ViewProcedurePage />}
+              element={
+                <ProtectedRoutesLayout>
+                  <ViewProcedurePage />
+                </ProtectedRoutesLayout>
+              }
             />
             <Route
               path="/hot-task-templates/view/:id"

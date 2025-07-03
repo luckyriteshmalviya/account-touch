@@ -39,6 +39,7 @@ const NotificationTextForm: React.FC<NotificationTextFormProps> = ({
       <div>
         <label className="block font-medium mb-1">Body</label>
         <textarea
+          rows={6}
           value={formData.body}
           onChange={(e) =>
             setFormData((prev) => ({ ...prev, body: e.target.value }))
