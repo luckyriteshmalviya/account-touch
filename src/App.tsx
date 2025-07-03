@@ -48,6 +48,18 @@ import AddOrEditTaskTemplatPage from "./pages/Forms/TaskTemplates/AddOrEditTaskT
 import HotTaskTemplatesTable from "./pages/Tables/HotTaskTemplateTable";
 import HotViewTaskTemplatPage from "./pages/Forms/HotTaskTemplates/HotViewTaskTemplatePage";
 import AddOrEditHotTaskTemplate from "./pages/Forms/HotTaskTemplates/AddOrEditHotTaskTemplate";
+import BannerImages from "./pages/Tables/BannerImages";
+import NotificationTexts from "./pages/Tables/NotificationTexts";
+import Steps from "./pages/Tables/Steps";
+import AddOrEditSteps from "./pages/Forms/Steps/AddOrEditSteps";
+import ViewSteps from "./pages/Forms/Steps/ViewSteps";
+import AddOrEditBanner from "./pages/Forms/BannerImages/AddOrEditBanner";
+import ViewBannerImage from "./pages/Forms/BannerImages/ViewBannerImage";
+import AddOrEditNotificationText from "./pages/Forms/NotificationText/AddOrEditNotificationText";
+import ViewNotificationText from "./pages/Forms/NotificationText/ViewNotificationText";
+import ProceduresTable from "./pages/Tables/Procedures";
+import AddOrEditProcedure from "./pages/Forms/Procedure/AddOrEditProcedure";
+import ViewProcedurePage from "./pages/Forms/Procedure/ViewProcedurePage";
 
 export default function App() {
   return (
@@ -310,6 +322,88 @@ export default function App() {
             />
 
             <Route
+              path="/banner-images"
+              element={
+                <ProtectedRoutesLayout>
+                  <BannerImages />
+                </ProtectedRoutesLayout>
+              }
+            />
+            <Route path="/add-banner-image" element={<AddOrEditBanner />} />
+            <Route
+              path="/edit-banner-image/:id"
+              element={<AddOrEditBanner />}
+            />
+            <Route
+              path="/view-banner-image/:id"
+              element={<ViewBannerImage />}
+            />
+
+            <Route
+              path="/notification-texts"
+              element={
+                <ProtectedRoutesLayout>
+                  <NotificationTexts />
+                </ProtectedRoutesLayout>
+              }
+            />
+            <Route
+              path="/add-notification-text"
+              element={<AddOrEditNotificationText />}
+            />
+            <Route
+              path="/edit-notification-text/:id"
+              element={<AddOrEditNotificationText />}
+            />
+            <Route
+              path="/view-notification-text/:id"
+              element={<ViewNotificationText />}
+            />
+
+            <Route
+              path="/steps-list"
+              element={
+                <ProtectedRoutesLayout>
+                  <Steps />
+                </ProtectedRoutesLayout>
+              }
+            />
+
+            <Route
+              path="/manage-steps/:id"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditSteps />
+                </ProtectedRoutesLayout>
+              }
+            />
+
+            <Route
+              path="/view-step/:id"
+              element={
+                <ProtectedRoutesLayout>
+                  <ViewSteps />
+                </ProtectedRoutesLayout>
+              }
+            />
+            <Route
+              path="/edit-step/:id"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditSteps />
+                </ProtectedRoutesLayout>
+              }
+            />
+
+            <Route
+              path="/add-step/"
+              element={
+                <ProtectedRoutesLayout>
+                  <AddOrEditSteps />
+                </ProtectedRoutesLayout>
+              }
+            />
+            <Route
               path="/document-type/view/:id"
               element={
                 <ProtectedRoutesLayout>
@@ -431,6 +525,25 @@ export default function App() {
                   <AddOrEditHotTaskTemplate />
                 </ProtectedRoutesLayout>
               }
+            />
+
+            <Route
+              path="/Procedures"
+              element={
+                <ProtectedRoutesLayout>
+                  <ProceduresTable />
+                </ProtectedRoutesLayout>
+              }
+            />
+            <Route path="/procedures-list" element={<ProceduresTable />} />
+            <Route path="/manage-procedure" element={<AddOrEditProcedure />} />
+            <Route
+              path="/manage-procedure/:id"
+              element={<AddOrEditProcedure />}
+            />
+            <Route
+              path="/procedures/view/:id"
+              element={<ViewProcedurePage />}
             />
             <Route
               path="/hot-task-templates/view/:id"

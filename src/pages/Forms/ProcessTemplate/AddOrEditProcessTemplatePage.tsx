@@ -11,17 +11,30 @@ import {
 // Assuming you have this service for fetching questionnaire list
 import { getQuestionnairesListService } from "../../../services/restApi/Questionnaires";
 import { getDocumentTypeListService } from "../../../services/restApi/documentTypes";
+import { getProceduresListService } from "../../../services/restApi/Procedure";
+// Add this import for procedures
+// import { getProceduresListService } from "../../../services/restApi/procedures";
 
 interface Questionnaire {
   id: string;
   title: string;
 }
 
+interface Procedure {
+  id: string;
+  title: string;
+  description: string;
+  steps: Array<{
+    id: number;
+    step_text: string;
+    description: string;
+  }>;
+}
+
 export default function AddOrEditProcessTemplatPage() {
   const [processTemplat, setProcessTemplat] = useState({
     title: "",
     description: "",
-    // questionnaire_id: "", // Add this
     process_type: "",
     created_by_id: 0, // You'll probably get this from auth/user context
   });
@@ -34,6 +47,10 @@ export default function AddOrEditProcessTemplatPage() {
 
   const [documentList, setDocumentList] = useState<any[]>([]);
   const [selectedDocumentType, setSelectedDocumentType] = useState<any[]>([]);
+
+  // Add procedure state
+  const [procedureList, setProcedureList] = useState<Procedure[]>([]);
+  const [selectedProcedure, setSelectedProcedure] = useState("");
 
   const [page] = useState(1);
   const [search] = useState("");
@@ -63,7 +80,25 @@ export default function AddOrEditProcessTemplatPage() {
       fetchQuestionnaires();
     }
 
-    // Fetch questionnaire list on mount
+    // Fetch procedure list
+    if (processTemplat.process_type === "procedure") {
+      async function fetchProcedures() {
+        try {
+          const data = await getProceduresListService({ page, search });
+          setProcedureList(data.results || []);
+        } catch (error) {
+          console.error("Error fetching procedures:", error);
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Failed to fetch procedure list.",
+          });
+        }
+      }
+      fetchProcedures();
+    }
+
+    // Fetch document list
     if (
       processTemplat.process_type === "documentation" ||
       processTemplat.process_type === "document_preparation" ||
@@ -95,6 +130,7 @@ export default function AddOrEditProcessTemplatPage() {
       fetchdocuments();
     }
   }, [processTemplat.process_type]);
+
   useEffect(() => {
     if (isEdit) {
       (async () => {
@@ -103,13 +139,14 @@ export default function AddOrEditProcessTemplatPage() {
           setProcessTemplat({
             title: data.title || "",
             description: data.description || "",
-            // questionnaire_id: data?.questionnaire?.id || "",
             process_type: data.process_type, // dynamic now
             created_by_id: data.created_by?.id || 0,
           });
 
           if (data.process_type === "questionnaire") {
             setSelectedQuestionnaire(data?.questionnaire?.id || "");
+          } else if (data.process_type === "procedure") {
+            setSelectedProcedure(data?.procedure?.id || "");
           } else if (
             data.process_type === "documentation" ||
             data.process_type === "document_preparation" ||
@@ -140,6 +177,7 @@ export default function AddOrEditProcessTemplatPage() {
       });
       return;
     }
+
     if (
       selectedQuestionnaire.length === 0 &&
       processTemplat.process_type === "questionnaire"
@@ -148,6 +186,18 @@ export default function AddOrEditProcessTemplatPage() {
         icon: "error",
         title: "Validation Error",
         text: "Questionnaire ID is required!",
+      });
+      return;
+    }
+
+    if (
+      selectedProcedure.length === 0 &&
+      processTemplat.process_type === "procedure"
+    ) {
+      await Swal.fire({
+        icon: "error",
+        title: "Validation Error",
+        text: "Procedure is required!",
       });
       return;
     }
@@ -186,6 +236,14 @@ export default function AddOrEditProcessTemplatPage() {
         questionnaire_id: selectedQuestionnaire,
         created_by_id: parsedProfile?.user?.id,
       };
+    } else if (processTemplat.process_type === "procedure") {
+      payload = {
+        title: processTemplat.title,
+        description: processTemplat.description || "",
+        process_type: "steps_procedure",
+        procedure_id: selectedProcedure,
+        created_by_id: parsedProfile?.user?.id,
+      };
     } else if (
       processTemplat.process_type === "documentation" ||
       processTemplat.process_type === "document_preparation" ||
@@ -208,7 +266,7 @@ export default function AddOrEditProcessTemplatPage() {
         created_by_id: parsedProfile?.user?.id,
       };
     }
-    // console.log("Final Payload:", JSON.stringify(payload, null, 2));
+
     try {
       const result = isEdit
         ? await updateProcessTemplatService(id as string, payload)
@@ -250,6 +308,9 @@ export default function AddOrEditProcessTemplatPage() {
       documentList={documentList}
       setSelectedDocumentType={setSelectedDocumentType}
       selectedDocumentType={selectedDocumentType}
+      procedureList={procedureList}
+      setSelectedProcedure={setSelectedProcedure}
+      selectedProcedure={selectedProcedure}
     />
   );
 }

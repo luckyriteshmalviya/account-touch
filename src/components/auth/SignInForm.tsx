@@ -24,11 +24,21 @@ export default function SignInForm() {
   const [showOtp, setShowOtp] = useState(false);
   const [otp, setOtp] = useState("");
 
+  // Update state with validation
   const updateState = (key: string, value: string) => {
-    setState((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+    if (key === "phone_number") {
+      const onlyDigits = value.replace(/\D/g, ""); // remove non-digits
+      if (onlyDigits.length > 10) return;
+      setState((prev) => ({
+        ...prev,
+        [key]: onlyDigits,
+      }));
+    } else {
+      setState((prev) => ({
+        ...prev,
+        [key]: value,
+      }));
+    }
     setErrors((prev) => ({ ...prev, [key]: "" }));
   };
 
@@ -83,8 +93,8 @@ export default function SignInForm() {
           icon: "success",
           title: "Login!",
           text: "Login successfuly!",
-          timer: 2000, // 2 seconds
-          showConfirmButton: false, // OK button hatana
+          timer: 2000,
+          showConfirmButton: false,
         });
         navigate("/");
       } else {
@@ -93,7 +103,6 @@ export default function SignInForm() {
           title: "Login!",
           text: "Invalid OTP!",
         });
-        // toast.error(response?.data?.message || "Invalid OTP");
       }
     } catch (error) {
       Swal.fire({
@@ -101,32 +110,45 @@ export default function SignInForm() {
         title: "Login!",
         text: "Something went wrong while verifying OTP!",
       });
-      // toast.error("Something went wrong while verifying OTP.");
     }
   };
 
+  // Form submit for sending OTP
   const handleNavigate = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const { auth_type, phone_number, email } = state;
     let hasError = false;
 
-    if (auth_type === "phone" && !phone_number) {
-      setErrors((prev) => ({ ...prev, phone_number: "Required" }));
-      // toast.error("Phone number is required");
-      Swal.fire({
-        icon: "error",
-        title: "Login!",
-        text: "Phone number is required",
-        timer: 2000, // 2 seconds
-        showConfirmButton: false, // OK button hatana
-      });
-      hasError = true;
+    if (auth_type === "phone") {
+      if (!phone_number) {
+        setErrors((prev) => ({ ...prev, phone_number: "Required" }));
+        Swal.fire({
+          icon: "error",
+          title: "Login!",
+          text: "Phone number is required",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        hasError = true;
+      } else if (phone_number.length !== 10) {
+        setErrors((prev) => ({
+          ...prev,
+          phone_number: "Phone number must be 10 digits",
+        }));
+        Swal.fire({
+          icon: "error",
+          title: "Login!",
+          text: "Phone number must be 10 digits",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        hasError = true;
+      }
     }
 
     if (auth_type === "email" && !email) {
       setErrors((prev) => ({ ...prev, email: "Required" }));
-      // toast.error("Email is required");
       Swal.fire({
         icon: "error",
         title: "Login!",
@@ -158,12 +180,9 @@ export default function SignInForm() {
           icon: "success",
           title: "OTP!",
           text: "OTP sent successfully",
-          timer: 2000, // 2 seconds
-          showConfirmButton: false, // OK button hatana
+          timer: 2000,
+          showConfirmButton: false,
         });
-        // toast.success("OTP sent successfully");
-
-        // signIn(response?.otp);
       } else {
         setErrors((prev) => ({
           ...prev,
@@ -173,20 +192,18 @@ export default function SignInForm() {
           icon: "error",
           title: "Login!",
           text: "Failed to send OTP",
-          timer: 2000, // 2 seconds
-          showConfirmButton: false, // OK button hatana
+          timer: 2000,
+          showConfirmButton: false,
         });
-        // toast.error(response?.data?.message || "Failed to send OTP");
       }
     } catch (error) {
       Swal.fire({
         icon: "error",
         title: "Login!",
         text: "Something went wrong while sending OTP.",
-        timer: 2000, // 2 seconds
-        showConfirmButton: false, // OK button hatana
+        timer: 2000,
+        showConfirmButton: false,
       });
-      // toast.error("Something went wrong while sending OTP.");
     }
   };
 
@@ -204,31 +221,9 @@ export default function SignInForm() {
               Sign In
             </h1>
           </div>
-          {/* <p className="text-sm text-gray-500 dark:text-gray-400">
-            Select login method
-          </p> */}
 
           <div className="flex gap-4 my-4">
-            <label className="flex items-center gap-1">
-              {/* <input
-                type="radio"
-                name="auth_type"
-                value="phone"
-                checked={state.auth_type === "phone"}
-                onChange={(e) => updateState("auth_type", e.target.value)}
-              /> */}
-              Phone
-            </label>
-            {/* <label className="flex items-center gap-1">
-              <input
-                type="radio"
-                name="auth_type"
-                value="email"
-                checked={state.auth_type === "email"}
-                onChange={(e) => updateState("auth_type", e.target.value)}
-              />
-              Email
-            </label> */}
+            <label className="flex items-center gap-1">Phone</label>
           </div>
 
           {showOtp ? (
@@ -266,6 +261,7 @@ export default function SignInForm() {
                       Mobile Number <span className="text-error-500">*</span>
                     </Label>
                     <Input
+                      type="tel"
                       placeholder="Enter your mobile number"
                       value={state.phone_number}
                       onChange={(e) =>
@@ -275,23 +271,6 @@ export default function SignInForm() {
                     {errors.phone_number && (
                       <p className="text-sm text-red-500 mt-1">
                         {errors.phone_number}
-                      </p>
-                    )}
-                  </div>
-                )}
-                {state.auth_type === "email" && (
-                  <div>
-                    <Label>
-                      Email <span className="text-error-500">*</span>
-                    </Label>
-                    <Input
-                      placeholder="Enter your email address"
-                      value={state.email}
-                      onChange={(e) => updateState("email", e.target.value)}
-                    />
-                    {errors.email && (
-                      <p className="text-sm text-red-500 mt-1">
-                        {errors.email}
                       </p>
                     )}
                   </div>

@@ -5,9 +5,6 @@ import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
 import { signUp } from "../../services/restApi/auth";
-// import { toast } from "react-toastify";
-// import MultiSelect from "../form/MultiSelect";
-// import { rolesOptions } from "../../constants/arrays";
 import Swal from "sweetalert2";
 
 export default function SignUpForm() {
@@ -19,15 +16,44 @@ export default function SignUpForm() {
     country: "",
     password: "",
     password2: "",
-    roles: [], // updated to array
+    roles: [],
     assigned_to: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const navigate = useNavigate();
 
+  // Phone number input update with validation
+  const updatePhoneNumber = (value: string) => {
+    const onlyDigits = value.replace(/\D/g, "");
+    if (onlyDigits.length > 10) return;
+    setState((prev) => ({
+      ...prev,
+      phone: onlyDigits,
+    }));
+  };
+
   const handleSignUp = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    // Phone validation
+    if (!state.phone) {
+      Swal.fire({
+        icon: "error",
+        title: "Error!",
+        text: "Phone number is required.",
+      });
+      return;
+    }
+
+    if (state.phone.length !== 10) {
+      Swal.fire({
+        icon: "error",
+        title: "Error!",
+        text: "Phone number must be 10 digits.",
+      });
+      return;
+    }
 
     const payload: any = {
       first_name: state.fname,
@@ -62,14 +88,14 @@ export default function SignUpForm() {
       } else {
         Swal.fire({
           icon: "error",
-          title: "Login!",
-          text: "Registration failed",
+          title: "Error!",
+          text: "Registration failed.",
         });
       }
     } catch (error) {
       Swal.fire({
         icon: "error",
-        title: "Login!",
+        title: "Error!",
         text: "Something went wrong while signing up.",
       });
     }
@@ -99,7 +125,6 @@ export default function SignUpForm() {
           <form onSubmit={handleSignUp}>
             <div className="space-y-5">
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                {/* First Name */}
                 <div className="sm:col-span-1">
                   <Label>
                     First Name<span className="text-error-500">*</span>
@@ -115,7 +140,7 @@ export default function SignUpForm() {
                     }
                   />
                 </div>
-                {/* Last Name */}
+
                 <div className="sm:col-span-1">
                   <Label>
                     Last Name<span className="text-error-500">*</span>
@@ -132,7 +157,7 @@ export default function SignUpForm() {
                   />
                 </div>
               </div>
-              {/* Email */}
+
               <div>
                 <Label>
                   Email<span className="text-error-500">*</span>
@@ -148,7 +173,7 @@ export default function SignUpForm() {
                   }
                 />
               </div>
-              {/* Phone */}
+
               <div>
                 <Label>
                   Phone Number<span className="text-error-500">*</span>
@@ -159,12 +184,10 @@ export default function SignUpForm() {
                   name="phone"
                   placeholder="Enter your phone number"
                   value={state.phone}
-                  onChange={(e) =>
-                    setState({ ...state, phone: e.target.value })
-                  }
+                  onChange={(e) => updatePhoneNumber(e.target.value)}
                 />
               </div>
-              {/* Country */}
+
               <div>
                 <Label>
                   Country<span className="text-error-500">*</span>
@@ -180,18 +203,7 @@ export default function SignUpForm() {
                   }
                 />
               </div>
-              {/* Roles */}
-              <div className="space-y-6">
-                {/* <MultiSelect
-    label="Roles"
-    options={rolesOptions}
-    defaultSelected={["1"]}
-    onChange={(values: string[]) =>
-      setState((prev:any) => ({ ...prev, roles: values }))
-    }
-  /> */}
-              </div>
-              {/* Password */}
+
               <div>
                 <Label>
                   Password<span className="text-error-500">*</span>
@@ -217,7 +229,7 @@ export default function SignUpForm() {
                   </span>
                 </div>
               </div>
-              {/* Confirm Password */}
+
               <div>
                 <Label>
                   Confirm Password<span className="text-error-500">*</span>
@@ -233,7 +245,7 @@ export default function SignUpForm() {
                   />
                 </div>
               </div>
-              {/* Terms Checkbox */}
+
               <div className="flex items-center gap-3">
                 <Checkbox
                   className="w-5 h-5"
@@ -252,7 +264,7 @@ export default function SignUpForm() {
                   .
                 </p>
               </div>
-              {/* Submit */}
+
               <div>
                 <button className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600">
                   Sign Up

@@ -42,6 +42,9 @@ const navItemsForAdmin: NavItem[] = [
       { name: "Categories", path: "/category-list", pro: false },
       { name: "Questions", path: "/questions-list", pro: false },
       { name: "Document Types", path: "/document-type-list", pro: false },
+      { name: "Banner Images", path: "/Banner-Images", pro: false },
+      { name: "Notification Texts", path: "/Notification-Texts", pro: false },
+      { name: "Steps", path: "/steps-list", pro: false },
     ],
   },
   {
@@ -52,6 +55,7 @@ const navItemsForAdmin: NavItem[] = [
       { name: "Processes", path: "/process-templates-list", pro: false },
       { name: "Task", path: "/task-templates-list", pro: false },
       { name: "Hot Task", path: "/hot-task-list", pro: false },
+      { name: "Procedures", path: "/Procedures", pro: false },
     ],
   },
   {

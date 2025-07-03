@@ -11,6 +11,17 @@ interface Questionnaire {
   title: string;
 }
 
+interface Procedure {
+  id: string;
+  title: string;
+  description: string;
+  steps: Array<{
+    id: number;
+    step_text: string;
+    description: string;
+  }>;
+}
+
 interface ProcessTemplatFormProps {
   processTemplat: {
     title: string;
@@ -26,6 +37,10 @@ interface ProcessTemplatFormProps {
   documentList: any[];
   setSelectedDocumentType: React.Dispatch<React.SetStateAction<any[]>>;
   selectedDocumentType: string[];
+  // Add procedure props
+  procedureList: Procedure[];
+  setSelectedProcedure: React.Dispatch<React.SetStateAction<string>>;
+  selectedProcedure: string;
 }
 
 const ProcessTemplatForm = ({
@@ -39,11 +54,15 @@ const ProcessTemplatForm = ({
   documentList,
   setSelectedDocumentType,
   selectedDocumentType,
+  procedureList,
+  setSelectedProcedure,
+  selectedProcedure,
 }: ProcessTemplatFormProps) => {
   const [errors, setErrors] = useState<{
     title?: string;
     description?: string;
     questionnaire_id?: string;
+    procedure_id?: string;
     process_type?: string;
     documentation_id?: string;
   }>({});
@@ -56,9 +75,6 @@ const ProcessTemplatForm = ({
     if (!processTemplat.title.trim()) {
       newErrors.title = "Title is required.";
     }
-    // if (!processTemplat.description?.trim()) {
-    //   newErrors.description = "Description is required.";
-    // }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -138,11 +154,13 @@ const ProcessTemplatForm = ({
                 // Reset state on type change
                 setSelectedQuestionnaire("");
                 setSelectedDocumentType([]);
+                setSelectedProcedure("");
               }}
               required
             >
               <option value="">Select Process</option>
               <option value="questionnaire">Questionnaire</option>
+              <option value="procedure">Procedure</option>
               <option value="documentation">Documentation</option>
               <option value="payment">Payment</option>
               <option value="document_preparation">Document Preparation</option>
@@ -180,39 +198,78 @@ const ProcessTemplatForm = ({
             </div>
           )}
 
-          {/* Documentation Dropdown - Multi select
-          {processTemplat.process_type === "documentation" && (
+          {/* Procedure Dropdown - Single select */}
+          {processTemplat.process_type === "procedure" && (
             <div className="space-y-2 col-span-2">
-              <Label htmlFor="documentation_id">
-                Documents <span className="text-red-500">*</span>
+              <Label htmlFor="procedure_id">
+                Procedure <span className="text-red-500">*</span>
               </Label>
               <select
-                id="documentation_id"
-                className="w-full border rounded px-3 py-2 h-40"
-                multiple
-                value={selectedDocumentType}
-                onChange={(e) => {
-                  const selected = Array.from(
-                    e.target.selectedOptions,
-                    (opt) => opt.value
-                  );
-                  setSelectedDocumentType([...selected]);
-                }}
+                id="procedure_id"
+                className="w-full border rounded px-3 py-2"
+                value={selectedProcedure}
+                onChange={(e) => setSelectedProcedure(e.target.value)}
                 required
               >
-                {documentList?.map((doc: any) => (
-                  <option key={doc.id} value={doc.id}>
-                    {doc.name}
+                <option value="">-- Select Procedure --</option>
+                {procedureList.map((procedure: any) => (
+                  <option key={procedure.id} value={procedure.id}>
+                    {procedure.title}
                   </option>
                 ))}
               </select>
-              {errors.documentation_id && (
-                <p className="text-red-500 text-sm">
-                  {errors.documentation_id}
-                </p>
+              {errors.procedure_id && (
+                <p className="text-red-500 text-sm">{errors.procedure_id}</p>
+              )}
+
+              {/* Show selected procedure details */}
+              {selectedProcedure && (
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  {(() => {
+                    const selectedProcedureData = procedureList.find(
+                      (p) => p.id === selectedProcedure
+                    );
+                    return selectedProcedureData ? (
+                      <div>
+                        <h4 className="font-medium text-blue-900 mb-2">
+                          {selectedProcedureData.title}
+                        </h4>
+                        {selectedProcedureData.description && (
+                          <p className="text-blue-800 text-sm mb-3">
+                            {selectedProcedureData.description}
+                          </p>
+                        )}
+                        {selectedProcedureData.steps &&
+                          selectedProcedureData.steps.length > 0 && (
+                            <div>
+                              <h5 className="font-medium text-blue-900 mb-2">
+                                Steps ({selectedProcedureData.steps.length}):
+                              </h5>
+                              <ol className="list-decimal list-inside space-y-1 text-sm text-blue-800">
+                                {selectedProcedureData.steps.map(
+                                  (step, index) => (
+                                    <li key={step.id || index}>
+                                      <span className="font-medium">
+                                        {step.step_text}
+                                      </span>
+                                      {step.description && (
+                                        <span className="block ml-4 text-blue-700">
+                                          {step.description}
+                                        </span>
+                                      )}
+                                    </li>
+                                  )
+                                )}
+                              </ol>
+                            </div>
+                          )}
+                      </div>
+                    ) : null;
+                  })()}
+                </div>
               )}
             </div>
-          )} */}
+          )}
 
           {/* Document Preparation Dropdown - Multi select */}
           {processTemplat.process_type === "document_preparation" ||

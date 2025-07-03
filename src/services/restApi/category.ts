@@ -1,5 +1,4 @@
-
-import { getAccessToken } from "./user";// ----------------------
+import { getAccessToken } from "./user"; // ----------------------
 // ✅ CATEGORY SERVICES
 // ----------------------
 
@@ -50,15 +49,20 @@ export const getCategoryListService = async (params: {
       queryParams.append("ordering", "name"); // 👈 Default: latest created first
     }
 
-    const res = await fetch(`https://api.accountouch.com/api/tasks/categories/?${queryParams.toString()}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const res = await fetch(
+      `https://api.accountouch.com/api/tasks/categories/?${queryParams.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
     if (!res.ok) {
-      console.error(`Error fetching category list: ${res.status} ${res.statusText}`);
+      console.error(
+        `Error fetching category list: ${res.status} ${res.statusText}`
+      );
       return null;
     }
 
@@ -70,17 +74,18 @@ export const getCategoryListService = async (params: {
   }
 };
 
-
-
 export const getCategoryDetailsService = async (id: string) => {
   try {
     const token = getAccessToken();
-    const res = await fetch(`https://api.accountouch.com/api/tasks/categories/${id}/`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const res = await fetch(
+      `https://api.accountouch.com/api/tasks/categories/${id}/`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return await res.json();
   } catch (e) {
     console.error("Error in getCategoryDetailsService:", e);
@@ -94,13 +99,16 @@ export const addCategoryService = async (formData: FormData) => {
     for (let pair of formData.entries()) {
       console.log(`${pair[0]}:`, pair[1]);
     }
-    const res = await fetch(`https://api.accountouch.com/api/tasks/categories/`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    });
+    const res = await fetch(
+      `https://api.accountouch.com/api/tasks/categories/`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      }
+    );
 
     return await res.json();
   } catch (e) {
@@ -109,7 +117,6 @@ export const addCategoryService = async (formData: FormData) => {
   }
 };
 
-
 export const updateCategoryService = async (
   id: number | string,
   formData: FormData
@@ -117,14 +124,17 @@ export const updateCategoryService = async (
   try {
     const token = getAccessToken();
 
-    const res = await fetch(`https://api.accountouch.com/api/tasks/categories/${id}/`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        // Note: Do NOT manually set 'Content-Type' when using FormData
-      },
-      body: formData,
-    });
+    const res = await fetch(
+      `https://api.accountouch.com/api/tasks/categories/${id}/`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // Note: Do NOT manually set 'Content-Type' when using FormData
+        },
+        body: formData,
+      }
+    );
 
     return await res.json();
   } catch (e) {
@@ -135,14 +145,16 @@ export const updateCategoryService = async (
 
 export const deleteCategoryService = async (categoryId: number) => {
   try {
-    
     const token = getAccessToken();
-    const res = await fetch(`https://api.accountouch.com/api/tasks/categories/${categoryId}/`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const res = await fetch(
+      `https://api.accountouch.com/api/tasks/categories/${categoryId}/`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     if (res.ok) {
       return true; // ✅ Return success flag
     } else {
@@ -153,4 +165,3 @@ export const deleteCategoryService = async (categoryId: number) => {
     return false;
   }
 };
-

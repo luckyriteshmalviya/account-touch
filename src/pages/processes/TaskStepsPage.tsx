@@ -5,7 +5,8 @@ import Questionnaire from "./Questionnaire";
 import Documents from "./Documents";
 import Payment from "./Payment";
 import DocumentPreparation from "./DocumentPreparation";
-
+import ProcedureSteps from "./StepsProcedure";
+// import ProcedureSteps from "./ProcedureSteps";
 // ✅ Interfaces
 interface ProcessTemplateDetail {
   process_type: string;
@@ -291,6 +292,31 @@ export default function TaskStepsPage() {
                     processes={processes}
                     task={task}
                     setTask={setTask}
+                    onComplete={() => handleStepComplete(currentStep)}
+                    onPrevious={
+                      currentStep > 0 ? handlePreviousStep : undefined
+                    }
+                  />
+                );
+              case "document_preparation":
+                return (
+                  <DocumentPreparation
+                    process={currentProcess}
+                    processes={processes}
+                    task={task}
+                    setTask={setTask}
+                    onComplete={() => handleStepComplete(currentStep)}
+                    onPrevious={
+                      currentStep > 0 ? handlePreviousStep : undefined
+                    }
+                  />
+                );
+              case "steps_procedure": // ← Add this case
+                return (
+                  <ProcedureSteps
+                    task={task}
+                    process={currentProcess}
+                    taskId={task.id}
                     onComplete={() => handleStepComplete(currentStep)}
                     onPrevious={
                       currentStep > 0 ? handlePreviousStep : undefined
