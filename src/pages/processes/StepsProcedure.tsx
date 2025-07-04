@@ -13,7 +13,6 @@ interface ProcedureStepsProps {
 export default function ProcedureSteps({
   process,
   taskId,
-  //   task,
   onComplete,
   onPrevious,
 }: ProcedureStepsProps) {
@@ -32,12 +31,29 @@ export default function ProcedureSteps({
     if (process?.process_template_detail?.procedure?.steps) {
       const initialState: Record<string, { value: string; remark: string }> =
         {};
+
       process.process_template_detail.procedure.steps.forEach((step: any) => {
         initialState[step.id] = {
           value: "",
           remark: "",
         };
       });
+
+      // check for existing procedure_submission
+      if (process?.procedure_submission?.responses?.length > 0) {
+        process.procedure_submission.responses.forEach(
+          (response: any, index: number) => {
+            const step = process.process_template_detail.procedure.steps[index];
+            if (step) {
+              initialState[step.id] = {
+                value: response.status ? "true" : "false",
+                remark: response.remarks,
+              };
+            }
+          }
+        );
+      }
+
       setStepStates(initialState);
     }
   }, [process]);
@@ -188,7 +204,7 @@ export default function ProcedureSteps({
 
         <button
           type="button"
-          onClick={() => handleProcedureSubmit()}
+          onClick={handleProcedureSubmit}
           className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
         >
           Next
