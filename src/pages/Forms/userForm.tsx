@@ -123,11 +123,13 @@ export const UserForm = ({
     // Show for maker role (existing logic)
     if (selectedRoles.value === "maker") return true;
 
+    // Show for franchise role - ADD THIS CONDITION
+    if (selectedRoles.value === "franchise") return true;
+
     // Show for client role only if current user is Franchise
     if (selectedRoles.value === "client" && currentUserRole === "franchise") {
       return true;
     }
-
     // Show for admin/super-admin adding client (but not mandatory)
     if (
       selectedRoles.value === "client" &&
@@ -170,6 +172,9 @@ export const UserForm = ({
   const isAssignedToMandatory = (): boolean => {
     // Mandatory for maker role
     if (selectedRoles?.value === "maker") return true;
+
+    // Mandatory for franchise role - ADD THIS CONDITION
+    if (selectedRoles?.value === "franchise") return true;
 
     // Mandatory for franchise adding client
     if (selectedRoles?.value === "client" && currentUserRole === "franchise") {
@@ -276,9 +281,24 @@ export const UserForm = ({
   };
 
   const handleInputChange = (field: keyof User, value: string | boolean) => {
-    setUser((prev) => ({
+    if (field === "phone_number" && typeof value === "string") {
+      const onlyDigits = value.replace(/\D/g, "");
+      if (onlyDigits.length > 10) return; // Limit to 10 digits
+      setUser((prev) => ({
+        ...prev,
+        [field]: onlyDigits, // keep it string of digits
+      }));
+    } else {
+      setUser((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+    }
+
+    // Clear error for this field as user types
+    setErrors((prev) => ({
       ...prev,
-      [field]: value,
+      [field]: undefined,
     }));
   };
 

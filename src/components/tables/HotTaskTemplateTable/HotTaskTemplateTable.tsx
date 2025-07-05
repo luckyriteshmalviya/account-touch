@@ -7,103 +7,82 @@ import {
   TableRow,
 } from "../../ui/table";
 import {
-  getTaskTemplatListService,
-  getTaskTemplatCategory,
-} from "../../../services/restApi/taskTemplate";
+  getHotTaskTemplateListService,
+  deleteHotTaskTemplateService,
+} from "../../../services/restApi/hotTaskTemplate";
 import { useNavigate } from "react-router-dom";
 import { Edit, Eye, Trash } from "lucide-react";
+import Swal from "sweetalert2";
 import useIsSuperAdmin from "../../../hooks/useIsSuperAdmin";
 
-interface Category {
+interface HotTaskTemplat {
   id: number;
-  name: string;
-  description: string;
+  task_template: number;
+  task_template_title: string;
   image: string;
-}
-
-interface TaskTemplat {
-  id: number;
-  title: string;
-  priority: string;
-  is_active: boolean;
-  category: Category;
-  order: number;
-  fees: any;
-  image: string;
+  featured_order: number;
+  created_by: number;
+  submitted_at: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export default function HotTaskTemplatTable() {
   const isSuperAdmin = useIsSuperAdmin();
-  const [taskTemplat, setTaskTemplat] = useState<TaskTemplat[]>([]);
+  const [hotTaskTemplats, setHotTaskTemplats] = useState<HotTaskTemplat[]>([]);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [isActive, setIsActive] = useState<boolean | undefined>(undefined);
-  const [isReady, setIsReady] = useState<boolean | undefined>(undefined);
   const page_size = 10;
   const [totalPages, setTotalPages] = useState(1);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      const res = await getTaskTemplatCategory();
-      if (res?.results) {
-        setCategories(res?.results);
-      }
-    };
-    fetchCategories();
-  }, []);
+    fetchHotTaskTemplats();
+  }, [page, search]);
 
-  useEffect(() => {
-    fetchTaskTemplat();
-  }, [page, search, isReady, isActive, selectedCategory]);
-
-  const fetchTaskTemplat = async () => {
-    const res = await getTaskTemplatListService({
+  const fetchHotTaskTemplats = async () => {
+    const res = await getHotTaskTemplateListService({
       page,
-      search,
-      selectedCategory,
-      isActive,
-      isReady,
       page_size,
+      search,
     });
     if (res?.results) {
-      setTaskTemplat(res.results);
-      setTotalPages(Math.ceil(res.count / 10)); // assuming 10 per page
+      setHotTaskTemplats(res.results);
+      setTotalPages(Math.ceil(res.count / page_size));
     }
   };
 
   const handleDelete = async () => {
-    console.log(deleteId);
-    // if (deleteId !== null) {
-    //     const success = await deleteTaskTemplatService(deleteId);
-    //     if (success) {
-    //         setTaskTemplat(prev => prev.filter(proc => proc.id !== deleteId));
-    //         Swal.fire({
-    //             icon: 'success',
-    //             title: 'Deleted!',
-    //             text: 'Deleted Successfully!',
-    //         });
-    //     } else {
-    //         Swal.fire({
-    //             icon: 'error',
-    //             title: 'Error!',
-    //             text: 'Something went wrong!',
-    //         });
-    //     }
-    //     setDeleteId(null);
-    // }
+    if (deleteId !== null) {
+      const success = await deleteHotTaskTemplateService(deleteId);
+      if (success) {
+        setHotTaskTemplats((prev) =>
+          prev.filter((item) => item.id !== deleteId)
+        );
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "Deleted Successfully!",
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error!",
+          text: "Something went wrong!",
+        });
+      }
+      setDeleteId(null);
+    }
   };
 
   return (
     <>
-      {/* Filters */}
+      {/* Search */}
       <div className="flex justify-between items-center mb-4">
         <input
           type="text"
-          placeholder="Search..."
+          placeholder="Search by Title..."
           className="px-3 py-2 border rounded"
           value={search}
           onChange={(e) => {
@@ -111,62 +90,6 @@ export default function HotTaskTemplatTable() {
             setPage(1);
           }}
         />
-
-        <div className="relative inline-block w-72">
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="block w-full px-4 py-3 pr-10 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option disabled value="">
-              Select Category
-            </option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div className="flex justify-between items-center mb-4">
-        <div className="relative inline-block w-72">
-          <select
-            value={isActive === undefined ? "" : String(isActive)} // handle undefined
-            onChange={(e) => {
-              const val = e.target.value;
-              setIsActive(
-                val === "true" ? true : val === "false" ? false : undefined
-              );
-            }}
-            className="block w-full px-4 py-3 pr-10 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option disabled value="">
-              Select Status
-            </option>
-            <option value="true">True</option>
-            <option value="false">False</option>
-          </select>
-        </div>
-        <div className="relative inline-block w-72">
-          <select
-            value={isReady === undefined ? "" : String(isReady)} // convert boolean to string for matching
-            onChange={(e) => {
-              const val = e.target.value;
-              setIsReady(
-                val === "true" ? true : val === "false" ? false : undefined
-              );
-            }}
-            className="block w-full px-4 py-3 pr-10 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option disabled value="">
-              Select Status
-            </option>
-            <option value="true">True</option>
-            <option value="false">False</option>
-          </select>
-        </div>
       </div>
 
       {/* Table */}
@@ -178,13 +101,10 @@ export default function HotTaskTemplatTable() {
                 <TableRow>
                   {[
                     "Title",
-                    "PRIORITY",
-                    "ACTIVE",
-                    "CATEGORY",
-                    "ORDER",
-                    "FEES",
-                    "IMAGE",
-                    "Action",
+                    "Image",
+                    "Featured Order",
+                    "Created At",
+                    "Actions",
                   ].map((header) => (
                     <TableCell
                       key={header}
@@ -197,54 +117,45 @@ export default function HotTaskTemplatTable() {
               </TableHeader>
 
               <TableBody>
-                {taskTemplat.map((proc) => (
-                  <TableRow key={proc.id} className="border-b hover:bg-gray-50">
-                    <TableCell className="px-4 py-4 bold text-[#417893]">
-                      {proc.title}
-                    </TableCell>
-                    <TableCell className="py-3 px-4 capitalize">
-                      {proc.priority}
+                {hotTaskTemplats.map((item) => (
+                  <TableRow key={item.id} className="border-b hover:bg-gray-50">
+                    <TableCell className="px-4 py-4 text-[#417893] font-medium">
+                      {item.task_template_title}
                     </TableCell>
                     <TableCell className="py-3 px-4">
-                      {proc.is_active ? (
-                        <span className="text-green-600 text-lg">✅</span>
-                      ) : (
-                        <span className="text-red-600 text-lg">❌</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="py-3 px-4">
-                      {proc.category?.name || "-"}
-                    </TableCell>
-                    <TableCell className="py-3 px-4">{proc.order}</TableCell>
-                    <TableCell className="py-3 px-4">{proc.fees}</TableCell>
-                    <TableCell className="py-3 px-4">
-                      {proc.image ? (
+                      {item.image ? (
                         <img
-                          src={proc.image}
-                          alt="Task Template"
+                          src={item.image}
+                          alt="Template"
                           className="w-10 h-10 rounded object-cover border"
                         />
                       ) : (
                         "-"
                       )}
                     </TableCell>
+                    <TableCell className="py-3 px-4">
+                      {item.featured_order}
+                    </TableCell>
+                    <TableCell className="py-3 px-4">
+                      {new Date(item.created_at).toLocaleDateString()}
+                    </TableCell>
                     <TableCell className="py-3 px-4 flex items-center gap-2">
                       <Eye
                         className="w-5 h-5 text-blue-600 hover:text-blue-800 cursor-pointer"
                         onClick={() =>
-                          navigate(`/hot-task-templates/view/${proc.id}`)
+                          navigate(`/hot-task-templates/view/${item.id}`)
                         }
                       />
                       <Edit
                         className="w-5 h-5 text-blue-600 hover:text-blue-800 cursor-pointer"
                         onClick={() =>
-                          navigate(`/manage-hot-task-templates/${proc.id}`)
+                          navigate(`/manage-hot-task-templates/${item.id}`)
                         }
                       />
                       {isSuperAdmin && (
                         <Trash
                           className="w-5 h-5 text-red-600 hover:text-red-800 cursor-pointer"
-                          onClick={() => setDeleteId(proc.id)}
+                          onClick={() => setDeleteId(item.id)}
                         />
                       )}
                     </TableCell>
@@ -280,16 +191,16 @@ export default function HotTaskTemplatTable() {
       {/* Delete Confirmation Modal */}
       {deleteId !== null && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-[90%] max-w-md">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+          <div className="bg-white p-6 rounded-lg shadow-xl w-[90%] max-w-md">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
               Delete Confirmation
             </h2>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Are you sure you want to delete this task template?
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete this hot task template?
             </p>
             <div className="flex justify-end space-x-4">
               <button
-                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-white rounded"
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded"
                 onClick={() => setDeleteId(null)}
               >
                 Cancel

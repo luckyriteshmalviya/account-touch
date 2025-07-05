@@ -1,111 +1,55 @@
-import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import HotTaskTemplatForm from "./HotTaskTemplateForm";
+import { useEffect, useState } from "react";
 import {
-  addTaskTemplatService,
-  updateTaskTemplatService,
-  getTaskTemplatDetailsService,
-  getTaskTemplatCategory,
-} from "../../../services/restApi/taskTemplate";
-import { getProcessTemplatListService } from "../../../services/restApi/processTemplate";
+  addHotTaskTemplateService,
+  getHotTaskTemplateDetailsService,
+  updateHotTaskTemplateService,
+} from "../../../services/restApi/hotTaskTemplate";
 
-interface ProcessTemplate {
-  id: number;
-  name: string;
-  process_type: string;
-  title: string;
-}
-
-export default function AddOrEditTaskTemplatPage() {
-  type Priority = "low" | "medium" | "high";
-  const [taskTemplat, setTaskTemplat] = useState({
-    title: "",
-    description: "",
-    image: "",
-    category_id: 0,
-    is_active: true,
-    is_ready: true,
-    order: 0,
-    priority: "low" as Priority, // cast here if needed
-    fees: "",
-    process_templates: "",
-  });
-
-  const [, setCategories] = useState<{ id: number; name: string }[]>([]);
+export default function AddOrEditHotTaskTemplatPage() {
   const { id } = useParams();
   const isEdit = !!id;
   const navigate = useNavigate();
-  // const [, setPage] = useState(1);
-  const [search] = useState("");
-  const [processtype] = useState("");
-  const [processTemplates, setProcessTemplates] = useState<ProcessTemplate[]>(
-    []
-  );
-
-  useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const res = await getTaskTemplatCategory();
-        setCategories(res?.results || []);
-      } catch (error) {
-        console.error("Failed to fetch categories", error);
-      }
-    }
-
-    const fetchProcessTemplates = async () => {
-      try {
-        const res = await getProcessTemplatListService({ search, processtype });
-        setProcessTemplates(res?.results);
-      } catch (err) {
-        console.error("Error fetching process templates", err);
-      }
-    };
-
-    fetchCategories();
-    fetchProcessTemplates();
-  }, []);
+  const [existingData, setExistingData] = useState<any>(null);
 
   useEffect(() => {
     if (isEdit) {
       (async () => {
         try {
-          const data = await getTaskTemplatDetailsService(id as string);
-          setTaskTemplat({
-            title: data?.title || "",
-            description: data?.description || "",
-            image: data?.image || "",
-            category_id: data?.category?.id || 0,
-            is_active: data?.is_active,
-            is_ready: data?.is_ready,
-            order: data?.order || 0,
-            priority: (data?.priority as Priority) || "low",
-            fees: data?.fees || "",
-            process_templates: JSON.parse(data?.process_templates) || "",
-          });
+          const data = await getHotTaskTemplateDetailsService(id as string);
+          setExistingData(data);
         } catch (error) {
-          Swal.fire("Error", "Failed to load template details", "error");
+          Swal.fire(
+            "Error",
+            "Failed to load Hot Task Template details",
+            "error"
+          );
         }
       })();
     }
   }, [id, isEdit]);
 
-  const handleCreateTaskTemplate = async (formData: FormData) => {
+  const handleCreateOrUpdateHotTaskTemplate = async (payload: {
+    task_template: number;
+    featured_order: number;
+  }) => {
     try {
       const service = isEdit
-        ? updateTaskTemplatService(id as string, taskTemplat)
-        : addTaskTemplatService(formData);
+        ? updateHotTaskTemplateService(id as string, payload)
+        : addHotTaskTemplateService(payload);
 
       const response = await service;
 
       if (response?.id) {
         await Swal.fire({
           icon: "success",
-          title: `Task Template ${isEdit ? "Updated" : "Created"}`,
+          title: `Hot Task Template ${isEdit ? "Updated" : "Created"}`,
           timer: 2000,
           showConfirmButton: false,
         });
-        navigate("/task-templates-list");
+        navigate("/hot-task-list");
       } else {
         throw new Error("Invalid response");
       }
@@ -116,12 +60,9 @@ export default function AddOrEditTaskTemplatPage() {
 
   return (
     <HotTaskTemplatForm
-      taskTemplat={taskTemplat}
-      // setTaskTemplat={setTaskTemplat}
-      onSubmit={handleCreateTaskTemplate}
+      onSubmit={handleCreateOrUpdateHotTaskTemplate}
       editMode={isEdit}
-      // categoryList={categories}
-      processTemplates={processTemplates}
+      existingData={existingData}
     />
   );
 }
