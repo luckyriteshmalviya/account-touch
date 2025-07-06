@@ -163,7 +163,7 @@ const ProcessTemplatForm = ({
               <option value="procedure">Procedure</option>
               <option value="documentation">Documentation</option>
               <option value="payment">Payment</option>
-              <option value="document_preparation">Document Preparation</option>
+              <option value="document_preparation">Document Sharing</option>
             </select>
             {errors.process_type && (
               <p className="text-red-500 text-sm">{errors.process_type}</p>

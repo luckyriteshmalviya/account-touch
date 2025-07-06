@@ -443,39 +443,36 @@ export const submitProcedureStepsService = async (data: any) => {
   }
 };
 
-// Task approval service (approve / reject task)
-export const patchTaskApprovalService = async (
-  taskId: string | number,
-  payload: { status: "approved" | "rejected"; checker_notes: string }
+export const updateTaskApprovalService = async (
+  taskId: string,
+  status: string,
+  checkerNotes: string
 ) => {
   try {
     const token = getAccessToken();
 
-    const res = await fetch(
+    const response = await fetch(
       `https://api.accountouch.com/api/tasks/tasks/${taskId}/`,
       {
         method: "PATCH",
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // ✅ added auth header
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          status,
+          checker_notes: checkerNotes,
+        }),
       }
     );
 
-    const responseData = await res.json();
-
-    if (!res.ok) {
-      return {
-        error: responseData.detail || `Error: ${res.status} ${res.statusText}`,
-        status: res.status,
-        data: responseData,
-      };
+    if (!response.ok) {
+      throw new Error("Failed to update task approval");
     }
 
-    return responseData;
+    return await response.json();
   } catch (error) {
-    console.error("Error approving/rejecting task:", error);
-    return { error: "Network or server error occurred", status: 500 };
+    console.error("Error updating task approval:", error);
+    throw error;
   }
 };

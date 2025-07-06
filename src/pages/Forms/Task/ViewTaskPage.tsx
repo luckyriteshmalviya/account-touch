@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getTaskDetailsService } from "../../../services/restApi/task";
+import {
+  getTaskDetailsService,
+  updateTaskApprovalService,
+} from "../../../services/restApi/task";
+import Swal from "sweetalert2";
 
-// Format date helper function
 const formatDate = (dateString: string) => {
   if (!dateString) return "-";
   return new Date(dateString).toLocaleString("en-US", {
@@ -22,6 +25,21 @@ export default function ViewTaskPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [checkerNotes, setCheckerNotes] = useState<string>("");
+  const [approvalLoading, setApprovalLoading] = useState(false);
+  const [approvalError, setApprovalError] = useState<string | null>(null);
+
+  const getLabelFromName = (name: string) => {
+    const match = name.match(/\(([^)]+)\)/);
+    const label = match ? match[1] : name;
+
+    if (label === "Document Preparation") {
+      return "Document Sharing";
+    }
+
+    return label;
+  };
+
   useEffect(() => {
     (async () => {
       if (id) {
@@ -30,6 +48,9 @@ export default function ViewTaskPage() {
           const data = await getTaskDetailsService(id);
           if (data) {
             setTask(data);
+            if (data.checker_notes) {
+              setCheckerNotes(data.checker_notes);
+            }
           } else {
             setError("Failed to load task details");
           }
@@ -43,8 +64,71 @@ export default function ViewTaskPage() {
     })();
   }, [id]);
 
+  const isCheckerOrAdmin = (): boolean => {
+    const authString = localStorage.getItem("auth");
+    if (!authString) return false;
+
+    try {
+      const auth = JSON.parse(authString);
+      const roles = auth.user?.roles || [];
+      return roles.some((role: any) =>
+        ["checker", "admin", "super_admin"].includes(role.name.toLowerCase())
+      );
+    } catch (error) {
+      console.error("Error parsing auth from localStorage:", error);
+      return false;
+    }
+  };
+
   const handleStartWorkflow = () => {
     navigate(`/tasks/steps/${id}`);
+  };
+
+  const handleApproval = async (approvalStatus: "approved" | "rejected") => {
+    if (!checkerNotes.trim()) {
+      setApprovalError(
+        "Please provide notes before approving or rejecting the task."
+      );
+      return;
+    }
+
+    try {
+      setApprovalLoading(true);
+      setApprovalError(null);
+
+      await updateTaskApprovalService(id!, approvalStatus, checkerNotes);
+
+      setTask((prevTask: any) => ({
+        ...prevTask,
+        status: approvalStatus,
+        checker_notes: checkerNotes,
+      }));
+
+      // ✅ SweetAlert feedback
+      await Swal.fire({
+        icon: "success",
+        title: `Task ${
+          approvalStatus === "approved" ? "Approved" : "Rejected"
+        }!`,
+        text: `The task has been successfully ${approvalStatus}.`,
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "OK",
+      });
+    } catch (error) {
+      console.error("Error updating task approval:", error);
+      setApprovalError("Failed to update task approval. Please try again.");
+
+      // ✅ Error swal
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to update task approval. Please try again.",
+        confirmButtonColor: "#d33",
+        confirmButtonText: "OK",
+      });
+    } finally {
+      setApprovalLoading(false);
+    }
   };
 
   if (loading) {
@@ -59,12 +143,10 @@ export default function ViewTaskPage() {
     return <p className="text-gray-500 text-center mt-10">No task found</p>;
   }
 
-  // Filter and sort processes
   const processes = task.processes
     ? [...task.processes].sort((a, b) => a.order - b.order)
     : [];
 
-  //  Derive task status based on step completion
   const derivedTaskStatus =
     task.status === "pending" &&
     processes.some((process) => process.status === "completed")
@@ -75,56 +157,47 @@ export default function ViewTaskPage() {
     <div className="max-w-5xl mx-auto bg-white dark:bg-gray-900 rounded-lg p-8 shadow">
       <h1 className="text-2xl font-semibold mb-6 text-center">Task Details</h1>
 
-      {/* Task Details */}
+      {/* Task Info */}
       <div className="mb-8">
         <div className="overflow-x-auto">
           <div className="mb-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                <h3 className="text-sm uppercase text-gray-500 dark:text-gray-400 font-medium mb-1">
-                  Client
-                </h3>
-                <p className="text-gray-900 dark:text-white font-medium">
-                  {task?.client?.full_name || "-"}
-                </p>
-              </div>
-
-              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                <h3 className="text-sm uppercase text-gray-500 dark:text-gray-400 font-medium mb-1">
-                  Maker
-                </h3>
-                <p className="text-gray-900 dark:text-white font-medium">
-                  {task?.maker?.full_name || "-"}
-                </p>
-              </div>
-
-              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                <h3 className="text-sm uppercase text-gray-500 dark:text-gray-400 font-medium mb-1">
-                  Checker
-                </h3>
-                <p className="text-gray-900 dark:text-white font-medium">
-                  {task?.checker?.full_name || "-"}
-                </p>
-              </div>
+              {[
+                { label: "Client", value: task.client?.full_name },
+                { label: "Maker", value: task.maker?.full_name },
+                { label: "Checker", value: task.checker?.full_name },
+              ].map(({ label, value }, i) => (
+                <div
+                  key={i}
+                  className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg"
+                >
+                  <h3 className="text-sm uppercase text-gray-500 dark:text-gray-400 font-medium mb-1">
+                    {label}
+                  </h3>
+                  <p className="text-gray-900 dark:text-white font-medium">
+                    {value || "-"}
+                  </p>
+                </div>
+              ))}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                <h3 className="text-sm uppercase text-gray-500 dark:text-gray-400 font-medium mb-1">
-                  Title
-                </h3>
-                <p className="text-gray-900 dark:text-white font-medium">
-                  {task.title || "-"}
-                </p>
-              </div>
 
-              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                <h3 className="text-sm uppercase text-gray-500 dark:text-gray-400 font-medium mb-1">
-                  Category
-                </h3>
-                <p className="text-gray-900 dark:text-white font-medium">
-                  {task.category?.name || "-"}
-                </p>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              {[
+                { label: "Title", value: task.title },
+                { label: "Category", value: task.category?.name },
+              ].map(({ label, value }, i) => (
+                <div
+                  key={i}
+                  className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg"
+                >
+                  <h3 className="text-sm uppercase text-gray-500 dark:text-gray-400 font-medium mb-1">
+                    {label}
+                  </h3>
+                  <p className="text-gray-900 dark:text-white font-medium">
+                    {value || "-"}
+                  </p>
+                </div>
+              ))}
             </div>
 
             <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg mb-6">
@@ -153,6 +226,12 @@ export default function ViewTaskPage() {
                         ? "bg-yellow-100 text-yellow-800"
                         : derivedTaskStatus === "in_progress"
                         ? "bg-blue-100 text-blue-800"
+                        : derivedTaskStatus === "waiting_for_approval"
+                        ? "bg-orange-100 text-orange-800"
+                        : derivedTaskStatus === "approved"
+                        ? "bg-green-100 text-green-800"
+                        : derivedTaskStatus === "rejected"
+                        ? "bg-red-100 text-red-800"
                         : "bg-gray-100 text-gray-800"
                     }`}
                   >
@@ -180,59 +259,91 @@ export default function ViewTaskPage() {
               </div>
             </div>
 
-            {/* {task.image && (
-          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg mb-6">
-            <h3 className="text-sm uppercase text-gray-500 dark:text-gray-400 font-medium mb-2">Image</h3>
-            <img
-              src={task.image}
-              alt="Task Template"
-              className="w-32 h-32 object-cover rounded cursor-pointer"
-              onClick={() => setIsPreviewOpen(true)}
-            />
-          </div>
-        )} */}
-
-            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                <h3 className="text-sm uppercase text-gray-500 dark:text-gray-400 font-medium mb-1">
-                  Created At
+            {/* Approval Section */}
+            {task.status === "waiting_for_approval" && isCheckerOrAdmin() && (
+              <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border-2 border-orange-200 dark:border-orange-800">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  Task Approval Required
                 </h3>
-                <p className="text-gray-800 dark:text-gray-300">
-                  {formatDate(task.created_by?.created_at || task.created_at)}
-                </p>
-              </div>
 
-               <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-            <h3 className="text-sm uppercase text-gray-500 dark:text-gray-400 font-medium mb-1">Updated At</h3>
-            <p className="text-gray-800 dark:text-gray-300">
-              {formatDate(task.created_by?.updated_at || task.updated_at)}
-            </p>
-          </div>
-            </div> */}
+                <div className="mb-6">
+                  <label
+                    htmlFor="checkerNotes"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  >
+                    Checker Notes <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    id="checkerNotes"
+                    value={checkerNotes}
+                    onChange={(e) => setCheckerNotes(e.target.value)}
+                    placeholder="Provide your comments, feedback, or reasons for approval/rejection..."
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                    rows={4}
+                    disabled={approvalLoading}
+                  />
+                  {approvalError && (
+                    <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                      {approvalError}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex space-x-4">
+                  <button
+                    onClick={() => handleApproval("approved")}
+                    disabled={approvalLoading || !checkerNotes.trim()}
+                    className={`px-6 py-2 bg-green-600 text-white rounded-lg font-medium ${
+                      approvalLoading || !checkerNotes.trim()
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:bg-green-700 focus:ring-2 focus:ring-green-500"
+                    }`}
+                  >
+                    {approvalLoading ? "Processing..." : "✓ Approve"}
+                  </button>
+
+                  <button
+                    onClick={() => handleApproval("rejected")}
+                    disabled={approvalLoading || !checkerNotes.trim()}
+                    className={`px-6 py-2 bg-red-600 text-white rounded-lg font-medium ${
+                      approvalLoading || !checkerNotes.trim()
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:bg-red-700 focus:ring-2 focus:ring-red-500"
+                    }`}
+                  >
+                    {approvalLoading ? "Processing..." : "✗ Reject"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Display checker notes */}
+            {(task.status === "approved" || task.status === "rejected") &&
+              task.checker_notes && (
+                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg mb-6">
+                  <h3 className="text-sm uppercase text-gray-500 dark:text-gray-400 font-medium mb-1">
+                    Checker Notes
+                  </h3>
+                  <p className="text-gray-800 dark:text-gray-300">
+                    {task.checker_notes}
+                  </p>
+                </div>
+              )}
           </div>
         </div>
       </div>
 
-      {/* Process Steps Summary */}
+      {/* Process Steps */}
       {processes.length > 0 && (
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Process Steps</h2>
-            {task.status !== "completed" && (
+            {task.status !== "completed" && task.status !== "rejected" && (
               <button
                 onClick={handleStartWorkflow}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
               >
-                {/* {processes.some(
-                  (process) =>
-                    process.status === "completed" ||
-                    process.questionnaire_submission ||
-                    (process.uploaded_documents &&
-                      process.uploaded_documents.length > 0)
-                )
-                  ?  */}
                 Start Task Workflow
-                {/* : "Start Task Workflow"} */}
               </button>
             )}
           </div>
@@ -252,9 +363,11 @@ export default function ViewTaskPage() {
                       onClick={() =>
                         navigate(`/tasks/steps/${id}?step=${index}`)
                       }
-                      className="text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 underline"
+                      className="text-gray-800 dark:text-gray-200 underline hover:text-blue-600"
                     >
-                      {process.process_template_name || `Step ${index + 1}`}
+                      {getLabelFromName(
+                        process.process_template_name || `Step ${index + 1}`
+                      )}
                     </button>
                   </div>
                   <span
@@ -276,11 +389,12 @@ export default function ViewTaskPage() {
           </div>
         </div>
       )}
-      {task.status !== "completed" && (
+
+      {task.status !== "completed" && task.status !== "rejected" && (
         <button
           type="button"
           onClick={() => navigate(`/manage-task/${id}`)}
-          className="px-8 mt-4 p-2 border border-1 border-zinc-400 hover:bg-blue-400 rounded-lg"
+          className="px-8 mt-4 p-2 border border-gray-400 hover:bg-blue-400 rounded-lg"
         >
           Edit
         </button>
