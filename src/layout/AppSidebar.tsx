@@ -52,10 +52,10 @@ const navItemsForAdmin: NavItem[] = [
     // icon: <TableIcon />,
     subItems: [
       { name: "Questionnaires", path: "/questionnaires-list", pro: false },
+      { name: "Procedures", path: "/Procedures", pro: false },
       { name: "Processes", path: "/process-templates-list", pro: false },
       { name: "Task", path: "/task-templates-list", pro: false },
       { name: "Hot Task", path: "/hot-task-list", pro: false },
-      { name: "Procedures", path: "/Procedures", pro: false },
     ],
   },
   {

@@ -442,3 +442,40 @@ export const submitProcedureStepsService = async (data: any) => {
     return { error: "Network or server error occurred", status: 500 };
   }
 };
+
+// Task approval service (approve / reject task)
+export const patchTaskApprovalService = async (
+  taskId: string | number,
+  payload: { status: "approved" | "rejected"; checker_notes: string }
+) => {
+  try {
+    const token = getAccessToken();
+
+    const res = await fetch(
+      `https://api.accountouch.com/api/tasks/tasks/${taskId}/`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const responseData = await res.json();
+
+    if (!res.ok) {
+      return {
+        error: responseData.detail || `Error: ${res.status} ${res.statusText}`,
+        status: res.status,
+        data: responseData,
+      };
+    }
+
+    return responseData;
+  } catch (error) {
+    console.error("Error approving/rejecting task:", error);
+    return { error: "Network or server error occurred", status: 500 };
+  }
+};

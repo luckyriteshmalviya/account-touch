@@ -6,7 +6,9 @@ import Documents from "./Documents";
 import Payment from "./Payment";
 import DocumentPreparation from "./DocumentPreparation";
 import ProcedureSteps from "./StepsProcedure";
-// import ProcedureSteps from "./ProcedureSteps";
+import Approval from "./CheckerApproval";
+// import Approval from "./Approval";
+
 // ✅ Interfaces
 interface ProcessTemplateDetail {
   process_type: string;
@@ -24,6 +26,7 @@ interface Task {
   id: string;
   title?: string;
   name?: string;
+  status?: string; // Add status to track waiting_for_approval
   processes: Process[];
 }
 
@@ -55,10 +58,14 @@ export default function TaskStepsPage() {
             const stepParam = urlParams.get("step");
             if (stepParam !== null) {
               const stepIndex = parseInt(stepParam);
+              // Include approval step in length calculation
+              const totalSteps =
+                data.processes.length +
+                (data.status === "waiting_for_approval" ? 1 : 0);
               if (
                 !isNaN(stepIndex) &&
                 stepIndex >= 0 &&
-                stepIndex < data.processes.length
+                stepIndex < totalSteps
               ) {
                 setCurrentStep(stepIndex);
               }
@@ -96,7 +103,6 @@ export default function TaskStepsPage() {
   // ✅ Update completed steps
   useEffect(() => {
     if (task && task.processes) {
-      // console.table(task.processes);
       const completed = task.processes
         .map((p: Process, i: number) => (p.status === "completed" ? i : null))
         .filter((i): i is number => i !== null);
@@ -105,6 +111,11 @@ export default function TaskStepsPage() {
   }, [task]);
 
   const handleStepClick = (stepIndex: number) => {
+    // Don't allow navigation if task is waiting for approval and user is not checker/admin
+    if (task?.status === "waiting_for_approval" && !isCheckerOrAdmin()) {
+      return;
+    }
+
     const url = new URL(window.location.href);
     url.searchParams.set("step", stepIndex.toString());
     window.history.pushState({}, "", url);
@@ -113,7 +124,9 @@ export default function TaskStepsPage() {
 
   const handleStepComplete = (stepIndex: number) => {
     setCompletedSteps((prev) => [...new Set([...prev, stepIndex])]);
-    if (processes.length && stepIndex < processes.length - 1) {
+    const totalSteps =
+      processes.length + (task?.status === "waiting_for_approval" ? 1 : 0);
+    if (stepIndex < totalSteps - 1) {
       setCurrentStep(stepIndex + 1);
     }
   };
@@ -128,6 +141,27 @@ export default function TaskStepsPage() {
     navigate(`/tasks/view/${id}`);
   };
 
+  // Helper function to check if user is checker or admin
+  const isCheckerOrAdmin = (): boolean => {
+    const authString = localStorage.getItem("auth");
+    if (!authString) return false;
+
+    try {
+      const auth = JSON.parse(authString);
+      const roles = auth.user?.roles || [];
+
+      return roles.some(
+        (role: any) =>
+          role.name.toLowerCase() === "checker" ||
+          role.name.toLowerCase() === "admin" ||
+          role.name.toLowerCase() === "super_admin"
+      );
+    } catch (error) {
+      console.error("Error parsing auth from localStorage:", error);
+      return false;
+    }
+  };
+
   if (error) {
     return <p className="text-red-500 text-center mt-10">{error}</p>;
   }
@@ -137,6 +171,19 @@ export default function TaskStepsPage() {
   }
 
   const processes = [...task.processes].sort((a, b) => a.order - b.order);
+
+  // Create steps array including approval step if needed
+  const steps = [...processes];
+  const showApprovalStep = task.status === "waiting_for_approval";
+  if (showApprovalStep) {
+    steps.push({
+      id: "approval",
+      order: processes.length,
+      status: "pending",
+      process_template_name: "Approval",
+      process_template_detail: { process_type: "approval" },
+    });
+  }
 
   return (
     <div className="relative max-w-5xl mx-auto bg-white dark:bg-gray-900 rounded-lg p-8 shadow">
@@ -190,34 +237,56 @@ export default function TaskStepsPage() {
         <h1 className="text-2xl font-semibold text-center">
           Task: {task.title || task.name}
         </h1>
+        {task.status === "waiting_for_approval" && (
+          <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm">
+            Waiting for Approval
+          </div>
+        )}
         <div className="w-24"></div>
       </div>
 
       {/* Steps */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
-          {processes.map((process, index) => (
-            <div key={process.id} className="flex flex-col items-center">
-              <button
-                onClick={() => handleStepClick(index)}
-                className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium cursor-pointer transition-colors ${
-                  completedSteps.includes(index)
-                    ? "bg-green-500 hover:bg-green-600"
-                    : currentStep === index
-                    ? "bg-blue-500 hover:bg-blue-600"
-                    : "bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500"
-                }`}
-              >
-                {completedSteps.includes(index) ? "✓" : index + 1}
-              </button>
-              <button
-                onClick={() => handleStepClick(index)}
-                className="text-sm mt-2 text-center hover:text-blue-600 dark:hover:text-blue-400"
-              >
-                {process.process_template_name || `Step ${index + 1}`}
-              </button>
-            </div>
-          ))}
+          {steps.map((step, index) => {
+            const isLocked =
+              task.status === "waiting_for_approval" &&
+              !isCheckerOrAdmin() &&
+              index !== steps.length - 1;
+            return (
+              <div key={step.id} className="flex flex-col items-center">
+                <button
+                  onClick={() => !isLocked && handleStepClick(index)}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium transition-colors ${
+                    completedSteps.includes(index)
+                      ? "bg-green-500 hover:bg-green-600"
+                      : currentStep === index
+                      ? "bg-blue-500 hover:bg-blue-600"
+                      : isLocked
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 cursor-pointer"
+                  }`}
+                  disabled={isLocked}
+                >
+                  {completedSteps.includes(index) ? "✓" : index + 1}
+                </button>
+                <button
+                  onClick={() => !isLocked && handleStepClick(index)}
+                  className={`text-sm mt-2 text-center ${
+                    isLocked
+                      ? "text-gray-400 cursor-not-allowed"
+                      : "hover:text-blue-600 dark:hover:text-blue-400"
+                  }`}
+                  disabled={isLocked}
+                >
+                  {step.process_template_name || `Step ${index + 1}`}
+                </button>
+                {isLocked && (
+                  <div className="text-xs text-gray-500 mt-1">🔒</div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         <div className="relative mt-2">
@@ -225,7 +294,7 @@ export default function TaskStepsPage() {
           <div
             className="absolute top-1/2 left-0 h-1 bg-blue-500 -translate-y-1/2"
             style={{
-              width: `${(currentStep / (processes.length - 1)) * 100}%`,
+              width: `${(currentStep / (steps.length - 1)) * 100}%`,
             }}
           ></div>
         </div>
@@ -233,12 +302,32 @@ export default function TaskStepsPage() {
 
       {/* Current Step View */}
       <div className="mt-8">
-        {processes.length > 0 &&
-          currentStep < processes.length &&
+        {steps.length > 0 &&
+          currentStep < steps.length &&
           (() => {
-            const currentProcess = processes[currentStep];
+            const currentProcess = steps[currentStep];
             const processType =
               currentProcess.process_template_detail?.process_type;
+
+            // Check if processes are locked due to approval status
+            const isProcessLocked =
+              task.status === "waiting_for_approval" &&
+              !isCheckerOrAdmin() &&
+              processType !== "approval";
+
+            if (isProcessLocked) {
+              return (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+                  <div className="text-yellow-600 text-lg font-medium mb-2">
+                    🔒 Task is Locked for Approval
+                  </div>
+                  <p className="text-yellow-700">
+                    This task is currently waiting for approval from a checker
+                    or admin. You cannot make changes at this time.
+                  </p>
+                </div>
+              );
+            }
 
             switch (processType) {
               case "questionnaire":
@@ -298,20 +387,7 @@ export default function TaskStepsPage() {
                     }
                   />
                 );
-              case "document_preparation":
-                return (
-                  <DocumentPreparation
-                    process={currentProcess}
-                    processes={processes}
-                    task={task}
-                    setTask={setTask}
-                    onComplete={() => handleStepComplete(currentStep)}
-                    onPrevious={
-                      currentStep > 0 ? handlePreviousStep : undefined
-                    }
-                  />
-                );
-              case "steps_procedure": // ← Add this case
+              case "steps_procedure":
                 return (
                   <ProcedureSteps
                     task={task}
@@ -321,6 +397,31 @@ export default function TaskStepsPage() {
                     onPrevious={
                       currentStep > 0 ? handlePreviousStep : undefined
                     }
+                  />
+                );
+              case "approval":
+                return (
+                  <Approval
+                    task={task}
+                    taskId={task.id}
+                    onComplete={() => handleStepComplete(currentStep)}
+                    onPrevious={
+                      currentStep > 0 ? handlePreviousStep : undefined
+                    }
+                    isCheckerOrAdmin={isCheckerOrAdmin()}
+                    refreshTask={() => {
+                      if (id) {
+                        setRefreshing(true);
+                        getTaskDetailsService(id)
+                          .then((data: Task | null) => {
+                            if (data) setTask(data);
+                          })
+                          .catch((err) =>
+                            console.error("Error refreshing task details:", err)
+                          )
+                          .finally(() => setRefreshing(false));
+                      }
+                    }}
                   />
                 );
               default:

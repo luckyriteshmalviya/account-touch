@@ -39,7 +39,7 @@ export default function ProcedureSteps({
         };
       });
 
-      // check for existing procedure_submission
+      // Populate existing procedure_submission data if available
       if (process?.procedure_submission?.responses?.length > 0) {
         process.procedure_submission.responses.forEach(
           (response: any, index: number) => {
@@ -65,6 +65,26 @@ export default function ProcedureSteps({
       </div>
     );
   }
+
+  const handleCheckboxChange = (stepId: string, checked: boolean) => {
+    setStepStates((prev) => ({
+      ...prev,
+      [stepId]: {
+        ...prev[stepId],
+        value: checked ? "true" : "false",
+      },
+    }));
+  };
+
+  const handleRemarkChange = (stepId: string, value: string) => {
+    setStepStates((prev) => ({
+      ...prev,
+      [stepId]: {
+        ...prev[stepId],
+        remark: value,
+      },
+    }));
+  };
 
   const handleProcedureSubmit = async () => {
     const procedureId = process.process_template_detail.procedure.id;
@@ -109,26 +129,6 @@ export default function ProcedureSteps({
     }
   };
 
-  const handleRadioChange = (stepId: string, value: string) => {
-    setStepStates((prev) => ({
-      ...prev,
-      [stepId]: {
-        ...prev[stepId],
-        value: value,
-      },
-    }));
-  };
-
-  const handleRemarkChange = (stepId: string, value: string) => {
-    setStepStates((prev) => ({
-      ...prev,
-      [stepId]: {
-        ...prev[stepId],
-        remark: value,
-      },
-    }));
-  };
-
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
       <h2 className="text-xl font-semibold mb-4">
@@ -149,32 +149,22 @@ export default function ProcedureSteps({
               {step.step_text}
             </h3>
 
-            <div className="mt-3 flex items-center gap-4">
-              <label className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
+            {/* Checkbox for Done */}
+            <div className="mt-3 flex items-center gap-3">
+              <label className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
                 <input
-                  type="radio"
-                  name={`step-${step.id}`}
-                  value="true"
+                  type="checkbox"
                   checked={stepStates[step.id]?.value === "true"}
-                  onChange={() => handleRadioChange(step.id, "true")}
+                  onChange={(e) =>
+                    handleCheckboxChange(step.id, e.target.checked)
+                  }
                   className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                 />
-                True
-              </label>
-
-              <label className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
-                <input
-                  type="radio"
-                  name={`step-${step.id}`}
-                  value="false"
-                  checked={stepStates[step.id]?.value === "false"}
-                  onChange={() => handleRadioChange(step.id, "false")}
-                  className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
-                />
-                False
+                Done
               </label>
             </div>
 
+            {/* Remark input */}
             <div className="mt-3">
               <label className="block mb-1 text-gray-700 dark:text-gray-300">
                 Remark
@@ -191,6 +181,7 @@ export default function ProcedureSteps({
         ))}
       </div>
 
+      {/* Navigation buttons */}
       <div className="flex justify-between mt-6">
         {onPrevious && (
           <button
