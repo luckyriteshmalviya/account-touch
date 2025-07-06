@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { submitQuestionnaireService } from "../../services/restApi/task";
 
 interface QuestionnaireProps {
+  disabled: boolean;
   process: any;
   taskId: string;
   task: any;

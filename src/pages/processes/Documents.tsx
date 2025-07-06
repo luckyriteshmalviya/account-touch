@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { uploadDocumentService } from "../../services/restApi/task";
 
 interface DocumentsProps {
+  disabled: boolean;
   task: any;
   process: any;
   onComplete: () => void;

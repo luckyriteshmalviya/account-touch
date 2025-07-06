@@ -6,8 +6,8 @@ import Documents from "./Documents";
 import Payment from "./Payment";
 import DocumentPreparation from "./DocumentPreparation";
 import ProcedureSteps from "./StepsProcedure";
-// import ProcedureSteps from "./ProcedureSteps";
-// ✅ Interfaces
+
+// Interfaces
 interface ProcessTemplateDetail {
   process_type: string;
 }
@@ -24,6 +24,7 @@ interface Task {
   id: string;
   title?: string;
   name?: string;
+  status?: string;
   processes: Process[];
 }
 
@@ -38,27 +39,37 @@ export default function TaskStepsPage() {
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
+  const isCheckerOrAdmin = (): boolean => {
+    const authString = localStorage.getItem("auth");
+    if (!authString) return false;
+
+    try {
+      const auth = JSON.parse(authString);
+      const roles = auth.user?.roles || [];
+      return roles.some((role: any) =>
+        ["checker", "admin", "super_admin"].includes(role.name.toLowerCase())
+      );
+    } catch (error) {
+      console.error("Error parsing auth from localStorage:", error);
+      return false;
+    }
+  };
+
   const getLabelFromName = (name: string) => {
     const match = name.match(/\(([^)]+)\)/);
     const label = match ? match[1] : name;
-
-    if (label === "Document Preparation") {
-      return "Document Sharing";
-    }
-
-    return label;
+    return label === "Document Preparation" ? "Document Sharing" : label;
   };
 
-  // ✅ Fetch task details on mount
+  const isLocked =
+    task?.status === "waiting_for_approval" && !isCheckerOrAdmin();
+
   useEffect(() => {
     (async () => {
       if (id) {
         try {
-          if (!task) {
-            setLoading(true);
-          } else {
-            setRefreshing(true);
-          }
+          if (!task) setLoading(true);
+          else setRefreshing(true);
           const data: Task | null = await getTaskDetailsService(id);
           if (data) {
             setTask(data);
@@ -70,13 +81,10 @@ export default function TaskStepsPage() {
                 !isNaN(stepIndex) &&
                 stepIndex >= 0 &&
                 stepIndex < data.processes.length
-              ) {
+              )
                 setCurrentStep(stepIndex);
-              }
             }
-          } else {
-            setError("Failed to load task details");
-          }
+          } else setError("Failed to load task details");
         } catch (err) {
           console.error("Error fetching task details:", err);
           setError("An error occurred while loading task details");
@@ -87,7 +95,7 @@ export default function TaskStepsPage() {
       }
     })();
   }, [id]);
-  // ✅ Re-fetch on step change
+
   useEffect(() => {
     if (!id) return;
     if (task && task.processes.length > 0) {
@@ -96,17 +104,13 @@ export default function TaskStepsPage() {
         .then((data: Task | null) => {
           if (data) setTask(data);
         })
-        .catch((err) => {
-          console.error("Error refreshing task details:", err);
-        })
+        .catch((err) => console.error("Error refreshing task details:", err))
         .finally(() => setRefreshing(false));
     }
   }, [currentStep, id]);
 
-  // ✅ Update completed steps
   useEffect(() => {
     if (task && task.processes) {
-      // console.table(task.processes);
       const completed = task.processes
         .map((p: Process, i: number) => (p.status === "completed" ? i : null))
         .filter((i): i is number => i !== null);
@@ -115,6 +119,7 @@ export default function TaskStepsPage() {
   }, [task]);
 
   const handleStepClick = (stepIndex: number) => {
+    if (isLocked) return;
     const url = new URL(window.location.href);
     url.searchParams.set("step", stepIndex.toString());
     window.history.pushState({}, "", url);
@@ -123,28 +128,19 @@ export default function TaskStepsPage() {
 
   const handleStepComplete = (stepIndex: number) => {
     setCompletedSteps((prev) => [...new Set([...prev, stepIndex])]);
-    if (processes.length && stepIndex < processes.length - 1) {
+    if (processes.length && stepIndex < processes.length - 1)
       setCurrentStep(stepIndex + 1);
-    }
   };
 
   const handlePreviousStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
+    if (currentStep > 0) setCurrentStep(currentStep - 1);
   };
 
-  const handleBackToDetails = () => {
-    navigate(`/tasks/view/${id}`);
-  };
+  const handleBackToDetails = () => navigate(`/tasks/view/${id}`);
 
-  if (error) {
-    return <p className="text-red-500 text-center mt-10">{error}</p>;
-  }
-
-  if (!task) {
+  if (error) return <p className="text-red-500 text-center mt-10">{error}</p>;
+  if (!task)
     return <p className="text-gray-500 text-center mt-10">No task found</p>;
-  }
 
   const processes = [...task.processes].sort((a, b) => a.order - b.order);
 
@@ -165,7 +161,7 @@ export default function TaskStepsPage() {
               r="10"
               stroke="currentColor"
               strokeWidth="4"
-            ></circle>
+            />
             <path
               className="opacity-75"
               fill="currentColor"
@@ -175,7 +171,6 @@ export default function TaskStepsPage() {
         </div>
       )}
 
-      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <button
           onClick={handleBackToDetails}
@@ -203,15 +198,23 @@ export default function TaskStepsPage() {
         <div className="w-24"></div>
       </div>
 
-      {/* Steps */}
+      {isLocked && (
+        <div className="mb-4 p-3 bg-yellow-100 text-yellow-700 rounded text-center">
+          This task is awaiting approval and cannot be modified.
+        </div>
+      )}
+
       <div className="mb-8">
         <div className="flex items-center justify-between">
           {processes.map((process, index) => (
             <div key={process.id} className="flex flex-col items-center">
               <button
                 onClick={() => handleStepClick(index)}
-                className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium cursor-pointer transition-colors ${
-                  completedSteps.includes(index)
+                disabled={isLocked}
+                className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium transition-colors ${
+                  isLocked
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : completedSteps.includes(index)
                     ? "bg-green-500 hover:bg-green-600"
                     : currentStep === index
                     ? "bg-blue-500 hover:bg-blue-600"
@@ -222,7 +225,12 @@ export default function TaskStepsPage() {
               </button>
               <button
                 onClick={() => handleStepClick(index)}
-                className="text-sm mt-2 text-center hover:text-blue-600 dark:hover:text-blue-400"
+                disabled={isLocked}
+                className={`text-sm mt-2 text-center ${
+                  isLocked
+                    ? "text-gray-400 cursor-not-allowed"
+                    : "hover:text-blue-600 dark:hover:text-blue-400"
+                }`}
               >
                 {getLabelFromName(
                   process.process_template_name || `Step ${index + 1}`
@@ -239,11 +247,10 @@ export default function TaskStepsPage() {
             style={{
               width: `${(currentStep / (processes.length - 1)) * 100}%`,
             }}
-          ></div>
+          />
         </div>
       </div>
 
-      {/* Current Step View */}
       <div className="mt-8">
         {processes.length > 0 &&
           currentStep < processes.length &&
@@ -256,6 +263,7 @@ export default function TaskStepsPage() {
               case "questionnaire":
                 return (
                   <Questionnaire
+                    disabled={isLocked}
                     task={task}
                     process={currentProcess}
                     taskId={task.id}
@@ -265,6 +273,7 @@ export default function TaskStepsPage() {
               case "documentation":
                 return (
                   <Documents
+                    disabled={isLocked}
                     task={task}
                     process={currentProcess}
                     onComplete={() => handleStepComplete(currentStep)}
@@ -276,30 +285,22 @@ export default function TaskStepsPage() {
               case "payment":
                 return (
                   <Payment
+                    disabled={isLocked}
                     task={task}
                     process={currentProcess}
                     onComplete={() => handleStepComplete(currentStep)}
                     onPrevious={
                       currentStep > 0 ? handlePreviousStep : undefined
                     }
-                    refreshProcess={() => {
-                      if (id) {
-                        setRefreshing(true);
-                        getTaskDetailsService(id)
-                          .then((data: Task | null) => {
-                            if (data) setTask(data);
-                          })
-                          .catch((err) =>
-                            console.error("Error refreshing task details:", err)
-                          )
-                          .finally(() => setRefreshing(false));
-                      }
-                    }}
+                    refreshProcess={() =>
+                      id && getTaskDetailsService(id).then(setTask)
+                    }
                   />
                 );
               case "document_preparation":
                 return (
                   <DocumentPreparation
+                    disabled={isLocked}
                     process={currentProcess}
                     processes={processes}
                     task={task}
@@ -310,22 +311,10 @@ export default function TaskStepsPage() {
                     }
                   />
                 );
-              case "document_preparation":
-                return (
-                  <DocumentPreparation
-                    process={currentProcess}
-                    processes={processes}
-                    task={task}
-                    setTask={setTask}
-                    onComplete={() => handleStepComplete(currentStep)}
-                    onPrevious={
-                      currentStep > 0 ? handlePreviousStep : undefined
-                    }
-                  />
-                );
-              case "steps_procedure": // ← Add this case
+              case "steps_procedure":
                 return (
                   <ProcedureSteps
+                    disabled={isLocked}
                     task={task}
                     process={currentProcess}
                     taskId={task.id}

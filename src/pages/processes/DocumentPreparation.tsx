@@ -6,6 +6,7 @@ import {
 import { uploadDocumentService } from "../../services/restApi/task";
 
 interface DocumentPreparationProps {
+  disabled: boolean;
   process: any;
   task: any;
   setTask: any;

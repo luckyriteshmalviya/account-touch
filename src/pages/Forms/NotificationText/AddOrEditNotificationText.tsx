@@ -58,7 +58,7 @@ const AddOrEditNotificationText = () => {
   };
 
   return (
-    <div className="max-w-xl mx-auto p-6 bg-white rounded-lg shadow">
+    <div className="max-w-8xl mx-auto p-6 bg-white rounded-lg shadow">
       <h1 className="text-xl font-bold mb-4">
         {id ? "Edit Notification Text" : "Add Notification Text"}
       </h1>

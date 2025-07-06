@@ -124,12 +124,17 @@ const TaskTemplatForm = ({
       return;
     }
 
-    // Create FormData for submission
+    // ✅ Build description if not provided
+    let finalDescription = taskTemplat.description.trim()
+      ? taskTemplat.description
+      : taskTemplat.title;
+
+    // ✅ Create FormData for submission
     const formData = new FormData();
     formData.append("title", taskTemplat.title);
-    formData.append("description", taskTemplat.description);
+    formData.append("description", finalDescription);
 
-    // Handle image
+    // ✅ Handle image
     if (taskTemplat.image instanceof File) {
       formData.append("image", taskTemplat.image);
     }
@@ -141,14 +146,14 @@ const TaskTemplatForm = ({
     formData.append("priority", taskTemplat.priority);
     formData.append("fees", taskTemplat.fees);
 
-    // Extract process template IDs (only non-empty ones)
+    // ✅ Extract process template IDs (only non-empty ones)
     const processTemplateIds = selectedProcesses
       .filter((process) => process.process_template_id.trim() !== "")
       .map((process) => process.process_template_id);
 
-    // Add process_template_ids - this will be handled in the parent component
     formData.append("process_template_ids", JSON.stringify(processTemplateIds));
 
+    // ✅ Call submit handler
     onSubmit(formData);
   };
 

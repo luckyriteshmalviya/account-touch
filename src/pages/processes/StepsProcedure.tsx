@@ -3,6 +3,7 @@ import { submitProcedureStepsService } from "../../services/restApi/task";
 import Swal from "sweetalert2";
 
 interface ProcedureStepsProps {
+  disabled: boolean;
   process: any;
   taskId: string;
   task: any;
@@ -11,6 +12,7 @@ interface ProcedureStepsProps {
 }
 
 export default function ProcedureSteps({
+  disabled,
   process,
   taskId,
   onComplete,
@@ -67,6 +69,7 @@ export default function ProcedureSteps({
   }
 
   const handleCheckboxChange = (stepId: string, checked: boolean) => {
+    if (disabled) return;
     setStepStates((prev) => ({
       ...prev,
       [stepId]: {
@@ -77,6 +80,7 @@ export default function ProcedureSteps({
   };
 
   const handleRemarkChange = (stepId: string, value: string) => {
+    if (disabled) return;
     setStepStates((prev) => ({
       ...prev,
       [stepId]: {
@@ -87,6 +91,7 @@ export default function ProcedureSteps({
   };
 
   const handleProcedureSubmit = async () => {
+    if (disabled) return;
     const procedureId = process.process_template_detail.procedure.id;
     const processId = process.id;
 
@@ -151,7 +156,13 @@ export default function ProcedureSteps({
 
             {/* Checkbox for Done */}
             <div className="mt-3 flex items-center gap-3">
-              <label className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+              <label
+                className={`flex items-center gap-2 ${
+                  disabled
+                    ? "text-gray-400 dark:text-gray-500"
+                    : "text-gray-700 dark:text-gray-300"
+                }`}
+              >
                 <input
                   type="checkbox"
                   checked={stepStates[step.id]?.value === "true"}
@@ -159,6 +170,7 @@ export default function ProcedureSteps({
                     handleCheckboxChange(step.id, e.target.checked)
                   }
                   className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                  disabled={disabled}
                 />
                 Done
               </label>
@@ -166,15 +178,26 @@ export default function ProcedureSteps({
 
             {/* Remark input */}
             <div className="mt-3">
-              <label className="block mb-1 text-gray-700 dark:text-gray-300">
+              <label
+                className={`block mb-1 ${
+                  disabled
+                    ? "text-gray-400 dark:text-gray-500"
+                    : "text-gray-700 dark:text-gray-300"
+                }`}
+              >
                 Remark
               </label>
               <textarea
                 placeholder="Write a remark (optional)"
                 value={stepStates[step.id]?.remark || ""}
                 onChange={(e) => handleRemarkChange(step.id, e.target.value)}
-                className="w-full p-2 border rounded-md dark:bg-gray-900 dark:text-white dark:border-gray-600"
+                className={`w-full p-2 border rounded-md dark:bg-gray-900 dark:text-white dark:border-gray-600 ${
+                  disabled
+                    ? "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
+                    : ""
+                }`}
                 rows={2}
+                disabled={disabled}
               />
             </div>
           </div>
@@ -188,6 +211,7 @@ export default function ProcedureSteps({
             type="button"
             onClick={onPrevious}
             className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+            disabled={disabled}
           >
             Previous
           </button>
@@ -196,7 +220,12 @@ export default function ProcedureSteps({
         <button
           type="button"
           onClick={handleProcedureSubmit}
-          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+          className={`px-4 py-2 text-white rounded-md ${
+            disabled
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-green-600 hover:bg-green-700"
+          }`}
+          disabled={disabled}
         >
           Next
         </button>

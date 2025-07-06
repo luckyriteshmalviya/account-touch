@@ -7,6 +7,7 @@ import {
 } from "../../services/restApi/task";
 
 interface PaymentProps {
+  disabled: boolean;
   task: any;
   process: any;
   onComplete: () => void;
