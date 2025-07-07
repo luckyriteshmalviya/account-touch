@@ -7,9 +7,9 @@ import {
 } from "../../services/restApi/task";
 
 interface PaymentProps {
-  disabled: boolean;
   task: any;
   process: any;
+  viewOnly?: boolean;
   onComplete: () => void;
   onPrevious?: () => void;
   refreshProcess?: () => void;
@@ -24,6 +24,7 @@ type UploadStatusType = Record<
 >;
 
 export default function Payment({
+  viewOnly,
   process,
   onComplete,
   onPrevious,
@@ -460,7 +461,7 @@ export default function Payment({
                 </div>
                 <div>
                   {/* Only show upload/replace button if task is not completed */}
-                  {!isTaskCompleted && (
+                  {!isTaskCompleted && !viewOnly && (
                     <>
                       <input
                         type="file"
@@ -533,20 +534,24 @@ export default function Payment({
         {/* PENDING / REJECTED */}
         {["pending", "rejected"].includes(process.status) && (
           <>
-            <button
-              onClick={handleRequestPayment}
-              disabled={isLoading}
-              className="px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? "Processing..." : "Request Payment"}
-            </button>
-            <button
-              onClick={() => handleStatusUpdate("CANCELLED")}
-              disabled={isLoading}
-              className="px-4 py-2 rounded-md text-sm font-medium bg-gray-600 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? "Processing..." : "Cancel"}
-            </button>
+            {!viewOnly && (
+              <button
+                onClick={handleRequestPayment}
+                disabled={isLoading}
+                className="px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? "Processing..." : "Request Payment"}
+              </button>
+            )}
+            {!viewOnly && (
+              <button
+                onClick={() => handleStatusUpdate("CANCELLED")}
+                disabled={isLoading}
+                className="px-4 py-2 rounded-md text-sm font-medium bg-gray-600 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? "Processing..." : "Cancel"}
+              </button>
+            )}
           </>
         )}
 

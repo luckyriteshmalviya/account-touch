@@ -2,9 +2,9 @@ import { useState, useRef, useEffect } from "react";
 import { uploadDocumentService } from "../../services/restApi/task";
 
 interface DocumentsProps {
-  disabled: boolean;
   task: any;
   process: any;
+  viewOnly?: boolean;
   onComplete: () => void;
   onPrevious?: () => void;
 }
@@ -19,6 +19,7 @@ type UploadStatusType = Record<
 
 export default function Documents({
   task,
+  viewOnly,
   process,
   onComplete,
   onPrevious,
@@ -306,7 +307,7 @@ export default function Documents({
                 </div>
                 <div>
                   {/* Hide upload input and button when task is completed */}
-                  {!isTaskCompleted && (
+                  {!isTaskCompleted && !viewOnly && (
                     <>
                       <input
                         type="file"

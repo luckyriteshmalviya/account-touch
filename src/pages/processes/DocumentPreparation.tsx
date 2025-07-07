@@ -6,10 +6,10 @@ import {
 import { uploadDocumentService } from "../../services/restApi/task";
 
 interface DocumentPreparationProps {
-  disabled: boolean;
   process: any;
   task: any;
   setTask: any;
+  viewOnly?: boolean;
   onComplete: () => void;
   onPrevious?: () => void;
   processes?: any[]; // All processes for payment check
@@ -24,6 +24,7 @@ type UploadStatusType = Record<
 >;
 
 export default function DocumentPreparation({
+  viewOnly,
   process,
   onComplete,
   task,
@@ -394,7 +395,7 @@ DocumentPreparationProps) {
                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                   />
                   {/* Hide upload/replace button when task is completed */}
-                  {!isTaskCompleted && (
+                  {!isTaskCompleted && !viewOnly && (
                     <button
                       type="button"
                       onClick={() => handleUploadClick(documentId)}
@@ -448,7 +449,7 @@ DocumentPreparationProps) {
           </button>
         )}
 
-        {isTaskCompleted && (
+        {isTaskCompleted && !viewOnly && (
           <b className="text-green-600">Task Already Submitted</b>
         )}
         {/* 

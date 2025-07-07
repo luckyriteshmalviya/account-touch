@@ -2,15 +2,16 @@ import { useState, useEffect } from "react";
 import { submitQuestionnaireService } from "../../services/restApi/task";
 
 interface QuestionnaireProps {
-  disabled: boolean;
   process: any;
   taskId: string;
   task: any;
+  viewOnly?: boolean;
   onComplete: () => void;
   onPrevious?: () => void;
 }
 
 export default function Questionnaire({
+  viewOnly,
   process,
   taskId,
   task,
@@ -273,15 +274,16 @@ export default function Questionnaire({
 
           <div className="flex justify-end flex-col">
             <div className="flex justify-end">
-              {task.status !== "completed" && (
+              {!viewOnly && task.status !== "completed" && (
                 <button
                   type="button"
                   onClick={handleEdit}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="px-4 py-2 bg-blue-600 text-white ..."
                 >
                   Edit Responses
                 </button>
               )}
+
               {hasExistingResponses && !isEditing && (
                 <button
                   type="button"
@@ -356,6 +358,7 @@ export default function Questionnaire({
                       handleInputChange(question.id, e.target.value, "text")
                     }
                     defaultValue={existingResponse?.text_response || ""}
+                    disabled={viewOnly}
                   />
                 ) : question.question_type === "multiple_choice" ? (
                   <div className="space-y-2">
@@ -374,6 +377,7 @@ export default function Questionnaire({
                           defaultChecked={
                             existingResponse?.selected_choice === choice.id
                           }
+                          disabled={viewOnly}
                         />
                         <label
                           htmlFor={`choice-${choice.id}`}
