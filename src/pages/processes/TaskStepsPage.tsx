@@ -169,7 +169,11 @@ export default function TaskStepsPage() {
     return roles.some((role) => ["maker", "client"].includes(role));
   };
   const isViewOnly = (): boolean => {
-    return task?.status === "waiting_for_approval" && isMakerOrClient();
+    return (
+      (task?.status === "waiting_for_approval" ||
+        task?.status === "approved") &&
+      isMakerOrClient()
+    );
   };
 
   return (

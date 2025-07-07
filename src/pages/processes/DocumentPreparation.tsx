@@ -24,7 +24,6 @@ type UploadStatusType = Record<
 >;
 
 export default function DocumentPreparation({
-  viewOnly,
   process,
   onComplete,
   task,
@@ -395,7 +394,7 @@ DocumentPreparationProps) {
                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                   />
                   {/* Hide upload/replace button when task is completed */}
-                  {!isTaskCompleted && !viewOnly && (
+                  {!isTaskCompleted && (
                     <button
                       type="button"
                       onClick={() => handleUploadClick(documentId)}
@@ -449,7 +448,7 @@ DocumentPreparationProps) {
           </button>
         )}
 
-        {isTaskCompleted && !viewOnly && (
+        {isTaskCompleted && (
           <b className="text-green-600">Task Already Submitted</b>
         )}
         {/* 
