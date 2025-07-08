@@ -151,75 +151,51 @@ export default function ProceduresTable() {
 
                       {/* Steps */}
 
-                      <TableCell className="px-4 py-3 max-w-xs break-words">
+                      <TableCell className="px-4 py-3  max-w-xs break-words">
                         {proc.steps.length > 0 ? (
-                          proc.steps.length <= 2 ? (
-                            // Directly show steps if 2 or fewer
-                            <ol className="list-decimal pl-4 space-y-1">
-                              {proc.steps
-                                .sort((a, b) => a.order - b.order)
-                                .map((s, idx) => (
-                                  <li key={idx}>
-                                    <span className="font-medium">
-                                      {s.step_text}
-                                    </span>
-                                    {/* {s.description && (
-                                      <div className="text-gray-500 text-xs">
-                                        {s.description}
-                                      </div>
-                                    )} */}
-                                  </li>
-                                ))}
-                            </ol>
-                          ) : (
-                            // Show dropdown if more than 2 steps
-                            <div className="relative">
-                              <button
-                                type="button"
-                                className="text-blue-600 flex items-center gap-1"
-                                onClick={() =>
-                                  setProcedures((prev) =>
-                                    prev.map((p) =>
-                                      p.id === proc.id
-                                        ? {
-                                            ...p,
-                                            showDropdown: !p.showDropdown,
-                                          }
-                                        : p
-                                    )
+                          <div className="relative">
+                            <button
+                              type="button"
+                              className="text-blue-600 flex items-center gap-1"
+                              onClick={() =>
+                                setProcedures((prev) =>
+                                  prev.map((p) =>
+                                    p.id === proc.id
+                                      ? { ...p, showDropdown: !p.showDropdown }
+                                      : p
                                   )
-                                }
-                              >
-                                View Steps ({proc.steps.length})
-                                {proc.showDropdown ? (
-                                  <ChevronUp size={16} />
-                                ) : (
-                                  <ChevronDown size={16} />
-                                )}
-                              </button>
-
-                              {proc.showDropdown && (
-                                <div className="absolute z-20 mt-2 pl-4 bg-white border shadow-md rounded-lg w-64 max-h-60 overflow-y-auto">
-                                  <ol className="list-decimal p-3 space-y-2">
-                                    {proc.steps
-                                      .sort((a, b) => a.order - b.order)
-                                      .map((s, idx) => (
-                                        <li key={idx}>
-                                          <span className="font-medium">
-                                            {s.step_text}
-                                          </span>
-                                          {/* {s.description && (
-                                            <div className="text-gray-500 text-xs">
-                                              {s.description}
-                                            </div>
-                                          )} */}
-                                        </li>
-                                      ))}
-                                  </ol>
-                                </div>
+                                )
+                              }
+                            >
+                              View Steps ({proc.steps.length})
+                              {proc.showDropdown ? (
+                                <ChevronUp size={16} />
+                              ) : (
+                                <ChevronDown size={16} />
                               )}
-                            </div>
-                          )
+                            </button>
+
+                            {proc.showDropdown && (
+                              <div className="absolute z-20 mt-2 pl-4 bg-white border shadow-md rounded-lg w-64 max-h-60 overflow-y-auto">
+                                <ol className="list-decimal p-3 space-y-2">
+                                  {proc.steps
+                                    .sort((a, b) => a.order - b.order)
+                                    .map((s, idx) => (
+                                      <li key={idx}>
+                                        <span className="font-medium">
+                                          {s.step_text}
+                                        </span>
+                                        {/* {s.description && (
+                                          <div className="text-gray-500 text-xs">
+                                            {s.description}
+                                          </div>
+                                        )} */}
+                                      </li>
+                                    ))}
+                                </ol>
+                              </div>
+                            )}
+                          </div>
                         ) : (
                           <span className="text-gray-500">No Steps</span>
                         )}
