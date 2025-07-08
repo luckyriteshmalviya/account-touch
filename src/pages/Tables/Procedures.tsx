@@ -14,6 +14,7 @@ import {
   deleteProcedureService,
   getProceduresListService,
 } from "../../services/restApi/Procedure";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface Procedure {
   id: number;
@@ -24,10 +25,12 @@ interface Procedure {
     email: string;
   };
   steps: {
-    id: number;
+    step_id: number;
     step_text: string;
     description: string;
+    order: number;
   }[];
+  showDropdown?: boolean;
 }
 
 export default function ProceduresTable() {
@@ -47,7 +50,12 @@ export default function ProceduresTable() {
   const fetchProcedures = async () => {
     const res = await getProceduresListService({ page, search });
     if (res?.results) {
-      setProcedures(res.results);
+      setProcedures(
+        res.results.map((proc: any) => ({
+          ...proc,
+          showAllSteps: false,
+        }))
+      );
       setTotalPages(Math.ceil(res.count / 10));
     }
   };
@@ -98,56 +106,158 @@ export default function ProceduresTable() {
       {/* Table */}
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
         <div className="max-w-full overflow-x-auto">
-          <div className="min-w-[950px]">
+          <div className="min-w-[1000px]">
             <Table>
               <TableHeader>
                 <TableRow>
-                  {["Title", "Description", "Steps", "Actions"].map(
-                    (header) => (
-                      <TableCell
-                        key={header}
-                        isHeader
-                        className="px-4 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                      >
-                        {header}
-                      </TableCell>
-                    )
-                  )}
+                  {[
+                    "Title",
+                    "Description",
+                    "Created By",
+                    "Steps",
+                    "Actions",
+                  ].map((header) => (
+                    <TableCell
+                      key={header}
+                      isHeader
+                      className="px-4 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      {header}
+                    </TableCell>
+                  ))}
                 </TableRow>
               </TableHeader>
 
               <TableBody>
-                {procedures.map((proc) => (
-                  <TableRow key={proc.id}>
-                    <TableCell className="px-4 py-3 text-[#417893] font-semibold">
-                      {proc.title}
-                    </TableCell>
-                    <TableCell className="px-4 py-3">
-                      {proc.description}
-                    </TableCell>
-                    <TableCell className="px-4 py-3">
-                      {proc.steps.length > 0
-                        ? proc.steps.map((s) => s.step_text).join(", ")
-                        : "No Steps"}
-                    </TableCell>
-                    <TableCell className="flex items-center gap-3 px-4 py-3">
-                      <Eye
-                        className="w-5 h-5 text-blue-600 hover:text-blue-800 cursor-pointer"
-                        onClick={() => navigate(`/procedures/view/${proc.id}`)}
-                      />
-                      <Edit
-                        className="w-5 h-5 text-blue-600 hover:text-blue-800 cursor-pointer"
-                        onClick={() => navigate(`/manage-procedure/${proc.id}`)}
-                      />
-                      {isSuperAdmin && (
-                        <Trash
-                          className="w-5 h-5 text-red-600 hover:text-red-800 cursor-pointer"
-                          onClick={() => setDeleteId(proc.id)}
+                {procedures.length > 0 ? (
+                  procedures.map((proc) => (
+                    <TableRow key={proc.id}>
+                      {/* Title */}
+                      <TableCell className="px-4 py-3 text-[#417893] font-semibold">
+                        {proc.title || "-"}
+                      </TableCell>
+
+                      {/* Description */}
+                      <TableCell className="px-4 py-3">
+                        {proc.description || "-"}
+                      </TableCell>
+
+                      {/* Created By */}
+                      <TableCell className="px-4 py-3">
+                        {proc.created_by?.full_name
+                          ? proc.created_by.full_name
+                          : "N/A"}
+                      </TableCell>
+
+                      {/* Steps */}
+
+                      <TableCell className="px-4 py-3 max-w-xs break-words">
+                        {proc.steps.length > 0 ? (
+                          proc.steps.length <= 2 ? (
+                            // Directly show steps if 2 or fewer
+                            <ol className="list-decimal pl-4 space-y-1">
+                              {proc.steps
+                                .sort((a, b) => a.order - b.order)
+                                .map((s, idx) => (
+                                  <li key={idx}>
+                                    <span className="font-medium">
+                                      {s.step_text}
+                                    </span>
+                                    {/* {s.description && (
+                                      <div className="text-gray-500 text-xs">
+                                        {s.description}
+                                      </div>
+                                    )} */}
+                                  </li>
+                                ))}
+                            </ol>
+                          ) : (
+                            // Show dropdown if more than 2 steps
+                            <div className="relative">
+                              <button
+                                type="button"
+                                className="text-blue-600 flex items-center gap-1"
+                                onClick={() =>
+                                  setProcedures((prev) =>
+                                    prev.map((p) =>
+                                      p.id === proc.id
+                                        ? {
+                                            ...p,
+                                            showDropdown: !p.showDropdown,
+                                          }
+                                        : p
+                                    )
+                                  )
+                                }
+                              >
+                                View Steps ({proc.steps.length})
+                                {proc.showDropdown ? (
+                                  <ChevronUp size={16} />
+                                ) : (
+                                  <ChevronDown size={16} />
+                                )}
+                              </button>
+
+                              {proc.showDropdown && (
+                                <div className="absolute z-20 mt-2 pl-4 bg-white border shadow-md rounded-lg w-64 max-h-60 overflow-y-auto">
+                                  <ol className="list-decimal p-3 space-y-2">
+                                    {proc.steps
+                                      .sort((a, b) => a.order - b.order)
+                                      .map((s, idx) => (
+                                        <li key={idx}>
+                                          <span className="font-medium">
+                                            {s.step_text}
+                                          </span>
+                                          {/* {s.description && (
+                                            <div className="text-gray-500 text-xs">
+                                              {s.description}
+                                            </div>
+                                          )} */}
+                                        </li>
+                                      ))}
+                                  </ol>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        ) : (
+                          <span className="text-gray-500">No Steps</span>
+                        )}
+                      </TableCell>
+
+                      {/* Actions */}
+                      <TableCell className="flex items-center gap-3 px-4 py-3">
+                        <Eye
+                          className="w-5 h-5 text-blue-600 hover:text-blue-800 cursor-pointer"
+                          onClick={() =>
+                            navigate(`/procedures/view/${proc.id}`)
+                          }
                         />
-                      )}
+                        <Edit
+                          className="w-5 h-5 text-blue-600 hover:text-blue-800 cursor-pointer"
+                          onClick={() =>
+                            navigate(`/manage-procedure/${proc.id}`)
+                          }
+                        />
+                        {isSuperAdmin && (
+                          <Trash
+                            className="w-5 h-5 text-red-600 hover:text-red-800 cursor-pointer"
+                            onClick={() => setDeleteId(proc.id)}
+                          />
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={5}
+                      className="text-center text-gray-500 py-6"
+                    >
+                      No procedures found.
                     </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </div>

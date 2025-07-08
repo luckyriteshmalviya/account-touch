@@ -13,6 +13,7 @@ interface ProcedureStep {
   id: number | null;
   step_text: string;
   description: string;
+  order: number;
 }
 
 interface ProcedureFormState {
@@ -29,9 +30,8 @@ export default function AddOrEditProcedure() {
   const [form, setForm] = useState<ProcedureFormState>({
     title: "",
     description: "",
-    steps: [{ id: null, step_text: "", description: "" }],
+    steps: [{ id: null, step_text: "", description: "", order: 1 }],
   });
-
   useEffect(() => {
     (async () => {
       if (isEdit) {
@@ -41,9 +41,10 @@ export default function AddOrEditProcedure() {
             title: data.title,
             description: data.description,
             steps: data.steps.map((s: any) => ({
-              id: s.id,
+              id: s.step_id,
               step_text: s.step_text,
               description: s.description,
+              order: s.order,
             })),
           });
         }
@@ -57,12 +58,14 @@ export default function AddOrEditProcedure() {
     }
 
     const payload = {
-      id: id!,
       title: form.title,
       description: form.description,
-      step_ids: form.steps
-        .filter((s) => s.id !== null) // only pick steps with valid id
-        .map((s) => s.id as number),
+      step_data: form.steps
+        .filter((s) => s.id !== null)
+        .map((s, index) => ({
+          step_id: s.id as number,
+          order: s.order || index + 1,
+        })),
       is_active: true,
     };
 

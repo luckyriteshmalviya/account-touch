@@ -16,6 +16,7 @@ interface ProcedureStep {
   id: number | null;
   step_text: string;
   description: string;
+  order: number;
 }
 
 interface ProcedureFormState {
@@ -106,6 +107,18 @@ export default function ProcedureForm({
                   />
                 </div>
 
+                <div className="w-24">
+                  <Input
+                    type="number"
+                    min="1"
+                    value={s.order}
+                    onChange={(e) =>
+                      updateStep(idx, "order", Number(e.target.value))
+                    }
+                    placeholder="Order"
+                  />
+                </div>
+
                 <button
                   type="button"
                   className="text-red-600"
@@ -128,7 +141,12 @@ export default function ProcedureForm({
                   ...f,
                   steps: [
                     ...f.steps,
-                    { id: null, step_text: "", description: "" },
+                    {
+                      id: null,
+                      step_text: "",
+                      description: "",
+                      order: f.steps.length + 1, // auto-increment order
+                    },
                   ],
                 }))
               }

@@ -145,7 +145,7 @@ export const deleteProcedureService = async (procedureId: number) => {
 export interface ProcedureWithStepIdsPayload {
   title: string;
   description: string;
-  step_ids: number[];
+  step_data: Array<{ step_id: number; order: number }>;
   is_active: boolean;
 }
 export const addProcedureWithStepIdsService = async (
@@ -172,11 +172,7 @@ export const addProcedureWithStepIdsService = async (
 
 export const updateProcedureWithStepIdsService = async (
   id: string | number,
-  payload: {
-    title: string;
-    description: string;
-    step_ids: number[];
-  }
+  payload: ProcedureWithStepIdsPayload
 ) => {
   try {
     const res = await fetch(`${BASE_URL}${id}/`, {
