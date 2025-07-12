@@ -34,12 +34,17 @@ export default function ProcedureSteps({
       const initialState: Record<string, { value: string; remark: string }> =
         {};
 
-      process.process_template_detail.procedure.steps.forEach((step: any) => {
-        initialState[step.id] = {
-          value: "",
-          remark: "",
-        };
-      });
+      process.process_template_detail.procedure.steps.forEach(
+        (step: any, index: number) => {
+          const stepId = step.id || step.step_id || `step_${index}`;
+          const uniqueStepId = `${stepId}_${index}`;
+
+          initialState[uniqueStepId] = {
+            value: "",
+            remark: "",
+          };
+        }
+      );
 
       // Populate existing procedure_submission data if available
       if (process?.procedure_submission?.responses?.length > 0) {
@@ -47,7 +52,9 @@ export default function ProcedureSteps({
           (response: any, index: number) => {
             const step = process.process_template_detail.procedure.steps[index];
             if (step) {
-              initialState[step.id] = {
+              const stepId = step.id || step.step_id || `step_${index}`;
+              const uniqueStepId = `${stepId}_${index}`;
+              initialState[uniqueStepId] = {
                 value: response.status ? "true" : "false",
                 remark: response.remarks,
               };
@@ -93,10 +100,13 @@ export default function ProcedureSteps({
     const processId = process.id;
 
     const stepsArray = process.process_template_detail.procedure.steps.map(
-      (step: any) => {
-        const stepState = stepStates[step.id];
+      (step: any, index: number) => {
+        const stepId = step.id || step.step_id || `step_${index}`;
+        const uniqueStepId = `${stepId}_${index}`;
+        const stepState = stepStates[uniqueStepId];
+
         return {
-          step: step.id,
+          step: stepId,
           status: stepState?.value === "true",
           remarks: stepState?.remark || "",
         };
@@ -142,47 +152,55 @@ export default function ProcedureSteps({
       </div>
 
       <div className="space-y-6">
-        {process.process_template_detail.procedure?.steps.map((step: any) => (
-          <div
-            key={step.id}
-            className="border p-4 rounded-md dark:border-gray-600"
-          >
-            <h3 className="font-medium text-gray-800 dark:text-white">
-              {step.step_text}
-            </h3>
+        {process.process_template_detail.procedure?.steps.map(
+          (step: any, index: number) => {
+            const stepId = step.id || step.step_id || `step_${index}`;
+            const uniqueStepId = `${stepId}_${index}`;
+            return (
+              <div
+                key={uniqueStepId}
+                className="border p-4 rounded-md dark:border-gray-600"
+              >
+                <h3 className="font-medium text-gray-800 dark:text-white">
+                  {step.step_text}
+                </h3>
 
-            {/* Checkbox for Done */}
-            <div className="mt-3 flex items-center gap-3">
-              <label className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                <input
-                  type="checkbox"
-                  disabled={viewOnly}
-                  checked={stepStates[step.id]?.value === "true"}
-                  onChange={(e) =>
-                    handleCheckboxChange(step.id, e.target.checked)
-                  }
-                  className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                />
-                Done
-              </label>
-            </div>
+                {/* Checkbox for Done */}
+                <div className="mt-3 flex items-center gap-3">
+                  <label className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                    <input
+                      type="checkbox"
+                      disabled={viewOnly}
+                      checked={stepStates[uniqueStepId]?.value === "true"}
+                      onChange={(e) =>
+                        handleCheckboxChange(uniqueStepId, e.target.checked)
+                      }
+                      className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    />
+                    Done
+                  </label>
+                </div>
 
-            {/* Remark input */}
-            <div className="mt-3">
-              <label className="block mb-1 text-gray-700 dark:text-gray-300">
-                Remark
-              </label>
-              <textarea
-                placeholder="Write a remark (optional)"
-                disabled={viewOnly}
-                value={stepStates[step.id]?.remark || ""}
-                onChange={(e) => handleRemarkChange(step.id, e.target.value)}
-                className="w-full p-2 border rounded-md dark:bg-gray-900 dark:text-white dark:border-gray-600"
-                rows={2}
-              />
-            </div>
-          </div>
-        ))}
+                {/* Remark input */}
+                <div className="mt-3">
+                  <label className="block mb-1 text-gray-700 dark:text-gray-300">
+                    Remark
+                  </label>
+                  <textarea
+                    placeholder="Write a remark (optional)"
+                    disabled={viewOnly}
+                    value={stepStates[uniqueStepId]?.remark || ""}
+                    onChange={(e) =>
+                      handleRemarkChange(uniqueStepId, e.target.value)
+                    }
+                    className="w-full p-2 border rounded-md dark:bg-gray-900 dark:text-white dark:border-gray-600"
+                    rows={2}
+                  />
+                </div>
+              </div>
+            );
+          }
+        )}
       </div>
 
       {/* Navigation buttons */}
