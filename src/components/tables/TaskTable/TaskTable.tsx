@@ -341,6 +341,7 @@ interface Task {
   };
   created_at: string;
   updated_at: string;
+  completion_date: string;
   due_date: string;
   started_at: string | null;
   completed_at: string | null;
@@ -981,6 +982,7 @@ export default function TasksTable() {
                     "Client",
                     "Maker",
                     "Created At",
+                    "Completion Date",
                     "Due Date",
                     "Actions",
                   ].map((header) => (
@@ -1048,6 +1050,9 @@ export default function TasksTable() {
                       </TableCell>
                       <TableCell className="px-4 py-4 text-start">
                         {new Date(task.created_at).toLocaleDateString()}
+                      </TableCell>
+                       <TableCell className="px-4 py-4 text-start">
+                        {new Date(task.completion_date).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="px-4 py-4 text-start">
                         {task.due_date

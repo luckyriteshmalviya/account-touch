@@ -46,6 +46,7 @@ interface TaskFormProps {
     client_id: string;
     maker_id: string;
     // checker_id: string;
+    completion_date: string;
     due_date: string;
   };
   setTask: React.Dispatch<React.SetStateAction<any>>;
@@ -350,6 +351,22 @@ const TaskForm = ({
             />
           </div>
 
+           <div className="space-y-6">
+            <Label htmlFor="completion_date">
+              Completion Date<span className="text-red-500">*</span>
+            </Label>
+            <Input
+              value={formatDateForInput(task.completion_date)}
+              type="datetime-local"
+              id="completion_date"
+              onChange={(e) =>
+                setTask((prev: any) => ({ ...prev, completion_date: e.target.value }))
+              }
+              required
+              className="w-full mt-2"
+            />
+          </div>
+
           <div className="space-y-6">
             <Label htmlFor="due_date">
               Due Date<span className="text-red-500">*</span>
@@ -368,15 +385,15 @@ const TaskForm = ({
           <div className="space-y-6">
             <Label htmlFor="due_date">Frequency Date</Label>
             <Input
-              value={formatDateForInput(task.due_date)}
+              value={""}
               type="datetime-local"
-              id="due_date"
-              onChange={(e) =>
-                setTask((prev: any) => ({
-                  ...prev,
-                  due_date: e.target.value,
-                }))
-              }
+              id="frequency_date"
+              // onChange={(e) =>
+                // setTask((prev: any) => ({
+                //   ...prev,
+                //   due_date: e.target.value,
+                // }))
+              // }
               required
               className="w-full mt-2"
             />

@@ -209,7 +209,7 @@ export default function ViewTaskPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
                 <h3 className="text-sm uppercase text-gray-500 dark:text-gray-400 font-medium mb-1">
                   Priority & Status
@@ -246,6 +246,17 @@ export default function ViewTaskPage() {
                 </h3>
                 <p className="text-gray-900 dark:text-white font-medium">
                   {task.fees ? `₹${task.fees}` : "-"}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                <h3 className="text-sm uppercase text-gray-500 dark:text-gray-400 font-medium mb-1">
+                  Completion Date
+                </h3>
+                <p className="text-gray-900 dark:text-white font-medium">
+                  {formatDate(task.completion_date)}
                 </p>
               </div>
 

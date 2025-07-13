@@ -18,6 +18,7 @@ export default function AddOrEditTaskPage() {
     client_id: "",
     maker_id: "",
     checker_id: "",
+    completion_date: "", 
     due_date: "",
   });
 
@@ -44,6 +45,7 @@ export default function AddOrEditTaskPage() {
               data?.checker_id ||
               ""
             ).toString(),
+            completion_date: data.completion_date || "",
             due_date: data.due_date || "",
           });
         }
@@ -58,6 +60,10 @@ export default function AddOrEditTaskPage() {
     }
     if (!task.description.trim()) {
       Swal.fire("Validation Error", "Task description is required!", "warning");
+      return;
+    }
+    if (!task.completion_date) {
+      Swal.fire("Validation Error", "Completion date is required!", "warning");
       return;
     }
     if (!task.due_date) {
@@ -76,6 +82,7 @@ export default function AddOrEditTaskPage() {
     if (task?.checker_id) {
       formData.append("checker_id", task.checker_id.toString());
     }
+    formData.append("completion_date", task.completion_date);
     formData.append("due_date", task.due_date);
 
     const result = isEdit
