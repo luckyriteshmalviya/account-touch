@@ -169,6 +169,9 @@ export default function TaskStepsPage() {
     return roles.some((role) => ["maker", "client"].includes(role));
   };
   const isViewOnly = (): boolean => {
+    if (task?.status === "completed") {
+      return true;
+    }
     return (
       (task?.status === "waiting_for_approval" ||
         task?.status === "approved") &&

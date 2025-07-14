@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
 import ComponentCard from "../../../components/common/ComponentCard";
 import Label from "../../../components/form/Label";
-import Input from "../../../components/form/input/InputField";
 import { priorityToOptions } from "../../../constants/arrays";
 import Select from "../../../components/form/Select";
 import SelectWithSearch from "../../../components/form/SelectWithSearch";
-// import TextArea from "../../../components/form/input/TextArea";
 import { useNavigate, useParams } from "react-router";
+import DatePicker from "../../../components/form/input/DatePickerInput";
 
 const frequencyOptions = [
   { value: "monthly", label: "Monthly" },
@@ -48,25 +47,12 @@ interface TaskFormProps {
     // checker_id: string;
     completion_date: string;
     due_date: string;
+    frequency_date?: string;
   };
   setTask: React.Dispatch<React.SetStateAction<any>>;
   onSubmit: () => void;
   editMode?: boolean;
 }
-
-const formatDateForInput = (dateString: string) => {
-  if (!dateString) return "";
-
-  // Ensure dateString is in ISO 8601 format
-  const date = new Date(dateString);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
-};
 
 const TaskForm = ({
   task,
@@ -113,6 +99,7 @@ const TaskForm = ({
 
     fetchCategories();
   }, []);
+
   // Fetch templates based on selected category
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -351,19 +338,19 @@ const TaskForm = ({
             />
           </div>
 
-           <div className="space-y-6">
+          <div className="space-y-6">
             <Label htmlFor="completion_date">
               Completion Date<span className="text-red-500">*</span>
             </Label>
-            <Input
-              value={formatDateForInput(task.completion_date)}
-              type="datetime-local"
-              id="completion_date"
-              onChange={(e) =>
-                setTask((prev: any) => ({ ...prev, completion_date: e.target.value }))
+            <DatePicker
+              value={task.completion_date}
+              onChange={(date) =>
+                setTask((prev: any) => ({ ...prev, completion_date: date }))
               }
-              required
+              placeholder="Select completion date"
               className="w-full mt-2"
+              required
+              id="completion_date"
             />
           </div>
 
@@ -371,39 +358,42 @@ const TaskForm = ({
             <Label htmlFor="due_date">
               Due Date<span className="text-red-500">*</span>
             </Label>
-            <Input
-              value={formatDateForInput(task.due_date)}
-              type="datetime-local"
-              id="due_date"
-              onChange={(e) =>
-                setTask((prev: any) => ({ ...prev, due_date: e.target.value }))
+            <DatePicker
+              value={task.due_date}
+              onChange={(date) =>
+                setTask((prev: any) => ({
+                  ...prev,
+                  due_date: date,
+                  frequency_date: date, // Auto-set frequency date same as due date
+                }))
               }
-              required
+              placeholder="Select due date"
               className="w-full mt-2"
-            />
-          </div>
-          <div className="space-y-6">
-            <Label htmlFor="due_date">Frequency Date</Label>
-            <Input
-              value={""}
-              type="datetime-local"
-              id="frequency_date"
-              // onChange={(e) =>
-                // setTask((prev: any) => ({
-                //   ...prev,
-                //   due_date: e.target.value,
-                // }))
-              // }
               required
-              className="w-full mt-2"
+              id="due_date"
             />
           </div>
 
           <div className="space-y-6">
-            <Label htmlFor="due_date">Frequency Span</Label>
+            <Label htmlFor="frequency_date">Frequency Date</Label>
+            <DatePicker
+              value={task.frequency_date || ""}
+              onChange={(date) =>
+                setTask((prev: any) => ({ ...prev, frequency_date: date }))
+              }
+              placeholder="Select frequency date"
+              className="w-full mt-2"
+              id="frequency_date"
+            />
+          </div>
+
+          <div className="space-y-6">
+            <Label htmlFor="frequency_span">Frequency Span</Label>
             <Select
               options={frequencyOptions}
-              onChange={() => {}}
+              onChange={(value) =>
+                setTask((prev: any) => ({ ...prev, frequency_span: value }))
+              }
               placeholder="Choose frequency..."
               className="w-full mt-2"
             />
