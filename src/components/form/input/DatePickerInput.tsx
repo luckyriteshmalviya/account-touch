@@ -14,8 +14,8 @@ const DatePicker: React.FC<DatePickerProps> = ({
   onChange,
   placeholder = "Select date",
   className = "",
-  required = false,
-  id,
+  //   required = false,
+  //   id,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(
@@ -64,7 +64,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
     const month = currentMonth.getMonth();
 
     const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
+    // const lastDay = new Date(year, month + 1, 0);
     const startDate = new Date(firstDay);
     startDate.setDate(startDate.getDate() - firstDay.getDay());
 
