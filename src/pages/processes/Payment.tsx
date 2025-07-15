@@ -54,6 +54,10 @@ export default function Payment({
   } | null>(null);
   const [allUploaded, setAllUploaded] = useState(false);
 
+  // Additional fees popup state
+  const [isFeesPopupOpen, setIsFeesPopupOpen] = useState(false);
+  const [additionalAmount, setAdditionalAmount] = useState("");
+
   const requiredDocuments =
     process.process_template_detail.required_documents || [];
   const paymentStatus = process.status || "PENDING";
@@ -78,6 +82,29 @@ export default function Payment({
     const currentFees = parseFloat(fees) || 0;
     const originalFeesNum = parseFloat(originalFees) || 0;
     return Math.abs(currentFees - originalFeesNum) >= 1;
+  };
+
+  // Handle adding additional fee
+  const handleAddAdditionalFee = () => {
+    const amount = parseFloat(additionalAmount);
+    if (!amount || amount <= 0) {
+      return;
+    }
+
+    // Add to existing fees
+    const currentFees = parseFloat(fees) || 0;
+    const newFees = currentFees + amount;
+    setFees(newFees.toString());
+
+    // Close popup and reset
+    setIsFeesPopupOpen(false);
+    setAdditionalAmount("");
+  };
+
+  // Handle closing fees popup
+  const handleCloseFeesPopup = () => {
+    setIsFeesPopupOpen(false);
+    setAdditionalAmount("");
   };
 
   useEffect(() => {
@@ -363,7 +390,7 @@ export default function Payment({
 
       {/* fees */}
       <div className="mb-6">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <label className="text-gray-600 dark:text-gray-300 whitespace-nowrap">
             Fees:{" "}
             <input
@@ -382,6 +409,28 @@ export default function Payment({
               step="0.01"
             />
           </label>
+
+          {/* Add Fees Button */}
+          <button
+            onClick={() => setIsFeesPopupOpen(true)}
+            className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm flex items-center gap-1"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Add Fees
+          </button>
+
           {hasFeesChanged() && !feesError && (
             <button
               onClick={async () => {
@@ -409,8 +458,105 @@ export default function Payment({
             </button>
           )}
         </div>
+
         {feesError && <div className="text-red-600 mt-1">{feesError}</div>}
       </div>
+
+      {/* Additional Fees Popup */}
+      {isFeesPopupOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4 text-center sm:block sm:p-0">
+            {/* Overlay */}
+            <div
+              className="fixed inset-0 transition-opacity"
+              aria-hidden="true"
+            >
+              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+
+            {/* Modal */}
+            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-sm sm:w-full sm:p-6">
+              <div className="sm:flex sm:items-start">
+                <div className="w-full">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    Add Additional Fee
+                  </h3>
+
+                  {/* Current fees display */}
+                  <div className="mb-4 p-3 bg-gray-50 rounded">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Current Fees:</span>
+                      <span className="font-medium">
+                        ₹{parseFloat(fees).toFixed(2)}
+                      </span>
+                    </div>
+                    {additionalAmount && parseFloat(additionalAmount) > 0 && (
+                      <>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Additional Fee:</span>
+                          <span className="font-medium">
+                            ₹{parseFloat(additionalAmount).toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="border-t pt-2 mt-2 flex justify-between items-center">
+                          <span className="text-gray-800 font-medium">
+                            New Total:
+                          </span>
+                          <span className="font-bold text-lg">
+                            ₹
+                            {(
+                              parseFloat(fees) + parseFloat(additionalAmount)
+                            ).toFixed(2)}
+                          </span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Add fee form */}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Additional Amount (₹)
+                      </label>
+                      <input
+                        type="number"
+                        value={additionalAmount}
+                        onChange={(e) => setAdditionalAmount(e.target.value)}
+                        placeholder="200"
+                        min="0"
+                        step="0.01"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal buttons */}
+              <div className="mt-5 sm:mt-6 sm:flex sm:flex-row-reverse">
+                <button
+                  type="button"
+                  onClick={handleAddAdditionalFee}
+                  disabled={
+                    !additionalAmount || parseFloat(additionalAmount) <= 0
+                  }
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Add to Fees
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCloseFeesPopup}
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:w-auto sm:text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {allUploaded && (
         <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
