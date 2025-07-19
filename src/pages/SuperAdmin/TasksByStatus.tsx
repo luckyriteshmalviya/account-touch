@@ -8,17 +8,25 @@ export default function TasksByStatus() {
   const { dashboardData, loading } = useDashboard();
   const navigate = useNavigate();
 
-  const categories = ["PENDING", "IN_PROGRESS", "COMPLETED", "REJECTED"];
+  // Define labels for UI, values for internal use
+  const categories = [
+    { label: "Pending", value: "pending" },
+    { label: "In Progress", value: "in_progress" },
+    { label: "Approval", value: "waiting_for_approval" },
+    { label: "Completed", value: "completed" },
+    { label: "Rejected", value: "rejected" },
+  ];
 
-  const taskStatusCounts = categories.map((status) => {
-    const countObj = dashboardData?.task_status_counts?.find(
-      (item: any) => item.status.toUpperCase() === status
+  // Match data with status values
+  const taskStatusCounts = categories.map(({ value }) => {
+    const match = dashboardData?.task_status_counts?.find(
+      (item: any) => item.status.toLowerCase() === value
     );
-    return countObj ? countObj.count : 0;
+    return match ? match.count : 0;
   });
 
   const options: ApexOptions = {
-    colors: ["#3b82f6", "#facc15", "#10b981", "#ef4444"],
+    colors: ["#3b82f6", "#facc15", "#a855f7", "#10b981", "#ef4444"],
     chart: {
       fontFamily: "Outfit, sans-serif",
       type: "bar",
@@ -28,7 +36,7 @@ export default function TasksByStatus() {
         dataPointSelection: function (config) {
           const clickedIndex = config.dataPointIndex;
           if (clickedIndex >= 0) {
-            const clickedStatus = categories[clickedIndex].toLowerCase();
+            const clickedStatus = categories[clickedIndex].value;
             navigate(`/task-list?status=${clickedStatus}`);
           }
         },
@@ -45,7 +53,7 @@ export default function TasksByStatus() {
     dataLabels: { enabled: false },
     stroke: { show: true, width: 3, colors: ["transparent"] },
     xaxis: {
-      categories,
+      categories: categories.map(({ label }) => label),
       labels: { style: { fontWeight: 600, colors: "#555" } },
       axisBorder: { show: false },
       axisTicks: { show: false },
@@ -66,8 +74,15 @@ export default function TasksByStatus() {
     },
     fill: { opacity: 1 },
     tooltip: {
-      x: { show: false },
-      y: { formatter: (val: number) => `${Math.max(val, 0)}` },
+      x: {
+        formatter: (_, opts) => {
+          const originalStatus = categories[opts.dataPointIndex].value;
+          return originalStatus.replace(/_/g, " ").toUpperCase();
+        },
+      },
+      y: {
+        formatter: (val: number) => `${Math.max(val, 0)}`,
+      },
     },
     legend: { show: false },
   };
@@ -76,7 +91,7 @@ export default function TasksByStatus() {
     {
       name: "Tasks",
       data: loading
-        ? [0, 0, 0, 0]
+        ? Array(categories.length).fill(0)
         : taskStatusCounts.map((count) => Math.max(count, 0)),
     },
   ];
