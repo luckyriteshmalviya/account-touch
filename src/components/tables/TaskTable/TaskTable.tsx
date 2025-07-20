@@ -372,7 +372,9 @@ type StatusType =
   | "started"
   | "completed"
   | "in_progress"
-  | "rejected";
+  | "rejected"
+  | "waiting_for_approval"
+  | "approved";
 
 export default function TasksTable() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -492,6 +494,8 @@ export default function TasksTable() {
             "completed",
             "in_progress",
             "rejected",
+            "waiting_for_approval",
+            "approved",
           ].includes(firstStatus)
         ) {
           setStatus(firstStatus as StatusType);
@@ -759,6 +763,8 @@ export default function TasksTable() {
               <option value="completed">Completed</option>
               <option value="rejected">Rejected</option>
               <option value="in_progress">In Progress</option>
+              <option value="waiting_for_approval">Waiting for Approval</option>
+              <option value="approved">Approved</option>
             </select>
           </div>
 
@@ -1051,7 +1057,7 @@ export default function TasksTable() {
                       <TableCell className="px-4 py-4 text-start">
                         {new Date(task.created_at).toLocaleDateString()}
                       </TableCell>
-                       <TableCell className="px-4 py-4 text-start">
+                      <TableCell className="px-4 py-4 text-start">
                         {new Date(task.completion_date).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="px-4 py-4 text-start">
