@@ -12,7 +12,7 @@ export default function TasksByStatus() {
   const categories = [
     { label: "Pending", value: "pending" },
     { label: "In Progress", value: "in_progress" },
-    { label: "Approval", value: "waiting_for_approval" },
+    { label: "Approval wait", value: "waiting_for_approval" },
     { label: "Completed", value: "completed" },
     { label: "Rejected", value: "rejected" },
   ];
