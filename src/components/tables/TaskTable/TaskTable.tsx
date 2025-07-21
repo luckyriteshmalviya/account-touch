@@ -367,14 +367,6 @@ interface Category {
 }
 
 type PriorityType = "low" | "medium" | "high" | "urgent";
-type StatusType =
-  | "pending"
-  | "started"
-  | "completed"
-  | "in_progress"
-  | "rejected"
-  | "waiting_for_approval"
-  | "approved";
 
 export default function TasksTable() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -388,7 +380,7 @@ export default function TasksTable() {
   // Basic filters (always visible)
   const [search, setSearch] = useState<string>("");
   const [priority, setPriority] = useState<PriorityType | "">("");
-  const [status, setStatus] = useState<StatusType | "">("");
+  const [status, setStatus] = useState<string>("");
   const [category, setCategory] = useState<string>("");
 
   // More filters toggle
@@ -436,6 +428,26 @@ export default function TasksTable() {
   };
 
   const isSuperAdmin = useIsSuperAdmin();
+
+  // Helper function to get status display text
+  // const getStatusDisplayText = (): string => {
+  //   if (!status) return "All Statuses";
+  //   if (status.includes(",")) {
+  //     const statusArray = status.split(",");
+  //     return `Multiple (${statusArray.length})`;
+  //   }
+  //   // Capitalize first letter
+  //   return status.charAt(0).toUpperCase() + status.slice(1).replace("_", " ");
+  // };
+
+  // Helper function to get formatted status list for display
+  const getFormattedStatusList = (): string => {
+    if (!status || !status.includes(",")) return "";
+    return status
+      .split(",")
+      .map((s) => s.replace("_", " "))
+      .join(", ");
+  };
 
   // First load all dropdown data
   useEffect(() => {
@@ -486,21 +498,9 @@ export default function TasksTable() {
 
       const statusParam = searchParams.get("status");
       if (statusParam) {
-        const firstStatus = statusParam.split(",")[0];
-        if (
-          [
-            "pending",
-            "started",
-            "completed",
-            "in_progress",
-            "rejected",
-            "waiting_for_approval",
-            "approved",
-          ].includes(firstStatus)
-        ) {
-          setStatus(firstStatus as StatusType);
-          setShowMoreFilters(true);
-        }
+        // Keep the full status string instead of just the first one
+        setStatus(statusParam);
+        setShowMoreFilters(true);
       }
 
       const createdStartParam = searchParams.get("created_start");
@@ -572,7 +572,7 @@ export default function TasksTable() {
 
     if (search) params.search = search;
     if (priority) params.priority = priority;
-    if (status) params.status = status;
+    if (status) params.status = status; // This will now include comma-separated values
     if (category) params.category = category;
 
     // Created date filters
@@ -746,14 +746,17 @@ export default function TasksTable() {
               htmlFor="status"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300"
             >
-              Status
+              Status{" "}
+              {status.includes(",") && (
+                <span className="text-blue-600">(Multiple)</span>
+              )}
             </label>
             <select
               id="status"
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-              value={status}
+              value={status.includes(",") ? "" : status} // Don't show selection if multiple statuses
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                setStatus(e.target.value as StatusType | "");
+                setStatus(e.target.value);
                 setPage(1);
               }}
             >
@@ -766,6 +769,11 @@ export default function TasksTable() {
               <option value="waiting_for_approval">Waiting for Approval</option>
               <option value="approved">Approved</option>
             </select>
+            {status.includes(",") && (
+              <div className="text-xs text-blue-600 mt-1">
+                Active filters: {getFormattedStatusList()}
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
