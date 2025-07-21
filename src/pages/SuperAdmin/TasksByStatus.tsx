@@ -29,7 +29,7 @@ export default function TasksByStatus() {
     chart: {
       type: "bar",
       events: {
-        dataPointSelection: (config) => {
+        dataPointSelection: (_event, _chartContext, config) => {
           const clickedIndex = config.dataPointIndex;
           if (clickedIndex >= 0) {
             const clickedStatus = categories[clickedIndex].value;
@@ -53,19 +53,10 @@ export default function TasksByStatus() {
     stroke: { show: true, width: 3, colors: ["transparent"] },
     xaxis: {
       categories: categories.map(({ label }) => label),
-      labels: {
-        rotate: -45,
-        trim: false,
-        style: {
-          fontSize: "11px",
-          fontWeight: 600,
-          colors: "#555",
-        },
-      },
+      labels: { style: { fontSize: "11px", fontWeight: 600, colors: "#555" } },
       axisBorder: { show: false },
       axisTicks: { show: false },
     },
-
     yaxis: {
       min: 0,
       max: Math.max(...taskStatusCounts, 1) + 5,

@@ -349,7 +349,9 @@ export const UserForm = ({
 
           <div className="grid grid-cols-2 gap-6 ">
             <div className="space-y-6">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">
+                Email<span className="text-red-500">*</span>
+              </Label>
               <Input
                 value={user.email}
                 type="text"
