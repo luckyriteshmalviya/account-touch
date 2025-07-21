@@ -1,14 +1,15 @@
 import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 import { useNavigate } from "react-router-dom";
-import { ListIcon } from "../../icons";
 import { useDashboard } from "../../context/DashboardContext";
+import { ListIcon } from "../../icons";
+import { useRef } from "react";
 
 export default function TasksByStatus() {
   const { dashboardData, loading } = useDashboard();
   const navigate = useNavigate();
+  const chartRef = useRef<any>(null); // Chart ref
 
-  // Define labels for UI, values for internal use
   const categories = [
     { label: "Pending", value: "pending" },
     { label: "In Progress", value: "in_progress" },
@@ -17,7 +18,6 @@ export default function TasksByStatus() {
     { label: "Rejected", value: "rejected" },
   ];
 
-  // Match data with status values
   const taskStatusCounts = categories.map(({ value }) => {
     const match = dashboardData?.task_status_counts?.find(
       (item: any) => item.status.toLowerCase() === value
@@ -26,14 +26,10 @@ export default function TasksByStatus() {
   });
 
   const options: ApexOptions = {
-    colors: ["#3b82f6", "#facc15", "#a855f7", "#10b981", "#ef4444"],
     chart: {
-      fontFamily: "Outfit, sans-serif",
       type: "bar",
-      height: 200,
-      toolbar: { show: false },
       events: {
-        dataPointSelection: function (config) {
+        dataPointSelection: (config) => {
           const clickedIndex = config.dataPointIndex;
           if (clickedIndex >= 0) {
             const clickedStatus = categories[clickedIndex].value;
@@ -41,7 +37,10 @@ export default function TasksByStatus() {
           }
         },
       },
+      toolbar: { show: false },
+      fontFamily: "Outfit, sans-serif",
     },
+    colors: ["#3b82f6", "#facc15", "#a855f7", "#10b981", "#ef4444"],
     plotOptions: {
       bar: {
         horizontal: false,
@@ -54,10 +53,19 @@ export default function TasksByStatus() {
     stroke: { show: true, width: 3, colors: ["transparent"] },
     xaxis: {
       categories: categories.map(({ label }) => label),
-      labels: { style: { fontWeight: 600, colors: "#555" } },
+      labels: {
+        rotate: -45,
+        trim: false,
+        style: {
+          fontSize: "11px",
+          fontWeight: 600,
+          colors: "#555",
+        },
+      },
       axisBorder: { show: false },
       axisTicks: { show: false },
     },
+
     yaxis: {
       min: 0,
       max: Math.max(...taskStatusCounts, 1) + 5,
@@ -69,21 +77,19 @@ export default function TasksByStatus() {
           val >= 0 ? Math.floor(val).toString() : "",
       },
     },
-    grid: {
-      yaxis: { lines: { show: true } },
-    },
-    fill: { opacity: 1 },
     tooltip: {
       x: {
-        formatter: (_, opts) => {
-          const originalStatus = categories[opts.dataPointIndex].value;
-          return originalStatus.replace(/_/g, " ").toUpperCase();
-        },
+        formatter: (_, opts) =>
+          categories[opts.dataPointIndex].value
+            .replace(/_/g, " ")
+            .toUpperCase(),
       },
       y: {
         formatter: (val: number) => `${Math.max(val, 0)}`,
       },
     },
+    grid: { yaxis: { lines: { show: true } } },
+    fill: { opacity: 1 },
     legend: { show: false },
   };
 
@@ -97,8 +103,7 @@ export default function TasksByStatus() {
   ];
 
   return (
-    <div className="cursor-pointer overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 px-6 pt-5 pb-6 dark:border-gray-800 dark:bg-white/[0.03] shadow-lg transition-all duration-500 hover:shadow-xl active:scale-[0.98]">
-      {/* Header */}
+    <div className="cursor-pointer overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 px-6 pt-5 pb-6 shadow-lg transition-all duration-500 hover:shadow-xl active:scale-[0.98]">
       <div className="flex items-center justify-between mb-4">
         <div
           className="flex items-center gap-3"
@@ -107,16 +112,21 @@ export default function TasksByStatus() {
           <div className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-100">
             <ListIcon className="text-blue-600 w-5 h-5" />
           </div>
-          <h3 className="text-xl font-semibold text-gray-800 dark:text-white/90">
+          <h3 className="text-xl font-semibold text-gray-800">
             Tasks by Status
           </h3>
         </div>
       </div>
 
-      {/* Chart */}
       <div className="max-w-full overflow-x-auto custom-scrollbar">
         <div className="-ml-5 min-w-[450px] xl:min-w-full pl-2">
-          <Chart options={options} series={series} type="bar" height={200} />
+          <Chart
+            ref={chartRef}
+            options={options}
+            series={series}
+            type="bar"
+            height={200}
+          />
         </div>
       </div>
     </div>
