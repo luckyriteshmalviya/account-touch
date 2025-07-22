@@ -29,31 +29,16 @@ export default function DocumentPreparation({
   task,
   setTask,
   onPrevious,
+  viewOnly = false, // Add default value
 }: // processes,
 DocumentPreparationProps) {
-  // const [, setFormData] = useState<Record<string, string>>({});
-
-  // Disable submit if any payment process is not completed
-  // const hasPendingPayment =
-  //   Array.isArray(processes) &&
-  //   processes.some(
-  //     (p) =>
-  //       p.process_template_detail?.process_type === "payment" &&
-  //       p.status !== "completed"
-  //   );
-
-  // const hasPendingAnyProcess =
-  //   Array.isArray(processes) && processes.some((p) => p.status !== "completed");
-
-  // const [isSubmitting] = useState(false);
-  // const [, setError] = useState<string | null>(null);
-  // const [, setSuccess] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<UploadStatusType>({});
   const [allUploaded, setAllUploaded] = useState(false);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [refreshing] = useState(false);
+
   // Check if we have any uploaded documents already
   useEffect(() => {
     if (process?.uploaded_documents && process.uploaded_documents.length > 0) {
@@ -110,41 +95,15 @@ DocumentPreparationProps) {
   const requiredDocuments =
     process.process_template_detail.required_documents || [];
 
-  // const handleInputChange = (fieldId: string, value: string) => {
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     [fieldId]: value,
-  //   }));
-  // };
-
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   setIsSubmitting(true);
-  //   setError(null);
-
-  //   try {
-  //     const result = await submitDocumentPreparationService(task.id);
-
-  //     if (result && !result.error) {
-  //       setSuccess(true);
-  //       setTimeout(() => {
-  //         onComplete();
-  //       }, 1500);
-  //     } else {
-  //       setError(result?.error || "Failed to submit document preparation");
-  //     }
-  //   } catch (err) {
-  //     setError("An error occurred while submitting document preparation");
-  //     console.error("Submit error:", err);
-  //   } finally {
-  //     setIsSubmitting(false);
-  //   }
-  // };
-
   const handleFileChange = async (
     documentType: any,
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
+    // IMPORTANT: Check viewOnly first
+    if (viewOnly) {
+      return;
+    }
+
     if (!event.target.files || event.target.files.length === 0) {
       return;
     }
@@ -230,6 +189,11 @@ DocumentPreparationProps) {
   };
 
   const handleUploadClick = (documentId: string) => {
+    // IMPORTANT: Check viewOnly first
+    if (viewOnly) {
+      return;
+    }
+
     const fileInput = fileInputRefs.current[documentId];
     if (fileInput) {
       fileInput.click();
@@ -256,16 +220,6 @@ DocumentPreparationProps) {
     setIsModalOpen(false);
   };
 
-  // Find index of current process in processes array
-  // const currentStepIndex =
-  //   processes?.findIndex((p) => p.id === process.id) ?? -1;
-
-  // Check if current step is the last step
-  // const isLastStep =
-  //   currentStepIndex !== -1 &&
-  //   processes &&
-  //   currentStepIndex === processes.length - 1;
-
   const getPreviewIframeSrc = (url: string) => {
     const extension = url.split(".").pop()?.split("?")[0]?.toLowerCase();
 
@@ -290,14 +244,15 @@ DocumentPreparationProps) {
   };
 
   // Check if task is completed
-  const isTaskCompleted = task.status === "completed";
+  const isTaskCompleted = task.status?.toLowerCase() === "completed";
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-      <h2 className="text-xl font-semibold mb-4">Document Preparation</h2>
+      <h2 className="text-xl font-semibold mb-4">Document Sharing</h2>
       <p className="text-gray-600 dark:text-gray-300 mb-6">
-        Please provide the required information and upload all the required
-        documents to proceed.
+        {viewOnly
+          ? "View the documents that have been shared for this task."
+          : "Please upload all the required documents to proceed."}
       </p>
 
       {refreshing && (
@@ -326,7 +281,7 @@ DocumentPreparationProps) {
         </div>
       )}
 
-      {allUploaded && (
+      {allUploaded && !viewOnly && (
         <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
           All documents uploaded successfully!
         </div>
@@ -363,7 +318,6 @@ DocumentPreparationProps) {
                       </p>
 
                       <a
-                        // href={uploadedDoc.file_url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 mt-1 inline-block cursor-pointer"
@@ -371,58 +325,60 @@ DocumentPreparationProps) {
                       >
                         View/Download Document
                       </a>
-
-                      {/* <button
-        onClick={() =>
-          openPreview(uploadedDoc.file_url)
-        }
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-      >
-        View .docx Document
-      </button> */}
                     </div>
                   )}
                 </div>
                 <div>
-                  <input
-                    type="file"
-                    className="hidden"
-                    onChange={(e) => handleFileChange(document, e)}
-                    ref={(el) => {
-                      fileInputRefs.current[documentId] = el;
-                    }}
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  />
-                  {/* Hide upload/replace button when task is completed */}
-                  {!isTaskCompleted && (
-                    <button
-                      type="button"
-                      onClick={() => handleUploadClick(documentId)}
-                      disabled={status === "uploading"}
-                      className={`px-4 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                        status === "success"
-                          ? "bg-green-500 text-white hover:bg-green-600 focus:ring-green-500"
+                  {/* FIXED: Properly check viewOnly and task completion */}
+                  {!viewOnly && !isTaskCompleted && (
+                    <>
+                      <input
+                        type="file"
+                        className="hidden"
+                        onChange={(e) => handleFileChange(document, e)}
+                        ref={(el) => {
+                          fileInputRefs.current[documentId] = el;
+                        }}
+                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleUploadClick(documentId)}
+                        disabled={status === "uploading"}
+                        className={`px-4 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                          status === "success"
+                            ? "bg-green-500 text-white hover:bg-green-600 focus:ring-green-500"
+                            : status === "error"
+                            ? "bg-red-100 text-red-700 hover:bg-red-200 focus:ring-red-500"
+                            : "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"
+                        } disabled:opacity-50`}
+                      >
+                        {status === "uploading"
+                          ? "Uploading..."
+                          : status === "success"
+                          ? uploadedDoc
+                            ? "Replace"
+                            : "Uploaded ✓"
                           : status === "error"
-                          ? "bg-red-100 text-red-700 hover:bg-red-200 focus:ring-red-500"
-                          : "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"
-                      } disabled:opacity-50`}
-                    >
-                      {status === "uploading"
-                        ? "Uploading..."
-                        : status === "success"
-                        ? uploadedDoc
-                          ? "Replace"
-                          : "Uploaded ✓"
-                        : status === "error"
-                        ? "Try Again"
-                        : "Upload File"}
-                    </button>
+                          ? "Try Again"
+                          : "Upload File"}
+                      </button>
+                    </>
                   )}
-                  {/* Show completion status when task is completed */}
-                  {isTaskCompleted && status === "success" && (
-                    <span className="px-4 py-2 rounded-md text-sm font-medium bg-green-100 text-green-700">
-                      Uploaded ✓
-                    </span>
+
+                  {/* Show status when view-only or task completed */}
+                  {(viewOnly || isTaskCompleted) && (
+                    <div className="flex flex-col items-end">
+                      {status === "success" ? (
+                        <span className="px-4 py-2 rounded-md text-sm font-medium bg-green-100 text-green-700">
+                          {uploadedDoc ? "Uploaded ✓" : "Available"}
+                        </span>
+                      ) : (
+                        <span className="px-4 py-2 rounded-md text-sm font-medium bg-gray-100 text-gray-600">
+                          {viewOnly ? "Not Available" : "Pending"}
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
@@ -451,33 +407,8 @@ DocumentPreparationProps) {
         {isTaskCompleted && (
           <b className="text-green-600">Task Already Submitted</b>
         )}
-        {/* 
-        {task.status !== "completed" && isLastStep && (
-          <button
-            type="submit"
-            disabled={
-              isSubmitting ||
-              !allUploaded ||
-              hasPendingPayment ||
-              hasPendingAnyProcess
-            }
-            title={
-              hasPendingPayment
-                ? "Complete all payment steps before submitting."
-                : !allUploaded
-                ? "Please upload all required documents."
-                : undefined
-            }
-            className={`px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-              hasPendingPayment
-                ? "bg-gray-400 text-white"
-                : "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"
-            }`}
-          >
-            {isSubmitting ? "Submitting..." : "Submit"}
-          </button>
-        )} */}
       </div>
+
       {/* Modal */}
       {isModalOpen && previewUrl && (
         <div className="fixed inset-0 z-40 overflow-y-auto">

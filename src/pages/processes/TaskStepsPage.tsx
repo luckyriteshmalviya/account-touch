@@ -6,7 +6,7 @@ import Documents from "./Documents";
 import Payment from "./Payment";
 import DocumentPreparation from "./DocumentPreparation";
 import ProcedureSteps from "./StepsProcedure";
-// import ProcedureSteps from "./ProcedureSteps";
+
 // ✅ Interfaces
 interface ProcessTemplateDetail {
   process_type: string;
@@ -88,6 +88,7 @@ export default function TaskStepsPage() {
       }
     })();
   }, [id]);
+
   // ✅ Re-fetch on step change
   useEffect(() => {
     if (!id) return;
@@ -107,7 +108,6 @@ export default function TaskStepsPage() {
   // ✅ Update completed steps
   useEffect(() => {
     if (task && task.processes) {
-      // console.table(task.processes);
       const completed = task.processes
         .map((p: Process, i: number) => (p.status === "completed" ? i : null))
         .filter((i): i is number => i !== null);
@@ -168,6 +168,7 @@ export default function TaskStepsPage() {
     const roles = getCurrentUserRoles();
     return roles.some((role) => ["maker", "client"].includes(role));
   };
+
   const isViewOnly = (): boolean => {
     if (task?.status === "completed") {
       return true;
@@ -177,6 +178,18 @@ export default function TaskStepsPage() {
         task?.status === "approved") &&
       isMakerOrClient()
     );
+  };
+
+  // Special function for Document Sharing (document_preparation)
+  const isDocumentSharingViewOnly = (): boolean => {
+    // Document Sharing is always view-only if task is completed
+    if (task?.status?.toLowerCase() === "completed") {
+      return true;
+    }
+
+    // Document Sharing is only editable when task status is "approved"
+    // For everyone (admin, maker, client) - only when approved
+    return task?.status?.toLowerCase() !== "approved";
   };
 
   return (
@@ -237,30 +250,63 @@ export default function TaskStepsPage() {
       {/* Steps */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
-          {processes.map((process, index) => (
-            <div key={process.id} className="flex flex-col items-center">
-              <button
-                onClick={() => handleStepClick(index)}
-                className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium cursor-pointer transition-colors ${
-                  completedSteps.includes(index)
-                    ? "bg-green-500 hover:bg-green-600"
-                    : currentStep === index
-                    ? "bg-blue-500 hover:bg-blue-600"
-                    : "bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500"
-                }`}
-              >
-                {completedSteps.includes(index) ? "✓" : index + 1}
-              </button>
-              <button
-                onClick={() => handleStepClick(index)}
-                className="text-sm mt-2 text-center hover:text-blue-600 dark:hover:text-blue-400"
-              >
-                {getLabelFromName(
-                  process.process_template_name || `Step ${index + 1}`
-                )}
-              </button>
-            </div>
-          ))}
+          {processes.map((process, index) => {
+            const processType = process.process_template_detail?.process_type;
+            const isDocumentSharing = processType === "document_preparation";
+            const isDisabled =
+              isDocumentSharing && task?.status?.toLowerCase() !== "approved";
+
+            return (
+              <div key={process.id} className="flex flex-col items-center">
+                <button
+                  onClick={() => !isDisabled && handleStepClick(index)}
+                  disabled={isDisabled}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium transition-colors ${
+                    isDisabled
+                      ? "bg-gray-300 cursor-not-allowed opacity-50"
+                      : completedSteps.includes(index)
+                      ? "bg-green-500 hover:bg-green-600 cursor-pointer"
+                      : currentStep === index
+                      ? "bg-blue-500 hover:bg-blue-600 cursor-pointer"
+                      : "bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 cursor-pointer"
+                  }`}
+                  title={
+                    isDisabled
+                      ? "Document Sharing is only available when task is approved"
+                      : ""
+                  }
+                >
+                  {completedSteps.includes(index) ? "✓" : index + 1}
+                </button>
+                <button
+                  onClick={() => !isDisabled && handleStepClick(index)}
+                  disabled={isDisabled}
+                  className={`text-sm mt-2 text-center transition-colors ${
+                    isDisabled
+                      ? "text-gray-400 cursor-not-allowed"
+                      : "hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
+                  }`}
+                  title={
+                    isDisabled
+                      ? "Document Sharing is only available when task is approved"
+                      : ""
+                  }
+                >
+                  {getLabelFromName(
+                    process.process_template_name || `Step ${index + 1}`
+                  )}
+                </button>
+                {/* Show status indicator for Document Sharing only if not approved and not completed */}
+                {isDocumentSharing &&
+                  task?.status?.toLowerCase() !== "approved" &&
+                  task?.status?.toLowerCase() !== "completed" && (
+                    <div className="text-xs text-red-500 mt-1 text-center">
+                      Requires Approval
+                    </div>
+                  )}
+              </div>
+            );
+          })}
         </div>
 
         <div className="relative mt-2">
@@ -337,7 +383,7 @@ export default function TaskStepsPage() {
                     process={currentProcess}
                     processes={processes}
                     task={task}
-                    viewOnly={isViewOnly()}
+                    viewOnly={isDocumentSharingViewOnly()}
                     setTask={setTask}
                     onComplete={() => handleStepComplete(currentStep)}
                     onPrevious={
