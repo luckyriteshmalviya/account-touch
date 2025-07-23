@@ -7,8 +7,8 @@ export default function Alerts() {
   return (
     <>
       <PageMeta
-        title="React.js Alerts Dashboard | boltecpros - React.js Admin Dashboard Template"
-        description="This is React.js Alerts Dashboard page for boltecpros - React.js Tailwind CSS Admin Dashboard Template"
+        title="Admin | Accountouch"
+        description="Admin | Accountouch"
       />
       <PageBreadcrumb pageTitle="Alerts" />
       <div className="space-y-5 sm:space-y-6">
