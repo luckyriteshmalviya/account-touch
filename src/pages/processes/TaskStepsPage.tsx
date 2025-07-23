@@ -109,7 +109,20 @@ export default function TaskStepsPage() {
   useEffect(() => {
     if (task && task.processes) {
       const completed = task.processes
-        .map((p: Process, i: number) => (p.status === "completed" ? i : null))
+        .map((p: Process, i: number) => {
+          // For document_preparation, consider it completed if task is completed or approved
+          if (
+            p.process_template_detail?.process_type === "document_preparation"
+          ) {
+            return task.status?.toLowerCase() === "completed" ||
+              task.status?.toLowerCase() === "approved" ||
+              p.status === "completed"
+              ? i
+              : null;
+          }
+          // For other processes, use the normal logic
+          return p.status === "completed" ? i : null;
+        })
         .filter((i): i is number => i !== null);
       setCompletedSteps(completed);
     }
@@ -170,12 +183,12 @@ export default function TaskStepsPage() {
   };
 
   const isViewOnly = (): boolean => {
-    if (task?.status === "completed") {
+    if (task?.status?.toLowerCase() === "completed") {
       return true;
     }
     return (
-      (task?.status === "waiting_for_approval" ||
-        task?.status === "approved") &&
+      (task?.status?.toLowerCase() === "waiting_for_approval" ||
+        task?.status?.toLowerCase() === "approved") &&
       isMakerOrClient()
     );
   };
@@ -251,59 +264,31 @@ export default function TaskStepsPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           {processes.map((process, index) => {
-            const processType = process.process_template_detail?.process_type;
-            const isDocumentSharing = processType === "document_preparation";
-            const isDisabled =
-              isDocumentSharing && task?.status?.toLowerCase() !== "approved";
+            // Check if this step should show as completed
+            const isStepCompleted = completedSteps.includes(index);
 
             return (
               <div key={process.id} className="flex flex-col items-center">
                 <button
-                  onClick={() => !isDisabled && handleStepClick(index)}
-                  disabled={isDisabled}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium transition-colors ${
-                    isDisabled
-                      ? "bg-gray-300 cursor-not-allowed opacity-50"
-                      : completedSteps.includes(index)
-                      ? "bg-green-500 hover:bg-green-600 cursor-pointer"
+                  onClick={() => handleStepClick(index)}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium cursor-pointer transition-colors ${
+                    isStepCompleted
+                      ? "bg-green-500 hover:bg-green-600"
                       : currentStep === index
-                      ? "bg-blue-500 hover:bg-blue-600 cursor-pointer"
-                      : "bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 cursor-pointer"
+                      ? "bg-blue-500 hover:bg-blue-600"
+                      : "bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500"
                   }`}
-                  title={
-                    isDisabled
-                      ? "Document Sharing is only available when task is approved"
-                      : ""
-                  }
                 >
-                  {completedSteps.includes(index) ? "✓" : index + 1}
+                  {isStepCompleted ? "✓" : index + 1}
                 </button>
                 <button
-                  onClick={() => !isDisabled && handleStepClick(index)}
-                  disabled={isDisabled}
-                  className={`text-sm mt-2 text-center transition-colors ${
-                    isDisabled
-                      ? "text-gray-400 cursor-not-allowed"
-                      : "hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
-                  }`}
-                  title={
-                    isDisabled
-                      ? "Document Sharing is only available when task is approved"
-                      : ""
-                  }
+                  onClick={() => handleStepClick(index)}
+                  className="text-sm mt-2 text-center hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors"
                 >
                   {getLabelFromName(
                     process.process_template_name || `Step ${index + 1}`
                   )}
                 </button>
-                {/* Show status indicator for Document Sharing only if not approved and not completed */}
-                {isDocumentSharing &&
-                  task?.status?.toLowerCase() !== "approved" &&
-                  task?.status?.toLowerCase() !== "completed" && (
-                    <div className="text-xs text-red-500 mt-1 text-center">
-                      Requires Approval
-                    </div>
-                  )}
               </div>
             );
           })}
