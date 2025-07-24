@@ -71,6 +71,19 @@ export const AddUserForm = () => {
       return;
     }
 
+    // Check if 'Franchise' role is selected and AssignedTo is empty
+    if (
+      selectedRoles?.value === "franchise" &&
+      (!assignedTo || !assignedTo.value)
+    ) {
+      Swal.fire({
+        icon: "error",
+        title: "Validation Error",
+        text: "Please assign at least one user to the 'Assigned To' field when selecting 'Franchise' as a role.",
+      });
+      return;
+    }
+
     // Check if 'Client' role is selected by Franchise user and AssignedTo is empty
     if (
       selectedRoles?.value === "client" &&
@@ -88,15 +101,14 @@ export const AddUserForm = () => {
     const payload: any = {
       ...user,
       role_names: selectedRoles?.value ? [selectedRoles.value] : [],
-      // role_names: selectedRoles?.value,
     };
-    // console.log(typeof selectedRoles?.value);
-    // Only add assigned_to_id if assignedTo is selected in UI
+
+    // FIX: Only add assigned_to_id if assignedTo is selected and extract the VALUE as number
     if (assignedTo && assignedTo.value) {
-      payload.assigned_to_id = assignedTo.value;
+      payload.assigned_to_id = parseInt(assignedTo.value);
     }
 
-    console.log("Payload being sent:", JSON.stringify(payload, null, 2));
+    // console.log("Payload being sent:", JSON.stringify(payload, null, 2));
     try {
       const res = await addUserService(payload);
       if (res && res.id) {
@@ -217,7 +229,9 @@ export const AddUserForm = () => {
     // Clear options when no role is selected or role doesn't need assignment
     if (
       !selectedRoles?.value ||
-      (selectedRoles.value !== "maker" && selectedRoles.value !== "client")
+      (selectedRoles.value !== "maker" &&
+        selectedRoles.value !== "client" &&
+        selectedRoles.value !== "franchise")
     ) {
       setAssignedToOptions([]);
     }
