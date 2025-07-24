@@ -71,8 +71,6 @@ const UserDetails: FC = () => {
       payload.assigned_to_id = null; // Clear assignment if nothing selected
     }
 
-    console.log("Update Payload being sent:", JSON.stringify(payload, null, 2));
-
     try {
       const res = await updateUserService(payload, id);
 
@@ -125,7 +123,6 @@ const UserDetails: FC = () => {
     const fetchUsers = async () => {
       try {
         const res = await userDetailsService(id);
-        console.log("Fetched user data:", res); // Debug log
 
         if (res.id) {
           // Update user state with fetched data

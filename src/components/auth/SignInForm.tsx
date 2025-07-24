@@ -222,9 +222,9 @@ export default function SignInForm() {
             </h1>
           </div>
 
-          <div className="flex gap-4 my-4">
+          {/* <div className="flex gap-4 my-4">
             <label className="flex items-center gap-1">Phone</label>
-          </div>
+          </div> */}
 
           {showOtp ? (
             <form onSubmit={handleSignIn}>
@@ -282,7 +282,7 @@ export default function SignInForm() {
             </form>
           )}
 
-          <div className="mt-5">
+          {/* <div className="mt-5">
             <p className="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
               Don&apos;t have an account?{" "}
               <Link
@@ -292,7 +292,7 @@ export default function SignInForm() {
                 Sign Up
               </Link>
             </p>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
