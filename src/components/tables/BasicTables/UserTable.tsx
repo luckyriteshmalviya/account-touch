@@ -11,7 +11,6 @@ import { getUserListService } from "../../../services/restApi/user";
 import { Eye, Trash } from "lucide-react";
 import Swal from "sweetalert2";
 import useIsSuperAdmin from "../../../hooks/useIsSuperAdmin";
-
 interface Order {
   id: number;
   phone_number: string;
@@ -30,7 +29,20 @@ interface Order {
     last_name: string;
     full_name: string;
   };
-  assigned_to: any | null;
+  assigned_to: {
+    id: number;
+    email: string | null;
+    first_name: string;
+    last_name: string;
+    full_name: string;
+    roles: Array<{
+      id: number;
+      name: string;
+      description: string;
+      slug: string;
+    }>;
+  } | null;
+  assigned_to_id?: number;
   pan_card?: string;
   aadhar_card?: string;
 }
@@ -162,7 +174,7 @@ export default function UserTableOne() {
           className="px-3 py-2 border rounded-md"
         >
           <option value="">All Roles</option>
-          <option value="Super Admin">Super Admin</option>
+          <option value="super_admin">Super Admin</option>
           <option value="Checker">Checker</option>
           <option value="Maker">Maker</option>
           <option value="Franchise">Franchise</option>
