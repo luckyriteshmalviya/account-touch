@@ -247,8 +247,8 @@ export default function SignInForm() {
                 >
                   Resend it!
                 </span>
-                <Button type="submit" className="w-full" size="sm">
-                  Sign In
+                <Button type="submit" className="w-full bg-gradient-to-br from-brand-400" size="sm">
+                  Sign In 
                 </Button>
               </div>
             </form>
@@ -275,7 +275,7 @@ export default function SignInForm() {
                     )}
                   </div>
                 )}
-                <Button type="submit" className="w-full" size="sm">
+                <Button type="submit" className="w-full bg-gradient-to-br from-brand-400" >
                   Send OTP
                 </Button>
               </div>
