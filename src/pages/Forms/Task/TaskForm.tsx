@@ -75,23 +75,28 @@ const TaskForm = ({
         const auth = JSON.parse(localStorage.getItem("auth") || "{}");
         const accessToken = auth?.access;
 
-        const response = await fetch(
-          "https://api.accountouch.com/api/tasks/categories/",
-          {
+        let categories: Category[] = [];
+        let nextPage = `https://api.accountouch.com/api/tasks/categories/`;
+
+        while (nextPage) {
+          const response = await fetch(nextPage, {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${accessToken}`,
             },
-          }
-        );
+          });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          categories = [...categories, ...(data.results || [])];
+          nextPage = data.next;
         }
 
-        const data = await response.json();
-        setCategories(data.results || []);
+        setCategories(categories);
       } catch (error) {
         console.error("Error fetching categories:", error);
       }
@@ -101,34 +106,37 @@ const TaskForm = ({
   }, []);
 
   // Fetch templates based on selected category
+  // Fetch templates based on selected category
   useEffect(() => {
     const fetchTemplates = async () => {
       if (!task.category_id) return;
 
       try {
-        // Get the auth token from localStorage
         const auth = JSON.parse(localStorage.getItem("auth") || "{}");
         const accessToken = auth?.access;
 
-        // Use the token in the request
-        const response = await fetch(
-          `https://api.accountouch.com/api/tasks/task-templates/?category=${task.category_id}`,
-          {
+        let templates: Template[] = [];
+        let nextPage = `https://api.accountouch.com/api/tasks/task-templates/?category=${task.category_id}`;
+
+        while (nextPage) {
+          const response = await fetch(nextPage, {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${accessToken}`,
             },
-          }
-        );
+          });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          templates = [...templates, ...(data.results || [])];
+          nextPage = data.next;
         }
 
-        const data = await response.json();
-        // The data is in the results array
-        setTemplates(data.results || []);
+        setTemplates(templates);
       } catch (error) {
         console.error("Error fetching templates:", error);
       }
@@ -143,26 +151,30 @@ const TaskForm = ({
       const auth = JSON.parse(localStorage.getItem("auth") || "{}");
       const accessToken = auth?.access;
 
-      const searchParam = search ? `&search=${search}` : "";
-      const response = await fetch(
-        `https://api.accountouch.com/api/users/users/?roles__name=Client${searchParam}`,
-        {
+      let clients: User[] = [];
+      let nextPage = `https://api.accountouch.com/api/users/users/?roles__name=Client${
+        search ? `&search=${search}` : ""
+      }`;
+
+      while (nextPage) {
+        const response = await fetch(nextPage, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
           },
-        }
-      );
+        });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        clients = [...clients, ...(data.results || [])];
+        nextPage = data.next; // API response me agar next page hai to yahan URL milega
       }
 
-      const data = await response.json();
-      setClients(
-        (data.results || []).filter((client: User) => client.is_active)
-      );
+      setClients(clients.filter((client) => client.is_active));
     } catch (error) {
       console.error("Error fetching clients:", error);
     }
@@ -174,33 +186,35 @@ const TaskForm = ({
 
   // Fetch makers
   useEffect(() => {
+    // Fetch makers (with pagination)
     const fetchMakers = async () => {
       try {
-        // Get the auth token from localStorage
         const auth = JSON.parse(localStorage.getItem("auth") || "{}");
         const accessToken = auth?.access;
 
-        // Use the token in the request
-        const response = await fetch(
-          "https://api.accountouch.com/api/users/users/?roles__name=Maker",
-          {
+        let makers: User[] = [];
+        let nextPage = `https://api.accountouch.com/api/users/users/?roles__name=Maker`;
+
+        while (nextPage) {
+          const response = await fetch(nextPage, {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${accessToken}`,
             },
-          }
-        );
+          });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          makers = [...makers, ...(data.results || [])];
+          nextPage = data.next;
         }
 
-        const data = await response.json();
-        // Filter only active makers (is_active) from the results array
-        setMakers(
-          (data.results || []).filter((maker: User) => maker.is_active)
-        );
+        // Only include active makers
+        setMakers(makers.filter((maker) => maker.is_active));
       } catch (error) {
         console.error("Error fetching makers:", error);
       }

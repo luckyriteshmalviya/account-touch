@@ -57,8 +57,10 @@ export const AddUserForm = () => {
     null
   );
 
+  // AddUserForm में submitForm function को इससे replace करें:
+
   const submitForm = async () => {
-    // Check if 'Maker' role is selected and AssignedTo is empty
+    // Validation for roles that need assignment
     if (
       selectedRoles?.value === "maker" &&
       (!assignedTo || !assignedTo.value)
@@ -71,7 +73,6 @@ export const AddUserForm = () => {
       return;
     }
 
-    // Check if 'Franchise' role is selected and AssignedTo is empty
     if (
       selectedRoles?.value === "franchise" &&
       (!assignedTo || !assignedTo.value)
@@ -84,7 +85,6 @@ export const AddUserForm = () => {
       return;
     }
 
-    // Check if 'Client' role is selected by Franchise user and AssignedTo is empty
     if (
       selectedRoles?.value === "client" &&
       currentUserRole === "franchise" &&
@@ -103,14 +103,40 @@ export const AddUserForm = () => {
       role_names: selectedRoles?.value ? [selectedRoles.value] : [],
     };
 
-    // FIX: Only add assigned_to_id if assignedTo is selected and extract the VALUE as number
-    if (assignedTo && assignedTo.value) {
-      payload.assigned_to_id = parseInt(assignedTo.value);
-    }
+    // FIX: Only add assigned_to_id for roles that actually need it
+    // Super Admin and Admin roles should NOT have assigned_to_id
+    const rolesThatNeedAssignment = ["maker", "franchise"];
+    const rolesThatCanHaveOptionalAssignment = ["client"];
+    const rolesWithNoAssignment = [
+      "super-admin",
+      "super_admin",
+      "admin",
+      "checker",
+    ];
 
-    // console.log("Payload being sent:", JSON.stringify(payload, null, 2));
+    // Get the current role value safely
+    const currentRoleValue = selectedRoles?.value || "";
+
+    if (rolesThatNeedAssignment.includes(currentRoleValue)) {
+      // For maker and franchise, assignment is mandatory (already validated above)
+      if (assignedTo && assignedTo.value) {
+        payload.assigned_to_id = parseInt(assignedTo.value);
+      }
+    } else if (rolesThatCanHaveOptionalAssignment.includes(currentRoleValue)) {
+      // For client, assignment is optional depending on current user role
+      if (assignedTo && assignedTo.value) {
+        payload.assigned_to_id = parseInt(assignedTo.value);
+      }
+      // Don't send assigned_to_id field if not assigned for client role
+    }
+    // For super-admin, admin, checker roles: DON'T send assigned_to_id field at all
+
+    console.log("Final payload:", JSON.stringify(payload, null, 2));
+
     try {
       const res = await addUserService(payload);
+      console.log("API Response:", JSON.stringify(res, null, 2));
+
       if (res && res.id) {
         Swal.fire({
           icon: "success",
@@ -153,7 +179,6 @@ export const AddUserForm = () => {
       });
     }
   };
-
   const [assignedToOptions, setAssignedToOptions] = useState<any[]>([]);
 
   useEffect(() => {
