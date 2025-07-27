@@ -70,7 +70,7 @@ export const fetchAssignedToList = async (role: string = "Checker") => {
     const accessToken = auth?.access;
 
     let allUsers: any[] = [];
-    let nextPage = `https://api.accountouch.com/api/users/users/?roles__name=${role}`;
+    let nextPage = `https://api.accountouch.com/api/users/users/?roles__name=${role}&is_active=true&page_size=3000`;
 
     while (nextPage) {
       console.log("Fetching:", nextPage);
