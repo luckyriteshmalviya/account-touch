@@ -84,13 +84,13 @@ export const fetchAssignedToList = async (role: string = "Checker") => {
       });
 
       const data = await response.json();
-      console.log("Fetched Data:", data);
+      // console.log("Fetched Data:", data);
 
       allUsers = [...allUsers, ...(data.results || [])];
       nextPage = data.next;
     }
 
-    console.log("Final Users Count:", allUsers.length);
+    // console.log("Final Users Count:", allUsers.length);
 
     // FIX: Return in the same format that your components expect
     return {

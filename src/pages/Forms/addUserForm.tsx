@@ -45,8 +45,8 @@ export const AddUserForm = () => {
     is_active: true,
     created_by: {
       first_name: currentUser?.first_name || "",
-      last_name: currentUser?.last_name || "",
-      email: currentUser?.email || "",
+      // last_name: currentUser?.last_name || "",
+      // email: currentUser?.email || "",
     },
   });
 
@@ -57,10 +57,7 @@ export const AddUserForm = () => {
     null
   );
 
-  // AddUserForm में submitForm function को इससे replace करें:
-
   const submitForm = async () => {
-    // Validation for roles that need assignment
     if (
       selectedRoles?.value === "maker" &&
       (!assignedTo || !assignedTo.value)
@@ -97,9 +94,18 @@ export const AddUserForm = () => {
       });
       return;
     }
+    const requiredFields = ["first_name", "phone_number", ""]; // add any other always-required fields here
+
+    const cleanedUserData = Object.fromEntries(
+      Object.entries(user).filter(([key, value]) => {
+        const isRequired = requiredFields.includes(key);
+        if (isRequired) return true; // Keep required fields even if empty
+        return value !== "" && value !== null && value !== undefined;
+      })
+    );
 
     const payload: any = {
-      ...user,
+      ...cleanedUserData,
       role_names: selectedRoles?.value ? [selectedRoles.value] : [],
     };
 
@@ -131,11 +137,11 @@ export const AddUserForm = () => {
     }
     // For super-admin, admin, checker roles: DON'T send assigned_to_id field at all
 
-    console.log("Final payload:", JSON.stringify(payload, null, 2));
+    // console.log("Final payload:", JSON.stringify(payload, null, 2));
 
     try {
       const res = await addUserService(payload);
-      console.log("API Response:", JSON.stringify(res, null, 2));
+      // console.log("API Response:", JSON.stringify(res, null, 2));
 
       if (res && res.id) {
         Swal.fire({
