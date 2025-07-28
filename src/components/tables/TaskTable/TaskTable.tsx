@@ -1073,7 +1073,7 @@ export default function TasksTable() {
                           ? new Date(task.due_date).toLocaleDateString()
                           : "N/A"}
                       </TableCell>
-                      <TableCell className="flex items-center gap-3 px-4 py-3">
+                      <TableCell className="flex items-center gap-3 px-4 py-7 ">
                         <Eye
                           className="w-5 h-5 text-blue-600 hover:text-blue-800 cursor-pointer"
                           onClick={() => navigate(`/tasks/view/${task.id}`)}

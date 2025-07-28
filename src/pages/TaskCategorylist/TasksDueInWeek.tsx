@@ -51,7 +51,7 @@ export default function TasksDueInWeek() {
       <div className="flex items-center gap-2 mb-4">
         <CalendarDaysIcon className="text-rose-600 w-5 h-5" />
         <h3 className="text-lg font-semibold text-gray-800">
-          Tasks Due in Next Week
+          TASK DUE IN NEXT 7 DAYS
         </h3>
       </div>
 

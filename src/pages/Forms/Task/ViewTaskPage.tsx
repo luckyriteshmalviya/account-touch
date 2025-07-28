@@ -27,8 +27,9 @@ export default function ViewTaskPage() {
   const [approvalError, setApprovalError] = useState<string | null>(null);
 
   const getLabelFromName = (name: string) => {
-    const match = name.match(/\(([^)]+)\)/);
-    const label = match ? match[1] : name;
+    const matches = name.match(/\(([^)]+)\)/g); // get all (..)
+    const lastMatch = matches ? matches[matches.length - 1] : null;
+    const label = lastMatch ? lastMatch.replace(/[()]/g, "") : name;
 
     if (label === "Document Preparation") {
       return "Document Sharing";
