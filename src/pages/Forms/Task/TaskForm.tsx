@@ -75,23 +75,28 @@ const TaskForm = ({
         const auth = JSON.parse(localStorage.getItem("auth") || "{}");
         const accessToken = auth?.access;
 
-        const response = await fetch(
-          "https://api.accountouch.com/api/tasks/categories/",
-          {
+        let categories: Category[] = [];
+        let nextPage = `https://api.accountouch.com/api/tasks/categories/`;
+
+        while (nextPage) {
+          const response = await fetch(nextPage, {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${accessToken}`,
             },
-          }
-        );
+          });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          categories = [...categories, ...(data.results || [])];
+          nextPage = data.next;
         }
 
-        const data = await response.json();
-        setCategories(data.results || []);
+        setCategories(categories);
       } catch (error) {
         console.error("Error fetching categories:", error);
       }
@@ -106,29 +111,31 @@ const TaskForm = ({
       if (!task.category_id) return;
 
       try {
-        // Get the auth token from localStorage
         const auth = JSON.parse(localStorage.getItem("auth") || "{}");
         const accessToken = auth?.access;
 
-        // Use the token in the request
-        const response = await fetch(
-          `https://api.accountouch.com/api/tasks/task-templates/?category=${task.category_id}`,
-          {
+        let templates: Template[] = [];
+        let nextPage = `https://api.accountouch.com/api/tasks/task-templates/?category=${task.category_id}`;
+
+        while (nextPage) {
+          const response = await fetch(nextPage, {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${accessToken}`,
             },
-          }
-        );
+          });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          templates = [...templates, ...(data.results || [])];
+          nextPage = data.next;
         }
 
-        const data = await response.json();
-        // The data is in the results array
-        setTemplates(data.results || []);
+        setTemplates(templates);
       } catch (error) {
         console.error("Error fetching templates:", error);
       }
@@ -145,7 +152,7 @@ const TaskForm = ({
 
       const searchParam = search ? `&search=${search}` : "";
       const response = await fetch(
-        `https://api.accountouch.com/api/users/users/?roles__name=Client${searchParam}`,
+        `https://api.accountouch.com/api/users/users/?roles__name=Client${searchParam}&is_active=true&page_size=3000`,
         {
           method: "GET",
           headers: {
@@ -182,7 +189,7 @@ const TaskForm = ({
 
         // Use the token in the request
         const response = await fetch(
-          "https://api.accountouch.com/api/users/users/?roles__name=Maker",
+          "https://api.accountouch.com/api/users/users/?roles__name=Maker&is_active=true&page_size=3000",
           {
             method: "GET",
             headers: {

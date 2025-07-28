@@ -116,38 +116,29 @@ export const UserForm = ({
     return rolesOptions.filter((role) => role.value === "client");
   };
 
-  // Check if assigned to should be shown
+  // Check if assigned to should be shown - UPDATED
   const shouldShowAssignedTo = (): boolean => {
     if (!selectedRoles?.value) return false;
 
-    // Show for maker role (existing logic)
+    // Show for maker role
     if (selectedRoles.value === "maker") return true;
 
-    // Show for franchise role - ADD THIS CONDITION
+    // Show for franchise role
     if (selectedRoles.value === "franchise") return true;
 
-    // Show for client role only if current user is Franchise
-    if (selectedRoles.value === "client" && currentUserRole === "franchise") {
-      return true;
-    }
-    // Show for admin/super-admin adding client (but not mandatory)
-    if (
-      selectedRoles.value === "client" &&
-      (currentUserRole === "super-admin" ||
+    // Show for client role based on current user role
+    if (selectedRoles.value === "client") {
+      if (currentUserRole === "franchise") return true;
+      if (
+        currentUserRole === "super-admin" ||
         currentUserRole === "admin" ||
-        currentUserRole === "super_admin")
-    ) {
-      return true;
+        currentUserRole === "super_admin"
+      ) {
+        return true;
+      }
     }
 
-    // Hide for Maker/Checker adding client
-    if (
-      selectedRoles.value === "client" &&
-      (currentUserRole === "maker" || currentUserRole === "checker")
-    ) {
-      return false;
-    }
-
+    // Hide for other combinations
     return false;
   };
 
@@ -173,7 +164,7 @@ export const UserForm = ({
     // Mandatory for maker role
     if (selectedRoles?.value === "maker") return true;
 
-    // Mandatory for franchise role - ADD THIS CONDITION
+    // Mandatory for franchise role
     if (selectedRoles?.value === "franchise") return true;
 
     // Mandatory for franchise adding client
@@ -258,6 +249,9 @@ export const UserForm = ({
       if (selectedRoles?.value === "maker") {
         newErrors.assigned_to =
           "Please assign at least one user to the 'Assigned To' field when selecting 'Maker' as a role.";
+      } else if (selectedRoles?.value === "franchise") {
+        newErrors.assigned_to =
+          "Please assign at least one user to the 'Assigned To' field when selecting 'Franchise' as a role.";
       } else if (
         selectedRoles?.value === "client" &&
         currentUserRole === "franchise"
@@ -434,15 +428,19 @@ export const UserForm = ({
               )}
             </div>
 
-            {/* Show Assigned To field based on conditions */}
+            {/* Show Assigned To field based on conditions - UPDATED */}
             {
               // Show in edit/add mode if shouldShowAssignedTo returns true
               ((!isDisabled && shouldShowAssignedTo()) ||
-                // Show in view mode only if there's an assigned value and label
+                // Show in view mode if there's an assigned value and label
                 (isDisabled &&
                   assignedTo &&
                   assignedTo.value &&
-                  assignedTo.label)) && (
+                  assignedTo.label) ||
+                // Also show in view mode for roles that typically have assignments (even if null)
+                (isDisabled &&
+                  selectedRoles?.value &&
+                  ["maker", "franchise"].includes(selectedRoles.value))) && (
                 <div className="space-y-6">
                   <Label htmlFor="assignedTo">
                     Assigned To
@@ -472,6 +470,11 @@ export const UserForm = ({
                     closeMenuOnSelect={true}
                     isSearchable
                     isDisabled={isDisabled || !isAssignedToEditable()}
+                    placeholder={
+                      assignedTo && assignedTo.label
+                        ? assignedTo.label
+                        : "Select"
+                    }
                   />
 
                   {errors.assigned_to && (

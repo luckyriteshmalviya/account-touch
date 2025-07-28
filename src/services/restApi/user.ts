@@ -62,30 +62,49 @@ export const addUserService = async (payload: UserPayload) => {
     return null;
   }
 };
+// services/restApi/user.js में fetchAssignedToList function को इससे replace करें:
 
 export const fetchAssignedToList = async (role: string = "Checker") => {
   try {
     const auth = JSON.parse(localStorage.getItem("auth") || "{}");
     const accessToken = auth?.access;
-    const response = await fetch(
-      `https://api.accountouch.com/api/users/users/?roles__name=${role}`,
-      {
+
+    let allUsers: any[] = [];
+    let nextPage = `https://api.accountouch.com/api/users/users/?roles__name=${role}&is_active=true&page_size=3000`;
+
+    while (nextPage) {
+      console.log("Fetching:", nextPage);
+
+      const response = await fetch(nextPage, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
-      }
-    );
+      });
 
-    const data = await response.json();
-    return data;
+      const data = await response.json();
+      console.log("Fetched Data:", data);
+
+      allUsers = [...allUsers, ...(data.results || [])];
+      nextPage = data.next;
+    }
+
+    console.log("Final Users Count:", allUsers.length);
+
+    // FIX: Return in the same format that your components expect
+    return {
+      results: allUsers,
+      count: allUsers.length,
+    };
   } catch (e) {
-    console.error("Error in addUserService:", e);
-    return null;
+    console.error("Error in fetchAssignedToList:", e);
+    return {
+      results: [],
+      count: 0,
+    };
   }
 };
-
 // Get list of all users
 export const getUserListService = async (params = {}) => {
   try {
