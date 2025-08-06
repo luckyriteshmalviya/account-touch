@@ -113,12 +113,12 @@ export const AddUserForm = () => {
     // Super Admin and Admin roles should NOT have assigned_to_id
     const rolesThatNeedAssignment = ["maker", "franchise"];
     const rolesThatCanHaveOptionalAssignment = ["client"];
-    const rolesWithNoAssignment = [
-      "super-admin",
-      "super_admin",
-      "admin",
-      "checker",
-    ];
+    // const rolesWithNoAssignment = [
+    //   "super-admin",
+    //   "super_admin",
+    //   "admin",
+    //   "checker",
+    // ];
 
     // Get the current role value safely
     const currentRoleValue = selectedRoles?.value || "";

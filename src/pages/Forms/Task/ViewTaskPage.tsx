@@ -35,6 +35,10 @@ export default function ViewTaskPage() {
       return "Document Sharing";
     }
 
+    if (label === "Steps Procedure") {
+      return "Document Preparation";
+    }
+
     return label;
   };
 

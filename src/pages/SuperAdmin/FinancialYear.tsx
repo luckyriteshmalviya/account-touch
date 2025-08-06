@@ -53,7 +53,7 @@ export default function DashboardStats() {
   };
 
   return (
-    <div className="mt-6 w-[75vw] border border-gray-200 rounded-2xl px-6 py-5 bg-white shadow-lg">
+    <div className="mt-6  border border-gray-200 rounded-2xl px-6 py-5 bg-white shadow-lg">
       <h4 className="text-lg font-bold text-gray-800 mb-6">
         📊 This Financial Year Summary
       </h4>
