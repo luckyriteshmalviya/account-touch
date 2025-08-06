@@ -206,6 +206,7 @@ export default function UserTableOne() {
                     "User name",
                     "Phone Number",
                     "Email",
+                    "PAN Card",
                     "Roles",
                     "Status",
                     "Assigned To",
@@ -240,6 +241,11 @@ export default function UserTableOne() {
                     <TableCell className="px-4 py-4 text-start">
                       {order.email || "-"}
                     </TableCell>
+
+                    <TableCell className="px-4 py-4 text-start">
+                      {order.pan_card || "-"}
+                    </TableCell>
+
                     <TableCell className="px-4 py-4 text-start">
                       {order.roles?.join(", ")}
                     </TableCell>

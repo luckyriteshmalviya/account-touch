@@ -144,7 +144,7 @@ export default function ProcedureSteps({
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
       <h2 className="text-xl font-semibold mb-4">
-        {process.process_template_name || "Procedure Steps"}
+        {process.process_template_name || "Document Preparation"}
       </h2>
 
       <div className="prose dark:prose-invert mb-6">

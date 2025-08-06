@@ -14,17 +14,21 @@ export const getDocumentTypeListService = async (params: {
     const token = getAccessToken();
 
     const queryParams = new URLSearchParams();
-    // if (params.page) queryParams.append("page", params.page.toString());
+
+    if (params.page) queryParams.append("page", params.page.toString());
+
+    queryParams.append("page_size", "10");
+
     if (params.search) queryParams.append("search", params.search);
+
     if (params.ordering) {
       queryParams.append("ordering", params.ordering);
     } else {
-      // queryParams.append("ordering", "-created_at");
-      queryParams.append("page_size", "500");
+      queryParams.append("ordering", "title");
     }
 
     const res = await fetch(
-      `https://api.accountouch.com/api/tasks/document-types/?${queryParams.toString()}&ordering=title`,
+      `https://api.accountouch.com/api/tasks/document-types/?${queryParams.toString()}`,
       {
         method: "GET",
         headers: {

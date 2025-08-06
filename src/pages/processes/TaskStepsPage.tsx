@@ -47,7 +47,9 @@ export default function TaskStepsPage() {
     if (label === "Document Preparation") {
       return "Document Sharing";
     }
-
+    if (label === "Steps Procedure") {
+      return "Document Preparation";
+    }
     return label;
   };
 
