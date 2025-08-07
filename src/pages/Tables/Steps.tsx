@@ -18,16 +18,21 @@ function StepsTable() {
   const [steps, setSteps] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
 
   const fetchSteps = async () => {
-    const res = await getStepsListService({ search });
-    if (res) setSteps(res.results);
+    const res = await getStepsListService({ page, search, page_size: 10 });
+    if (res) {
+      setSteps(res.results || []);
+      setTotalPages(Math.ceil(res.count / 10));
+    }
   };
 
   useEffect(() => {
     fetchSteps();
-  }, [search]);
+  }, [page, search]);
 
   const handleDelete = async () => {
     if (deleteId !== null) {
@@ -56,7 +61,10 @@ function StepsTable() {
           placeholder="Search steps..."
           className="px-3 py-2 border rounded"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1); // reset to page 1 on search
+          }}
         />
         <button
           onClick={() => navigate("/add-step")}
@@ -121,6 +129,27 @@ function StepsTable() {
             </Table>
           </div>
         </div>
+      </div>
+
+      {/* Pagination */}
+      <div className="flex justify-center mt-4 space-x-2">
+        <button
+          disabled={page === 1}
+          className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+          onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+        >
+          Prev
+        </button>
+        <span className="px-4 py-2">
+          {page} / {totalPages}
+        </span>
+        <button
+          disabled={page === totalPages}
+          className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+          onClick={() => setPage((prev) => prev + 1)}
+        >
+          Next
+        </button>
       </div>
 
       {/* Delete Confirmation Modal */}

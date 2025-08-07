@@ -9,6 +9,7 @@ export const getStepsListService = async (params: {
   page?: number;
   search?: string;
   ordering?: string;
+  page_size?: number;
 }) => {
   try {
     const token = getAccessToken();
@@ -17,9 +18,9 @@ export const getStepsListService = async (params: {
     if (params.search) queryParams.append("search", params.search);
     if (params.ordering) {
       queryParams.append("ordering", params.ordering);
-    } else {
-      queryParams.append("page_size", "500");
     }
+    queryParams.append("page", (params.page || 1).toString());
+    queryParams.append("page_size", (params.page_size || 10).toString());
 
     const res = await fetch(
       `https://api.accountouch.com/api/tasks/steps/?${queryParams.toString()}`,
