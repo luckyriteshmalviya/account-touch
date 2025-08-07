@@ -41,6 +41,16 @@ export default function ViewProcessTemplatPage() {
     );
   }
 
+  const getReadableProcessType = (type: any) => {
+    if (type === "steps_procedure") return "Document Preparation";
+    if (type === "document_preparation") return "Document Sharing";
+
+    return type
+      ?.split("_")
+      .map((w: any) => w[0].toUpperCase() + w.slice(1))
+      .join(" ");
+  };
+
   // Format date helper function
   const formatDate = (dateString: string) => {
     if (!dateString) return "-";
@@ -76,8 +86,8 @@ export default function ViewProcessTemplatPage() {
             <h3 className="text-sm uppercase text-gray-500 dark:text-gray-400 font-medium mb-1">
               Process Type
             </h3>
-            <p className="text-gray-900 dark:text-white font-medium capitalize">
-              {processTemplat?.process_type || "-"}
+            <p className="text-gray-900 dark:text-white font-medium">
+              {getReadableProcessType(processTemplat?.process_type) || "-"}
             </p>
           </div>
         </div>
