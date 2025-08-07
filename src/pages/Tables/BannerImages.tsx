@@ -18,21 +18,26 @@ const BannerImages = () => {
   const [bannerImages, setBannerImages] = useState<BannerImage[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchBannerImages();
-  }, [searchTerm]);
+  }, [searchTerm, page]);
 
   const fetchBannerImages = async () => {
     setLoading(true);
     try {
       const response = await getBannerListService({
         search: searchTerm,
-        ordering: "-id", // latest first
+        ordering: "-id",
+        page,
+        page_size: 10,
       });
       if (response && response.results) {
         setBannerImages(response.results);
+        setTotalPages(Math.ceil(response.count / 10));
       } else {
         setBannerImages([]);
       }
@@ -96,7 +101,10 @@ const BannerImages = () => {
             type="text"
             placeholder="Search banner images..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
             className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
@@ -193,6 +201,37 @@ const BannerImages = () => {
           )}
         </div>
       )}
+
+      {/* Pagination */}
+      <div className="flex justify-center items-center mt-6 gap-2 flex-wrap">
+        <button
+          onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+          disabled={page === 1}
+          className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+        >
+          Prev
+        </button>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((pg) => (
+          <button
+            key={pg}
+            onClick={() => setPage(pg)}
+            className={`px-3 py-1 rounded ${
+              page === pg
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 hover:bg-gray-300"
+            }`}
+          >
+            {pg}
+          </button>
+        ))}
+        <button
+          onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+          disabled={page === totalPages}
+          className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 };

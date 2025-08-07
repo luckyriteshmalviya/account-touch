@@ -19,14 +19,16 @@ export const getQuestionListService = async (params: {
   page?: number;
   search?: string;
   ordering?: string;
+  page_size?: number;
 }) => {
   try {
     const queryParams = new URLSearchParams();
     if (params.page) queryParams.append("page", params.page.toString());
     if (params.search) queryParams.append("search", params.search);
     queryParams.append("ordering", params.ordering || "text");
+    queryParams.append("page_size", (params.page_size || 10).toString());
 
-    const res = await fetch(`${API_BASE}/?page_size=500&${queryParams}`, {
+    const res = await fetch(`${API_BASE}/?${queryParams}`, {
       method: "GET",
       headers: getAuthHeaders(),
     });

@@ -32,6 +32,15 @@ interface ProcessTemplat {
   required_documents: RequiredDocument[];
 }
 
+// ✅ Mapping process_type values
+const processTypeMap: Record<string, string> = {
+  steps_procedure: "Document Preparation",
+  document_preparation: "Document Sharing",
+  questionnaire: "Questionnaire",
+  documentation: "Documentation",
+  payment: "Payment",
+};
+
 export default function ProcessTemplatTable() {
   const isSuperAdmin = useIsSuperAdmin();
   const [processTemplat, setProcessTemplat] = useState<ProcessTemplat[]>([]);
@@ -55,7 +64,7 @@ export default function ProcessTemplatTable() {
     });
     if (res?.results) {
       setProcessTemplat(res.results);
-      setTotalPages(Math.ceil(res.count / 10)); // assuming 10 per page
+      setTotalPages(Math.ceil(res.count / 10)); // 10 per page
     }
   };
 
@@ -108,7 +117,8 @@ export default function ProcessTemplatTable() {
             <option value="questionnaire">Questionnaire</option>
             <option value="documentation">Documentation</option>
             <option value="payment">Payment</option>
-            <option value="document_preparation">Document Preparation</option>
+            <option value="document_preparation">Document Sharing</option>
+            <option value="steps_procedure">Document Preparation</option>
           </select>
         </div>
       </div>
@@ -144,29 +154,24 @@ export default function ProcessTemplatTable() {
                   const doc = proc.required_documents?.[0];
                   return (
                     <TableRow key={proc.id} className="text-center">
-                      <TableCell className="px-4 py-4 text-start bold text-[#417893]">
+                      <TableCell className="px-4 py-4 text-start font-semibold text-[#417893]">
                         {proc.title}
                       </TableCell>
                       <TableCell className="px-4 py-4 text-start">
-                        {proc.process_type
-                          ? proc.process_type
-                              .replace(/_/g, " ")
-                              .replace(/^\w/, (c) => c.toUpperCase())
-                          : "-"}
+                        {processTypeMap[proc.process_type] ||
+                          proc.process_type
+                            .replace(/_/g, " ")
+                            .replace(/^\w/, (c) => c.toUpperCase())}
                       </TableCell>
                       <TableCell className="px-4 py-4 text-start">
                         {proc.status || "-"}
                       </TableCell>
                       <TableCell className="px-4 py-4 text-start">
-                        {/* {proc.required_documents?.[0]?.is_active ? ( */}
                         <span className="text-green-600 text-xl">✅</span>
-                        {/* ) : (
-                          <span className="text-red-600 text-xl">❌</span>
-                        )} */}
                       </TableCell>
                       <TableCell className="px-4 py-4 text-start">
-                        {proc?.required_documents?.[0]?.created_at
-                          ? new Date(proc?.required_documents?.[0]?.created_at)
+                        {doc?.created_at
+                          ? new Date(doc.created_at)
                               .toLocaleString("en-US", {
                                 year: "numeric",
                                 month: "long",

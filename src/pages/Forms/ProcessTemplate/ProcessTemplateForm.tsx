@@ -160,7 +160,7 @@ const ProcessTemplatForm = ({
             >
               <option value="">Select Process</option>
               <option value="questionnaire">Questionnaire</option>
-              <option value="procedure">Procedure</option>
+              <option value="procedure">Document Prepration</option>
               <option value="documentation">Documentation</option>
               <option value="payment">Payment</option>
               <option value="document_preparation">Document Sharing</option>

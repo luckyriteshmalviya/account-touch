@@ -3,28 +3,29 @@ import { getAccessToken } from "./user";
 export const getProcessTemplatListService = async (params: {
   is_active?: boolean;
   ordering?: string;
-  page?: Number;
+  page?: number;
   processtype?: string;
   search?: string;
 }) => {
   try {
     const token = getAccessToken();
-
     const queryParams = new URLSearchParams();
 
-    if (params.is_active)
+    if (params.is_active !== undefined)
       queryParams.append("is_active", params.is_active.toString());
-    // if (params.page) queryParams.append("page", params.page.toString());
+
     if (params.processtype)
       queryParams.append("process_type", params.processtype);
+
     if (params.search) queryParams.append("search", params.search);
-    if (params.ordering) {
-      queryParams.append("ordering", params.ordering);
-    } else {
-      queryParams.append("ordering", "title"); // 👈 Default: latest created first
-    }
+
+    queryParams.append("ordering", params.ordering || "title");
+
+    queryParams.append("page", (params.page || 1).toString());
+    queryParams.append("page_size", "10");
+
     const res = await fetch(
-      `  https://api.accountouch.com/api/tasks/process-templates?page_size=500&${queryParams.toString()}`,
+      `https://api.accountouch.com/api/tasks/process-templates/?${queryParams.toString()}`,
       {
         method: "GET",
         headers: {
