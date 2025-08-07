@@ -8,7 +8,7 @@ import { useRef } from "react";
 export default function TasksByStatus() {
   const { dashboardData, loading } = useDashboard();
   const navigate = useNavigate();
-  const chartRef = useRef<any>(null); // Chart ref
+  const chartRef = useRef<any>(null);
 
   const categories = [
     { label: "Pending", value: "pending" },
@@ -94,7 +94,7 @@ export default function TasksByStatus() {
   ];
 
   return (
-    <div className="cursor-pointer overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 px-6 pt-5 pb-6 shadow-lg transition-all duration-500 hover:shadow-xl active:scale-[0.98]">
+    <div className="cursor-pointer overflow-hidden h-[340px] rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 px-6 pt-5 pb-6 shadow-lg transition-all duration-500 hover:shadow-xl active:scale-[0.98]">
       <div className="flex items-center justify-between mb-4">
         <div
           className="flex items-center gap-3"
